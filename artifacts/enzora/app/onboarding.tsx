@@ -19,11 +19,57 @@ interface Slide {
   subKey: string;
 }
 
-const colorDotStyle = {
-  width: 56,
-  height: 56,
-  borderRadius: 28,
-};
+const COLOR_ROWS: { color: string; labelKey: string; descKey: string }[] = [
+  { color: "#FFB703", labelKey: "onboardColorYellow", descKey: "onboardColorYellowDesc" },
+  { color: "#06D6A0", labelKey: "onboardColorGreen", descKey: "onboardColorGreenDesc" },
+  { color: "#4DABF7", labelKey: "onboardColorBlue", descKey: "onboardColorBlueDesc" },
+];
+
+function ColorScaleIllustration() {
+  const { t } = useTranslation();
+  return (
+    <View style={{ gap: 14, paddingHorizontal: 4 }}>
+      {COLOR_ROWS.map((r) => (
+        <View
+          key={r.color}
+          style={{ flexDirection: "row", alignItems: "center", gap: 14 }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: r.color,
+            }}
+          />
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 17,
+                color: c.textPrimary,
+                fontFamily: "Inter_700Bold",
+                fontWeight: "700",
+              }}
+            >
+              {t(r.labelKey)}
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                color: c.textSecondary,
+                fontFamily: "Inter_400Regular",
+                marginTop: 4,
+                lineHeight: 22,
+              }}
+            >
+              {t(r.descKey)}
+            </Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 const slides: Slide[] = [
   {
@@ -36,13 +82,7 @@ const slides: Slide[] = [
   },
   {
     bg: ["#F0FDF4", "#F8F9FF"],
-    icon: (
-      <View style={{ flexDirection: "row", gap: 16 }}>
-        <View style={[colorDotStyle, { backgroundColor: "#FFB703" }]} />
-        <View style={[colorDotStyle, { backgroundColor: "#FF6B6B" }]} />
-        <View style={[colorDotStyle, { backgroundColor: "#EF233C" }]} />
-      </View>
-    ),
+    icon: <ColorScaleIllustration />,
     titleKey: "onboard2Title",
     subKey: "onboard2Sub",
   },
@@ -139,13 +179,15 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   illustration: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    minWidth: 220,
+    minHeight: 220,
+    borderRadius: 28,
     backgroundColor: "rgba(255,255,255,0.7)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 40,
+    paddingHorizontal: 22,
+    paddingVertical: 22,
   },
   title: {
     fontSize: 28,

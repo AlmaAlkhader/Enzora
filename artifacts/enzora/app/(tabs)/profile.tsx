@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  I18nManager,
   Modal,
   Platform,
   Pressable,
@@ -184,6 +185,35 @@ export default function ProfileScreen() {
             <Text style={styles.editText}>{t("editProfile")}</Text>
           </Pressable>
         </Card>
+
+        <Pressable
+          onPress={() => router.push("/color-guide")}
+          style={styles.colorGuideRow}
+        >
+          <View style={styles.settingLeft}>
+            <View style={styles.colorGuideIcons}>
+              <View style={[styles.colorGuideDot, { backgroundColor: "#FFB703" }]} />
+              <View
+                style={[
+                  styles.colorGuideDot,
+                  { backgroundColor: "#06D6A0", marginLeft: -6 },
+                ]}
+              />
+              <View
+                style={[
+                  styles.colorGuideDot,
+                  { backgroundColor: "#4DABF7", marginLeft: -6 },
+                ]}
+              />
+            </View>
+            <Text style={styles.colorGuideText}>{t("colorGuide")}</Text>
+          </View>
+          <Feather
+            name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
+            size={20}
+            color={c.textSecondary}
+          />
+        </Pressable>
 
         <Card>
           <Text style={styles.section}>{t("settings")}</Text>
@@ -538,6 +568,34 @@ const styles = StyleSheet.create({
   relChipTextActive: {
     color: c.primary,
     fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+  colorGuideRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: c.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: c.border,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
+  colorGuideIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  colorGuideDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: c.card,
+  },
+  colorGuideText: {
+    fontSize: 16,
+    color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
     fontWeight: "700",
   },
 });

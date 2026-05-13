@@ -252,6 +252,34 @@ const en = {
   healMessageBlue: "Focus on recovery – contact your doctor",
   switchWound: "Switch Wound",
 
+  // Color guide
+  colorMeaningTitle: "What the colors mean 🎨",
+  colorYellowTitle: "Yellow — Everything is fine",
+  colorYellowBody:
+    "Your wound is healing normally. Keep it clean and dry.",
+  colorGreenTitle: "Green — Worth keeping an eye on",
+  colorGreenBody:
+    "The sensor noticed a small change. Nothing urgent, but please watch your wound and consider calling your doctor.",
+  colorBlueTitle: "Blue — Please call your doctor",
+  colorBlueBody:
+    "The sensor detected a sign of infection. Please contact your doctor as soon as possible.",
+  colorBannerGreen:
+    "The sensor detected a color change in your bandage. This could be an early sign. Nothing to panic about — just keep an eye on it and contact your doctor if you are worried.",
+  colorBannerBlue:
+    "The sensor is showing a blue reading which may mean an infection has started. Please call your doctor today. If you feel unwell, go to the hospital.",
+  dismiss: "Dismiss",
+  colorGuide: "Color Guide 🎨",
+  colorGuideIntro:
+    "Your bandage sensor lights up in three colors. Here's what each one means and what to do.",
+  colorGuideDisclaimer:
+    "This guide is for general information. Always follow your doctor's advice.",
+  onboardColorYellow: "Yellow = Normal",
+  onboardColorYellowDesc: "Your wound is healing well.",
+  onboardColorGreen: "Green = Watch closely",
+  onboardColorGreenDesc: "An early sign — keep an eye on it.",
+  onboardColorBlue: "Blue = Call your doctor",
+  onboardColorBlueDesc: "Possible infection — contact your doctor.",
+
   // Confetti / celebration
   congratulations: "Congratulations!",
   healedSubtitle:
@@ -533,6 +561,33 @@ const ar: typeof en = {
   healMessageGreen: "كن حذراً – أنت قريب من الشفاء",
   healMessageBlue: "ركز على التعافي – اتصل بطبيبك",
   switchWound: "تغيير الجرح",
+
+  // Color guide
+  colorMeaningTitle: "ماذا تعني الألوان 🎨",
+  colorYellowTitle: "أصفر — كل شيء على ما يرام",
+  colorYellowBody: "جرحك يلتئم بشكل طبيعي. حافظ عليه نظيفاً وجافاً.",
+  colorGreenTitle: "أخضر — يستحق المتابعة",
+  colorGreenBody:
+    "لاحظ الجهاز تغيراً بسيطاً. لا شيء عاجلاً، لكن راقب جرحك وفكر في الاتصال بطبيبك.",
+  colorBlueTitle: "أزرق — يرجى الاتصال بطبيبك",
+  colorBlueBody:
+    "اكتشف الجهاز علامة عدوى. يرجى التواصل مع طبيبك في أقرب وقت ممكن.",
+  colorBannerGreen:
+    "اكتشف الجهاز تغيراً في لون الضمادة. قد يكون هذا علامة مبكرة. لا داعي للقلق — فقط راقب جرحك وتواصل مع طبيبك إذا كنت قلقاً.",
+  colorBannerBlue:
+    "يُظهر الجهاز قراءة زرقاء قد تعني بدء عدوى. يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.",
+  dismiss: "إغلاق",
+  colorGuide: "دليل الألوان 🎨",
+  colorGuideIntro:
+    "يضيء جهاز الضمادة بثلاثة ألوان. إليك ما يعنيه كل لون وما الذي يجب فعله.",
+  colorGuideDisclaimer:
+    "هذا الدليل للمعلومات العامة. اتبع دائماً نصيحة طبيبك.",
+  onboardColorYellow: "أصفر = طبيعي",
+  onboardColorYellowDesc: "جرحك يلتئم جيداً.",
+  onboardColorGreen: "أخضر = راقب عن كثب",
+  onboardColorGreenDesc: "علامة مبكرة — راقب الجرح.",
+  onboardColorBlue: "أزرق = اتصل بطبيبك",
+  onboardColorBlueDesc: "عدوى محتملة — تواصل مع طبيبك.",
 
   congratulations: "مبروك!",
   healedSubtitle:

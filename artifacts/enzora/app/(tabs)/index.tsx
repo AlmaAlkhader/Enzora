@@ -16,6 +16,7 @@ import {
   PrimaryButton,
   StatusCard,
 } from "@/components/Brand";
+import { ColorAlertBanner, ColorMeaningCard } from "@/components/ColorGuide";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
@@ -27,6 +28,12 @@ export default function HomeScreen() {
   const { profile, sensor, activeWound, readings } = useApp();
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
+  // Track which STATUS the user has dismissed the friendly banner for, so it
+  // reappears only when the status transitions to a different category — not
+  // on every new reading at the same status.
+  const [bannerDismissedFor, setBannerDismissedFor] = useState<
+    "green" | "blue" | null
+  >(null);
 
   useEffect(() => {
     if (
@@ -38,6 +45,19 @@ export default function HomeScreen() {
       setAlertOpen(true);
     }
   }, [sensor.status, sensor.connected, sensor.lastUpdated, lastDismissed]);
+
+  // Reset the dismissal whenever the status leaves the dismissed category, so
+  // a future transition back into green/blue shows the banner again.
+  useEffect(() => {
+    if (bannerDismissedFor && sensor.status !== bannerDismissedFor) {
+      setBannerDismissedFor(null);
+    }
+  }, [sensor.status, bannerDismissedFor]);
+
+  const showBanner =
+    sensor.connected &&
+    (sensor.status === "green" || sensor.status === "blue") &&
+    sensor.status !== bannerDismissedFor;
 
   const firstName = (profile?.name ?? "").split(" ")[0] ?? "";
   const lastReading = readings[0];
@@ -83,6 +103,16 @@ export default function HomeScreen() {
           </Text>
         </View>
 
+        {/* 2a. Friendly explanation banner — appears above hero on green/blue */}
+        {showBanner && sensor.status ? (
+          <ColorAlertBanner
+            status={sensor.status as "green" | "blue"}
+            onDismiss={() =>
+              setBannerDismissedFor(sensor.status as "green" | "blue")
+            }
+          />
+        ) : null}
+
         {/* 2. Hero status card — the focus of the screen */}
         {sensor.connected && sensor.status ? (
           <StatusCard status={sensor.status} />
@@ -107,6 +137,9 @@ export default function HomeScreen() {
             {t("lastReading")}: {t("today")} {t("at")} {lastReadingTime}
           </Text>
         ) : null}
+
+        {/* 3b. Collapsed color meaning card */}
+        <ColorMeaningCard />
 
         {/* 4. One quick action */}
         <View style={{ marginTop: 8 }}>
