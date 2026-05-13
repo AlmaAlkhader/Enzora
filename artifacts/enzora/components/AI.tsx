@@ -141,6 +141,7 @@ export function AIAssessment({ woundId }: { woundId: string }) {
           if (!cancelled) {
             setText(cached.text);
             setError(false);
+            setLoading(false);
           }
           return;
         }
@@ -175,6 +176,9 @@ Rules:
         language,
       });
       const result = await callClaude(sys, user);
+      // Always clear loading so a stale-but-cancelled run can't leave the
+      // spinner stuck if another render bailed early via the triggerKey guard.
+      setLoading(false);
       if (cancelled) return;
       if (result) {
         setText(result.trim());
@@ -188,7 +192,6 @@ Rules:
       } else {
         setError(true);
       }
-      setLoading(false);
     })();
     return () => {
       cancelled = true;
