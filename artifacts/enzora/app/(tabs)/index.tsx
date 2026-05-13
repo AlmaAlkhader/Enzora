@@ -54,7 +54,16 @@ export default function HomeScreen() {
       <GradientHeader
         title={`${t("hello")}, ${firstName || ""}`.trim()}
         right={
-          <Pressable hitSlop={8} style={styles.bell}>
+          <Pressable
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Alerts"
+            onPress={() => router.push("/(tabs)/alerts")}
+            style={({ pressed }) => [
+              styles.bell,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
             <Feather name="bell" size={20} color={c.textWhite} />
             {readings.some((r) => r.status !== "yellow") && (
               <View style={styles.bellDot} />

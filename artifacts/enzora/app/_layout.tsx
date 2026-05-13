@@ -10,6 +10,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -56,17 +57,23 @@ export default function RootLayout() {
 
   if (!fontsLoaded && !fontError) return null;
 
+  const Inner = (
+    <AppProvider>
+      <StatusBar style="light" />
+      <RootLayoutNav />
+    </AppProvider>
+  );
+
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <AppProvider>
-                <StatusBar style="light" />
-                <RootLayoutNav />
-              </AppProvider>
-            </KeyboardProvider>
+            {Platform.OS === "web" ? (
+              Inner
+            ) : (
+              <KeyboardProvider>{Inner}</KeyboardProvider>
+            )}
           </GestureHandlerRootView>
         </QueryClientProvider>
       </ErrorBoundary>

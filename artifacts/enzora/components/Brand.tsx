@@ -3,6 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import React from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -11,6 +12,9 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
+
+const webCursor =
+  Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
@@ -65,9 +69,12 @@ export function LanguageToggle({ dark = false }: { dark?: boolean }) {
   return (
     <Pressable
       onPress={() => void toggleLanguage()}
-      hitSlop={8}
+      hitSlop={12}
+      accessibilityRole="button"
+      accessibilityLabel="Toggle language"
       style={({ pressed }) => [
         styles.langPill,
+        webCursor,
         {
           backgroundColor: dark ? "rgba(255,255,255,0.18)" : c.card,
           borderColor: dark ? "rgba(255,255,255,0.3)" : c.border,
@@ -117,8 +124,14 @@ export function GradientHeader({
           {back ? (
             <Pressable
               onPress={onBack}
-              hitSlop={10}
-              style={styles.backBtn}
+              hitSlop={16}
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              style={({ pressed }) => [
+                styles.backBtn,
+                webCursor,
+                { opacity: pressed ? 0.7 : 1 },
+              ]}
             >
               <Feather name="chevron-left" size={24} color={c.textWhite} />
             </Pressable>
@@ -165,9 +178,13 @@ export function PrimaryButton({
       <Pressable
         onPress={onPress}
         disabled={inactive}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: inactive }}
         style={({ pressed }) => [
           styles.btn,
           styles.btnOutline,
+          webCursor,
           { opacity: pressed ? 0.7 : inactive ? 0.5 : 1 },
           style,
         ]}
@@ -182,9 +199,13 @@ export function PrimaryButton({
       <Pressable
         onPress={onPress}
         disabled={inactive}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: inactive }}
         style={({ pressed }) => [
           styles.btn,
           { backgroundColor: c.card, borderWidth: 1, borderColor: c.border },
+          webCursor,
           { opacity: pressed ? 0.7 : inactive ? 0.5 : 1 },
           style,
         ]}
@@ -206,8 +227,12 @@ export function PrimaryButton({
     <Pressable
       onPress={onPress}
       disabled={inactive}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: inactive }}
       style={({ pressed }) => [
         { opacity: pressed ? 0.85 : inactive ? 0.6 : 1, borderRadius: 14 },
+        webCursor,
         style,
       ]}
     >
@@ -215,7 +240,7 @@ export function PrimaryButton({
         colors={gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.btn}
+        style={[styles.btn, Platform.OS === "web" ? { pointerEvents: "none" } as ViewStyle : null]}
       >
         {loading ? (
           <ActivityIndicator color={c.textWhite} />
