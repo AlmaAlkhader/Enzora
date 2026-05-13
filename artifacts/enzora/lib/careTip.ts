@@ -73,21 +73,21 @@ export async function writeCachedTip(tip: CachedCareTip): Promise<void> {
 }
 
 const SYSTEM_PROMPT_EN =
-  "You are Enzora Care Assistant. You write warm, safe, elderly-friendly " +
-  "wound care messages. You do not diagnose. You do not scare the patient. " +
-  "You give simple practical advice and encouragement. If the wound status " +
-  "is urgent, you clearly advise contacting a doctor. Keep the message " +
-  "short enough for a patient or caregiver. Maximum 4 short sentences. " +
-  "Include one practical care tip and one clear action for today. Do not " +
-  "use raw RGB values. Do not use the word 'diagnosis'. Respond in English.";
+  "You are Enzora Care Assistant. Write short, warm wound-care tips. Do " +
+  "not diagnose. Do not scare the patient. Use simple words. Maximum 3 " +
+  "short sentences. Give one helpful tip and one clear action for today. " +
+  "Use at most one gentle motivational phrase — do not repeat 'you are " +
+  "doing great' every time. If the status is an alert, be urgent but " +
+  "brief. Do not use raw RGB values. Do not use the word 'diagnosis'. " +
+  "Respond in English.";
 
 const SYSTEM_PROMPT_AR =
-  "أنت مساعد إنزورا للعناية. تكتب رسائل دافئة وآمنة وسهلة الفهم لكبار " +
-  "السن حول العناية بالجروح. لا تقدم تشخيصاً. لا تخيف المريض. تقدم نصائح " +
-  "عملية بسيطة وتشجيعاً. إذا كانت حالة الجرح عاجلة، فانصح بوضوح بالاتصال " +
-  "بالطبيب. اجعل الرسالة قصيرة بما يكفي للمريض أو مقدم الرعاية. أربع جمل " +
-  "قصيرة كحد أقصى. اذكر نصيحة عناية عملية واحدة وإجراءً واضحاً واحداً " +
-  "لليوم. لا تستخدم قيم RGB الخام. لا تستخدم كلمة 'تشخيص'. أجب بالعربية.";
+  "أنت مساعد إنزورا للعناية. اكتب نصائح قصيرة ودافئة للعناية بالجروح. لا " +
+  "تقدم تشخيصاً. لا تخيف المريض. استخدم كلمات بسيطة. ثلاث جمل قصيرة كحد " +
+  "أقصى. قدم نصيحة مفيدة واحدة وإجراءً واضحاً واحداً لليوم. استخدم عبارة " +
+  "تشجيعية لطيفة واحدة على الأكثر — لا تكرر 'أنت تقوم بعمل رائع' في كل " +
+  "مرة. إذا كانت الحالة تنبيهاً، كن عاجلاً لكن مختصراً. لا تستخدم قيم RGB " +
+  "الخام. لا تستخدم كلمة 'تشخيص'. أجب بالعربية.";
 
 function statusLabel(s: SensorStatus | null, lang: Language): string {
   if (!s) return lang === "ar" ? "غير معروفة" : "unknown";
@@ -127,7 +127,7 @@ function buildUserMessage(ctx: CareTipContext): string {
       `القراءات الأخيرة: ${recent}`,
       `ملاحظات: ${ctx.notes || "لا يوجد"}`,
       "",
-      "اكتب رسالة عناية اليوم لهذا المريض بأربع جمل قصيرة كحد أقصى.",
+      "اكتب رسالة عناية اليوم لهذا المريض بثلاث جمل قصيرة كحد أقصى.",
     ].join("\n");
   }
   return [
@@ -140,7 +140,7 @@ function buildUserMessage(ctx: CareTipContext): string {
     `Recent readings: ${recent}`,
     `Notes: ${ctx.notes || "none"}`,
     "",
-    "Write today's care message for this patient in at most 4 short sentences.",
+    "Write today's care message for this patient in at most 3 short sentences.",
   ].join("\n");
 }
 
@@ -150,20 +150,20 @@ function fallbackMessage(ctx: CareTipContext): string {
   const first = (ctx.patientName || "").split(" ")[0]?.trim() || "";
   if (ctx.language === "ar") {
     if (ctx.status === "blue") {
-      return `صباح الخير${first ? "، " + first : ""}. رصدت إنزورا قراءة تنبيه، يرجى الاتصال بطبيبك اليوم. إذا شعرت بتوعك أو زاد الألم، فاذهب إلى المستشفى. الحصول على المساعدة مبكراً هو أأمن خطوة.`;
+      return `صباح الخير${first ? " يا " + first : ""}. اكتشف إنزورا قراءة تنبيه. اتصل بطبيبك اليوم.`;
     }
     if (ctx.status === "green") {
-      return `صباح الخير${first ? "، " + first : ""}. لاحظت إنزورا تغيراً بسيطاً، يرجى مراقبة الجرح اليوم. حافظ على المنطقة نظيفة وجافة، واتصل بطبيبك إذا زادت الأعراض. أنت تقوم بعمل رائع.`;
+      return `صباح الخير${first ? " يا " + first : ""}. تم ملاحظة تغير بسيط. افحص الجرح اليوم واتصل بالطبيب إذا زاد الألم أو التورم.`;
     }
-    return `صباح الخير${first ? "، " + first : ""}. تبدو قراءات الجرح طبيعية اليوم. حافظ على المنطقة نظيفة وجافة وتابع المراقبة كالمعتاد. أنت تعتني بصحتك بشكل ممتاز.`;
+    return `صباح الخير${first ? " يا " + first : ""}. يبدو الجرح مستقراً اليوم. حافظ عليه نظيفاً وجافاً.`;
   }
   if (ctx.status === "blue") {
-    return `Good morning${first ? ", " + first : ""}. Enzora detected an alert reading, so please call your doctor today. If you feel unwell or pain increases, go to the hospital. Getting help early is the safest step.`;
+    return `Good morning${first ? ", " + first : ""}. Enzora detected an alert reading. Call your doctor today.`;
   }
   if (ctx.status === "green") {
-    return `Good morning${first ? ", " + first : ""}. Enzora noticed a small change, so please watch your wound closely today. Keep the area clean and dry, and call your doctor if symptoms increase. You're doing the right thing by checking early.`;
+    return `Good morning${first ? ", " + first : ""}. A small change was noticed. Check the wound today and call your doctor if pain or swelling increases.`;
   }
-  return `Good morning${first ? ", " + first : ""}. Your wound readings look normal today, which is a good sign. Keep the area clean and dry, and continue monitoring as usual. You're doing a great job taking care of your health.`;
+  return `Good morning${first ? ", " + first : ""}. Your wound looks stable today. Keep it clean and dry.`;
 }
 
 export interface GenerateOptions {

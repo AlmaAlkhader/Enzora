@@ -94,11 +94,11 @@ function infectionCopy(language: "en" | "ar"): LocalAlertCopy {
   return language === "ar"
     ? {
         title: "تنبيه عدوى",
-        body: "يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.",
+        body: "اتصل بطبيبك اليوم.",
       }
     : {
         title: "Infection alert",
-        body: "Please call your doctor today. If you feel unwell, go to the hospital.",
+        body: "Call your doctor today.",
       };
 }
 
@@ -117,22 +117,22 @@ function transitionCopy(
     return en
       ? {
           title: "Small change detected",
-          body: "Please keep an eye on your wound today.",
+          body: "Please check your wound today.",
         }
       : {
           title: "تم اكتشاف تغير بسيط",
-          body: "يرجى مراقبة الجرح اليوم.",
+          body: "يرجى فحص الجرح اليوم.",
         };
   }
   if (next === "yellow" && (prev === "green" || prev === "blue")) {
     return en
       ? {
-          title: "Wound status improved",
-          body: "Your wound reading is back to normal.",
+          title: "Wound looks better",
+          body: "Your reading is back to normal.",
         }
       : {
           title: "تحسنت حالة الجرح",
-          body: "عادت قراءة الجرح إلى الحالة الطبيعية.",
+          body: "عادت القراءة إلى الوضع الطبيعي.",
         };
   }
   return null;

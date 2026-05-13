@@ -102,16 +102,12 @@ const en = {
     "Make sure the device is on and connected to WiFi.",
   howToConnect: "How to Connect?",
   woundNormal: "Wound is Normal",
-  woundNormalSub:
-    "Your wound shows no signs of infection. Keep it clean and dry.",
+  woundNormalSub: "Looks good today. Keep it clean and dry.",
   earlySigns: "Watch Closely",
-  earlySignsSub:
-    "The sensor noticed a small change. Keep an eye on your wound and contact your doctor if you are worried.",
-  infectionDetected: "Infection Detected",
-  infectionDetectedSub:
-    "Infection confirmed. Contact your doctor immediately.",
-  infectionUrgentBody:
-    "Please call your doctor today. If you feel unwell, go to the hospital.",
+  earlySignsSub: "A small change was noticed. Keep an eye on it.",
+  infectionDetected: "Infection Alert",
+  infectionDetectedSub: "Call your doctor today.",
+  infectionUrgentBody: "Call your doctor today.",
   callDoctorNow: "Call Doctor Now",
   addDoctorContact: "Add Doctor Contact",
   callEmergencyContactBtn: "Call Emergency Contact",
@@ -324,9 +320,9 @@ const en = {
   statusNormalTitle: "Normal",
   statusWatchTitle: "Watch closely",
   statusAlertTitle: "Alert",
-  statusNormalSub: "No infection signs",
-  statusWatchSub: "Small change detected",
-  statusAlertSub: "Infection confirmed",
+  statusNormalSub: "Looks good today",
+  statusWatchSub: "Small change — watch closely",
+  statusAlertSub: "Call your doctor today",
   trendSummaryNormal: "Your wound has stayed normal.",
   trendSummaryWatch: "Small changes appeared and should be watched.",
   trendSummaryAlert: "Your wound was stable, but an alert appeared recently.",
@@ -358,19 +354,16 @@ const en = {
 
   // Color guide
   colorMeaningTitle: "What the colors mean 🎨",
-  colorYellowTitle: "Yellow — Everything is fine",
-  colorYellowBody:
-    "Your wound is healing normally. Keep it clean and dry.",
-  colorGreenTitle: "Green — Worth keeping an eye on",
-  colorGreenBody:
-    "The sensor noticed a small change. Nothing urgent, but please watch your wound and consider calling your doctor.",
-  colorBlueTitle: "Blue — Please call your doctor",
-  colorBlueBody:
-    "The sensor detected a sign of infection. Please contact your doctor as soon as possible.",
+  colorYellowTitle: "Yellow — Normal",
+  colorYellowBody: "Normal — keep it clean and dry.",
+  colorGreenTitle: "Green — Watch closely",
+  colorGreenBody: "Watch closely — check it today.",
+  colorBlueTitle: "Blue — Call doctor",
+  colorBlueBody: "Call doctor — get help today.",
   colorBannerGreen:
-    "The sensor detected a color change in your bandage. This could be an early sign. Nothing to panic about — just keep an eye on it and contact your doctor if you are worried.",
+    "Small color change detected. Watch your wound today.",
   colorBannerBlue:
-    "The sensor is showing a blue reading which may mean an infection has started. Please call your doctor today. If you feel unwell, go to the hospital.",
+    "Alert reading detected. Call your doctor today.",
   dismiss: "Dismiss",
   colorGuide: "Color Guide 🎨",
   colorGuideIntro:
@@ -585,15 +578,12 @@ const ar: typeof en = {
   deviceOfflineSub: "تأكد من تشغيل الجهاز واتصاله بالواي فاي.",
   howToConnect: "كيفية التوصيل؟",
   woundNormal: "الجرح طبيعي",
-  woundNormalSub:
-    "جرحك لا يظهر أي علامات عدوى. حافظ على نظافته وجفافه.",
-  earlySigns: "راقب عن كثب",
-  earlySignsSub:
-    "لاحظ المستشعر تغيراً بسيطاً. تابع جرحك واتصل بطبيبك إذا كنت قلقاً.",
-  infectionDetected: "تم اكتشاف عدوى",
-  infectionDetectedSub: "تم تأكيد وجود عدوى. اتصل بطبيبك فوراً.",
-  infectionUrgentBody:
-    "يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.",
+  woundNormalSub: "الوضع جيد اليوم. حافظ عليه نظيفاً وجافاً.",
+  earlySigns: "راقب الجرح",
+  earlySignsSub: "تم ملاحظة تغير بسيط. راقبه جيداً.",
+  infectionDetected: "تنبيه عدوى",
+  infectionDetectedSub: "اتصل بطبيبك اليوم.",
+  infectionUrgentBody: "اتصل بطبيبك اليوم.",
   callDoctorNow: "اتصل بالطبيب الآن",
   addDoctorContact: "أضف رقم الطبيب",
   callEmergencyContactBtn: "اتصل بجهة الطوارئ",
@@ -794,9 +784,9 @@ const ar: typeof en = {
   statusNormalTitle: "طبيعي",
   statusWatchTitle: "راقب الجرح",
   statusAlertTitle: "تنبيه",
-  statusNormalSub: "لا توجد علامات عدوى",
-  statusWatchSub: "تم اكتشاف تغير بسيط",
-  statusAlertSub: "تم تأكيد وجود عدوى",
+  statusNormalSub: "الوضع جيد اليوم",
+  statusWatchSub: "تغير بسيط — راقب الجرح",
+  statusAlertSub: "اتصل بطبيبك اليوم",
   trendSummaryNormal: "ظل الجرح في حالته الطبيعية.",
   trendSummaryWatch: "ظهرت تغيرات بسيطة ينبغي مراقبتها.",
   trendSummaryAlert: "كان الجرح مستقراً، لكن ظهر تنبيه مؤخراً.",
@@ -826,18 +816,16 @@ const ar: typeof en = {
 
   // Color guide
   colorMeaningTitle: "ماذا تعني الألوان 🎨",
-  colorYellowTitle: "أصفر — كل شيء على ما يرام",
-  colorYellowBody: "جرحك يلتئم بشكل طبيعي. حافظ عليه نظيفاً وجافاً.",
-  colorGreenTitle: "أخضر — يستحق المتابعة",
-  colorGreenBody:
-    "لاحظ الجهاز تغيراً بسيطاً. لا شيء عاجلاً، لكن راقب جرحك وفكر في الاتصال بطبيبك.",
-  colorBlueTitle: "أزرق — يرجى الاتصال بطبيبك",
-  colorBlueBody:
-    "اكتشف الجهاز علامة عدوى. يرجى التواصل مع طبيبك في أقرب وقت ممكن.",
+  colorYellowTitle: "أصفر — طبيعي",
+  colorYellowBody: "طبيعي — حافظ عليه نظيفاً وجافاً.",
+  colorGreenTitle: "أخضر — راقب الجرح",
+  colorGreenBody: "راقب الجرح — افحصه اليوم.",
+  colorBlueTitle: "أزرق — اتصل بالطبيب",
+  colorBlueBody: "اتصل بالطبيب — اطلب المساعدة اليوم.",
   colorBannerGreen:
-    "اكتشف الجهاز تغيراً في لون الضمادة. قد يكون هذا علامة مبكرة. لا داعي للقلق — فقط راقب جرحك وتواصل مع طبيبك إذا كنت قلقاً.",
+    "تم اكتشاف تغير بسيط في اللون. راقب الجرح اليوم.",
   colorBannerBlue:
-    "يُظهر الجهاز قراءة زرقاء قد تعني بدء عدوى. يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.",
+    "تم اكتشاف قراءة تنبيه. اتصل بطبيبك اليوم.",
   dismiss: "إغلاق",
   colorGuide: "دليل الألوان 🎨",
   colorGuideIntro:
