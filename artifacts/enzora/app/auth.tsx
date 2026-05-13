@@ -12,9 +12,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
 import {
+  EnzoraLogo,
   Field,
   LanguageToggle,
-  Logo,
   PrimaryButton,
   TextField,
 } from "@/components/Brand";
@@ -108,7 +108,7 @@ export default function AuthScreen() {
         ]}
       >
         <View style={styles.logoWrap}>
-          <Logo size="lg" />
+          <EnzoraLogo variant="auth" />
         </View>
         <View style={[styles.langAbsolute, { top: insets.top + 12 }]}>
           <LanguageToggle dark />

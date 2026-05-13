@@ -13,7 +13,12 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
-import Svg, { Text as SvgText } from "react-native-svg";
+import { Image } from "expo-image";
+
+const LOGO_SOURCE = require("@/assets/images/enzora-logo.png");
+// Original PNG aspect ratio (width / height) — used to derive width from height
+// while keeping object-fit: contain. Image is ~787x1024.
+const LOGO_ASPECT = 787 / 1024;
 
 const webCursor =
   Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
@@ -25,74 +30,63 @@ import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
 
-// ---------------- Enzora Logo (SVG placeholder) ----------------
+// ---------------- Enzora Logo ----------------
+// Variants:
+//  - "header": 36px tall, full logo with tagline (auto width, contain)
+//  - "splash": 160px tall, full logo with tagline (auto width, contain)
+//  - "auth": 90px container with overflow hidden — image rendered larger so
+//    the "Smart Wound Patch" tagline at the bottom is cropped off
 export function EnzoraLogo({
   variant = "header",
-  color,
 }: {
-  variant?: "header" | "hero";
+  variant?: "header" | "splash" | "auth";
   color?: string;
 }) {
-  if (variant === "hero") {
+  if (variant === "auth") {
+    // The tagline occupies roughly the bottom ~22% of the source image.
+    // Render the image taller than the container and crop the bottom.
+    const containerH = 90;
+    const imageH = Math.round(containerH / 0.78); // ~115
+    const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
-      <Svg width={160} height={44} viewBox="0 0 160 44">
-        <SvgText
-          x={0}
-          y={36}
-          fontFamily="Georgia, serif"
-          fontSize={36}
-          fontWeight="700"
-          fill={color ?? "#1B2A6B"}
-        >
-          enzora
-        </SvgText>
-      </Svg>
+      <View
+        style={{
+          height: containerH,
+          width: imageW,
+          overflow: "hidden",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          backgroundColor: "transparent",
+        }}
+      >
+        <Image
+          source={LOGO_SOURCE}
+          style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
+          contentFit="contain"
+        />
+      </View>
     );
   }
+
+  const height = variant === "splash" ? 160 : 36;
+  const width = Math.round(height * LOGO_ASPECT);
   return (
-    <Svg width={80} height={28} viewBox="0 0 80 28">
-      <SvgText
-        x={0}
-        y={22}
-        fontFamily="Georgia, serif"
-        fontSize={22}
-        fontWeight="700"
-        fill={color ?? "#FFFFFF"}
-      >
-        enzora
-      </SvgText>
-    </Svg>
+    <Image
+      source={LOGO_SOURCE}
+      style={{ width, height, backgroundColor: "transparent" }}
+      contentFit="contain"
+    />
   );
 }
 
 // ---------------- Logo (back-compat wrapper) ----------------
 export function Logo({
   size = "sm",
-  color,
 }: {
   size?: "sm" | "lg";
   color?: string;
 }) {
-  if (size === "lg") {
-    return (
-      <View style={{ alignItems: "center" }}>
-        <EnzoraLogo variant="hero" color={color ?? c.textWhite} />
-        <Text
-          style={{
-            fontSize: 10,
-            color: color ?? c.textWhite,
-            opacity: 0.85,
-            letterSpacing: 2,
-            marginTop: 4,
-            fontFamily: "Inter_500Medium",
-          }}
-        >
-          SMART HEALING
-        </Text>
-      </View>
-    );
-  }
-  return <EnzoraLogo variant="header" color={color ?? c.textWhite} />;
+  return <EnzoraLogo variant={size === "lg" ? "splash" : "header"} />;
 }
 
 // ---------------- Language Toggle ----------------
