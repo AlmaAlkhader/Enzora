@@ -7,6 +7,9 @@ export type ChatMessage = {
   content: string;
 };
 
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 2000;
+
 export async function callClaude(
   systemPrompt: string,
   userMessage: string,
@@ -17,22 +20,27 @@ export async function callClaude(
     console.warn("[ai] EXPO_PUBLIC_API_BASE_URL is not set");
     return null;
   }
-  try {
-    const res = await fetch(`${API_BASE}/api/claude`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ systemPrompt, userMessage, history, maxTokens }),
-    });
-    if (!res.ok) {
-      console.warn("[ai] non-OK response", res.status);
-      return null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(`${API_BASE}/api/claude`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ systemPrompt, userMessage, history, maxTokens }),
+      });
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+      const data = (await res.json()) as { text?: string };
+      if (typeof data.text === "string") return data.text;
+      throw new Error("Missing text in response");
+    } catch (err) {
+      console.warn(`[ai] callClaude attempt ${attempt} failed`, err);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+      }
     }
-    const data = (await res.json()) as { text?: string };
-    return typeof data.text === "string" ? data.text : null;
-  } catch (err) {
-    console.warn("[ai] callClaude failed", err);
-    return null;
   }
+  return null;
 }
 
 // ============ Cache helpers (AsyncStorage) ============

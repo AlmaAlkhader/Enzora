@@ -1,0 +1,106 @@
+The api-server keeps crashing with 
+EADDRINUSE :::8080 every time it restarts.
+This is causing all AI features to fail.
+
+Please fix this permanently:
+
+1. Add this to the very beginning of 
+   api-server/index.ts or server.js 
+   before the server starts:
+
+import { execSync } from 'child_process'
+
+try {
+  execSync('fuser -k 8080/tcp', 
+    { stdio: 'ignore' })
+} catch(e) {
+  // port was already free
+}
+
+This kills any process using port 8080 
+before trying to start the server.
+
+2. Also add a graceful shutdown handler:
+
+process.on('SIGTERM', () => {
+  server.close(() => {
+    process.exit(0)
+  })
+})
+
+process.on('SIGINT', () => {
+  server.close(() => {
+    process.exit(0)
+  })
+})
+
+3. Change the server to use a different 
+   port with a fallback:
+
+const PORT = process.env.PORT || 8080
+
+const server = app.listen(PORT, () => {
+  console.log('API server running on ' + PORT)
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log('Port busy, trying ' + 
+      (PORT + 1))
+    app.listen(PORT + 1)
+  }
+})
+
+4. After making these changes, also fix 
+   the frontend to retry automatically 
+   when AI call fails:
+
+async function callClaude(
+  systemPrompt, userMessage, history = []) {
+  
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch('/api/claude', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          systemPrompt,
+          userMessage, 
+          history,
+          maxTokens: 1024
+        })
+      })
+      
+      if (!res.ok) {
+        throw new Error('Server error: ' + 
+          res.status)
+      }
+      
+      const data = await res.json()
+      return data.text
+      
+    } catch(error) {
+      console.error(
+        'Attempt ' + attempt + ' failed:', 
+        error)
+      
+      if (attempt < 3) {
+        // Wait 2 seconds before retry
+        await new Promise(r => 
+          setTimeout(r, 2000))
+      }
+    }
+  }
+  
+  return null
+}
+
+5. On the AI cards, when result is null
+   (all 3 attempts failed) show:
+   "Tap retry to try again"
+   And the retry button should try 
+   3 more times automatically.
+
+This way even if the server briefly 
+crashes and restarts, the app will 
+automatically retry and succeed.
