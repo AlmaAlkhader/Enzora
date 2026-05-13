@@ -1,0 +1,94 @@
+Fix the following issues across two screens:
+
+---
+
+### 1. Fix headers on both screens
+
+The wound detail screen and doctor report 
+modal both have incorrect headers.
+
+Wound detail screen header:
+- Same height as all other screens
+- Same gradient background
+- Enzora logo centered
+- Arabic toggle top right
+- Wound name as subtitle below logo
+- Back arrow on the left side
+
+Doctor report modal header:
+- Same gradient as all other screen headers
+- White title text "Wound Status Report"
+- Close X button on the right in white
+- Same height as other headers
+
+---
+
+### 2. Fix the X button on doctor report
+
+The X button to close the report modal 
+is not working. Fix it:
+- Add proper onClick handler to close button
+- Make sure it dismisses the modal completely
+- Make the X button larger and easier to tap:
+  minimum 44x44px touch target
+
+---
+
+### 3. Add "Switch Wound" button
+
+On the wound detail screen, below the 
+"Monitoring: [wound name]" pill add a 
+small button:
+"Switch Wound →"
+Arabic: "تغيير الجرح →"
+Style: text button, #6E75BF color, 14px
+Tapping it navigates to the Wounds screen 
+so user can select a different wound to monitor
+
+---
+
+### 4. Fix the Healing Journey progress bar
+
+The straight progress bar is confusing 
+because patients don't know when it ends.
+
+Replace it with a circular progress 
+indicator instead:
+
+- Large circle (about 120px diameter)
+- Circle stroke shows progress in gradient 
+  color (#6E75BF to #06D6A0)
+- Inside the circle show:
+  Large number: "Day 1"
+  Small text below: "of monitoring"
+- Below the circle:
+  Status message based on progress:
+  Day 1-3: "Just getting started 🌱"
+  Day 4-7: "Good progress! Keep it up 💪"
+  Day 8-14: "Almost there! 🌟"
+  Day 15+: "Great dedication! 🎉"
+- This is much clearer than a progress bar
+  because it shows days, not a percentage
+- No more "5%" that means nothing to patients
+
+---
+
+### 5. Clean up wound detail screen
+
+The screen currently shows too much at once.
+Simplify the layout:
+
+Remove from wound detail:
+- The date shown as "2026-05-13 — sa" 
+  (show it properly as "May 13, 2026")
+- The "Any notes? s" incomplete text
+
+Keep and clean up:
+- Monitoring status pill at top
+- Circular healing journey widget
+- Generate Doctor Report button
+- Add a Note button
+- Last reading info
+
+Make sure all section spacing is consistent
+and the screen does not feel cluttered.

@@ -241,9 +241,16 @@ const en = {
   // Healing journey
   healingJourney: "Healing Journey",
   dayOfMonitoring: "Day {{day}} of monitoring",
+  dayLabel: "Day {{day}}",
+  ofMonitoring: "of monitoring",
+  healStageStart: "Just getting started 🌱",
+  healStageProgress: "Good progress! Keep it up 💪",
+  healStageAlmost: "Almost there! 🌟",
+  healStageGreat: "Great dedication! 🎉",
   healMessageYellow: "Great progress! Keep it up 💪",
   healMessageGreen: "Stay careful – you're almost there",
   healMessageBlue: "Focus on recovery – contact your doctor",
+  switchWound: "Switch Wound",
 
   // Confetti / celebration
   congratulations: "Congratulations!",
@@ -516,9 +523,16 @@ const ar: typeof en = {
 
   healingJourney: "رحلة الشفاء",
   dayOfMonitoring: "اليوم {{day}} من المراقبة",
+  dayLabel: "اليوم {{day}}",
+  ofMonitoring: "من المراقبة",
+  healStageStart: "البداية للتو 🌱",
+  healStageProgress: "تقدم جيد! واصل العناية 💪",
+  healStageAlmost: "اقتربت! 🌟",
+  healStageGreat: "إصرار رائع! 🎉",
   healMessageYellow: "تقدم رائع! واصل العناية 💪",
   healMessageGreen: "كن حذراً – أنت قريب من الشفاء",
   healMessageBlue: "ركز على التعافي – اتصل بطبيبك",
+  switchWound: "تغيير الجرح",
 
   congratulations: "مبروك!",
   healedSubtitle:

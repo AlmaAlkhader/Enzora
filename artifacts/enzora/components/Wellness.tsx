@@ -24,7 +24,14 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Stop,
+} from "react-native-svg";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Card, EnzoraLogo, PrimaryButton } from "@/components/Brand";
 import colors from "@/constants/colors";
@@ -267,41 +274,98 @@ export function HealingProgress({
   sensorStatus: "yellow" | "green" | "blue" | null;
 }) {
   const { t } = useTranslation();
-  const pct = calcHealingProgress(wound, readings);
-  const days = calcHealingDays(wound);
-  const msg =
-    sensorStatus === "blue"
-      ? t("healMessageBlue")
-      : sensorStatus === "green"
-        ? t("healMessageGreen")
-        : t("healMessageYellow");
-  const w = useSharedValue(0);
+  const days = Math.max(1, calcHealingDays(wound));
+
+  // Day-range based encouragement (clearer than a percentage to patients).
+  const stageKey =
+    days <= 3
+      ? "healStageStart"
+      : days <= 7
+        ? "healStageProgress"
+        : days <= 14
+          ? "healStageAlmost"
+          : "healStageGreat";
+
+  // Circular progress: cap visual fill at 30 days, but day count keeps growing.
+  const TARGET_DAYS = 30;
+  const progress = Math.min(1, days / TARGET_DAYS);
+  const SIZE = 140;
+  const STROKE = 12;
+  const R = (SIZE - STROKE) / 2;
+  const CIRC = 2 * Math.PI * R;
+
+  const animated = useSharedValue(0);
   useEffect(() => {
-    w.value = withTiming(pct, { duration: 800 });
-  }, [pct, w]);
-  const fillStyle = useAnimatedStyle(() => ({ width: `${w.value}%` }));
+    animated.value = withTiming(progress, { duration: 900 });
+  }, [progress, animated]);
+
+  // Subtle gentle pulse if the device is alerting.
+  const pulse = useSharedValue(1);
+  useEffect(() => {
+    if (sensorStatus === "blue") {
+      pulse.value = withRepeat(
+        withSequence(
+          withTiming(1.04, { duration: 700 }),
+          withTiming(1, { duration: 700 }),
+        ),
+        -1,
+        false,
+      );
+    } else {
+      pulse.value = withTiming(1, { duration: 200 });
+    }
+  }, [sensorStatus, pulse]);
+
+  // We render the SVG with a static dash offset because react-native-svg
+  // animation needs createAnimatedComponent on web; instead we use react state
+  // to drive the dashOffset on each progress change. Since `progress` is
+  // already a derived value (no per-frame change), a single render is enough.
+  const dashOffset = CIRC * (1 - progress);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
+
   return (
     <View style={hpStyles.wrap}>
-      <View style={hpStyles.headerRow}>
-        <Text style={hpStyles.title}>{t("healingJourney")}</Text>
-        <Text style={hpStyles.pct}>{pct}%</Text>
-      </View>
-      <View style={hpStyles.track}>
-        <Animated.View style={[hpStyles.fill, fillStyle]}>
-          <LinearGradient
-            colors={[c.primary, c.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={StyleSheet.absoluteFill}
+      <Text style={hpStyles.title}>{t("healingJourney")}</Text>
+      <Animated.View style={[hpStyles.ringWrap, containerStyle]}>
+        <Svg width={SIZE} height={SIZE}>
+          <Defs>
+            <SvgLinearGradient id="healGrad" x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor="#6E75BF" />
+              <Stop offset="1" stopColor="#06D6A0" />
+            </SvgLinearGradient>
+          </Defs>
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={R}
+            stroke={c.tabBg}
+            strokeWidth={STROKE}
+            fill="none"
           />
-        </Animated.View>
-      </View>
-      <View style={hpStyles.metaRow}>
-        <Text style={hpStyles.day}>
-          {t("dayOfMonitoring", { day: days })}
-        </Text>
-        <Text style={hpStyles.msg}>{msg}</Text>
-      </View>
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={R}
+            stroke="url(#healGrad)"
+            strokeWidth={STROKE}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={`${CIRC} ${CIRC}`}
+            strokeDashoffset={dashOffset}
+            transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+          />
+        </Svg>
+        <View style={hpStyles.ringCenter} pointerEvents="none">
+          <Text style={hpStyles.ringDay}>
+            {t("dayLabel", { day: days })}
+          </Text>
+          <Text style={hpStyles.ringSub}>{t("ofMonitoring")}</Text>
+        </View>
+      </Animated.View>
+      <Text style={hpStyles.stage}>{t(stageKey)}</Text>
     </View>
   );
 }
@@ -309,16 +373,12 @@ export function HealingProgress({
 const hpStyles = StyleSheet.create({
   wrap: {
     backgroundColor: c.card,
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 22,
+    padding: 22,
     borderWidth: 1,
     borderColor: c.border,
-    gap: 10,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 14,
   },
   title: {
     fontSize: 16,
@@ -326,26 +386,37 @@ const hpStyles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
   },
-  pct: {
-    fontSize: 22,
-    color: c.primary,
+  ringWrap: {
+    width: 140,
+    height: 140,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ringCenter: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ringDay: {
+    fontSize: 26,
+    color: c.textPrimary,
     fontFamily: "Inter_700Bold",
     fontWeight: "800",
+    lineHeight: 30,
   },
-  track: {
-    height: 14,
-    backgroundColor: c.tabBg,
-    borderRadius: 7,
-    overflow: "hidden",
-  },
-  fill: { height: 14, borderRadius: 7, overflow: "hidden" },
-  metaRow: { gap: 2 },
-  day: {
-    fontSize: 13,
+  ringSub: {
+    fontSize: 12,
     color: c.textSecondary,
     fontFamily: "Inter_500Medium",
+    marginTop: 2,
   },
-  msg: { fontSize: 13, color: c.textPrimary, fontFamily: "Inter_600SemiBold" },
+  stage: {
+    fontSize: 15,
+    color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+    textAlign: "center",
+  },
 });
 
 // =============== Tips Carousel =================
@@ -892,24 +963,10 @@ export function DoctorReportModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <LinearGradient
-          colors={[c.primary, c.primaryDark]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={drStyles.header}
-        >
-          <Pressable
-            onPress={onClose}
-            hitSlop={12}
-            style={drStyles.close}
-          >
-            <Feather name="x" size={20} color="#fff" />
-          </Pressable>
-          <Text style={drStyles.headerTitle}>{report.title}</Text>
-          <Text style={drStyles.headerDate}>
-            {new Date().toLocaleString()}
-          </Text>
-        </LinearGradient>
+        <DoctorReportHeader
+          title={t("doctorReportTitle")}
+          onClose={onClose}
+        />
         <ScrollView contentContainerStyle={{ padding: 18, gap: 14, paddingBottom: 100 }}>
           {report.sections.map((s, i) => (
             <Card key={i}>
@@ -926,36 +983,86 @@ export function DoctorReportModal({
   );
 }
 
+function DoctorReportHeader({
+  title,
+  onClose,
+}: {
+  title: string;
+  onClose: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  // Match GradientHeader sizing so this looks like every other screen header.
+  const topPad = Math.max(insets.top, 0) + 60;
+  const minHeight = topPad + 80 + 0;
+  return (
+    <LinearGradient
+      colors={[c.primary, c.primaryDark]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[
+        drStyles.header,
+        {
+          paddingTop: topPad,
+          paddingBottom: 20,
+          minHeight,
+        },
+      ]}
+    >
+      <View style={drStyles.headerCenter}>
+        <Text
+          style={drStyles.headerTitle}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
+      </View>
+      <Pressable
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Close"
+        hitSlop={12}
+        style={({ pressed }) => [
+          drStyles.close,
+          webCursor,
+          {
+            top: Math.max(insets.top, 0) + 38,
+            opacity: pressed ? 0.7 : 1,
+          },
+        ]}
+      >
+        <Feather name="x" size={24} color="#fff" />
+      </Pressable>
+    </LinearGradient>
+  );
+}
+
 const drStyles = StyleSheet.create({
   header: {
-    paddingTop: 60,
-    paddingBottom: 20,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 22,
-    borderBottomRightRadius: 22,
   },
-  close: {
-    position: "absolute",
-    right: 14,
-    top: 50,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.18)",
+  headerCenter: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
+  close: {
+    position: "absolute",
+    right: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     color: "#fff",
     fontWeight: "800",
     fontFamily: "Inter_700Bold",
-  },
-  headerDate: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.85)",
-    marginTop: 4,
-    fontFamily: "Inter_500Medium",
+    textAlign: "center",
   },
   section: {
     fontSize: 14,

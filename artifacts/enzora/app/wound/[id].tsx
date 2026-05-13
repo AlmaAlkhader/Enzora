@@ -30,12 +30,31 @@ import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
 
+function formatNiceDate(ts: number, locale: string): string {
+  try {
+    return new Date(ts).toLocaleDateString(locale === "ar" ? "ar" : "en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return new Date(ts).toLocaleDateString();
+  }
+}
+
 export default function WoundDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { wounds, sensor, activeWound, readings, markHealed, addNote, setActiveWound } =
-    useApp();
+  const {
+    wounds,
+    sensor,
+    activeWound,
+    readings,
+    markHealed,
+    addNote,
+    setActiveWound,
+  } = useApp();
   const wound = wounds.find((w) => w.id === id);
   const isActive = activeWound?.id === wound?.id;
   const [noteOpen, setNoteOpen] = useState(false);
@@ -46,7 +65,13 @@ export default function WoundDetail() {
   if (!wound) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <GradientHeader back onBack={() => router.back()} title="—" />
+        <GradientHeader layout="split" logoSize="lg" />
+        <View style={{ padding: 22 }}>
+          <Pressable onPress={() => router.back()} style={styles.backRow}>
+            <Feather name="chevron-left" size={22} color={c.primary} />
+            <Text style={styles.backText}>{t("back")}</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -77,28 +102,56 @@ export default function WoundDetail() {
 
   const woundReadings = isActive ? readings : [];
   const lastReading = woundReadings[0];
+  const startedOn = formatNiceDate(wound.dateAdded, i18n.language);
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <GradientHeader
+        layout="split"
+        logoSize="lg"
         title={wound.name}
-        subtitle={wound.location}
-        back
-        onBack={() => router.back()}
+        subtitle={wound.location || undefined}
       />
-      <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
-        {!isActive && (
+      <ScrollView
+        contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 18 }}
+      >
+        <Pressable onPress={() => router.back()} style={styles.backRow}>
+          <Feather name="chevron-left" size={22} color={c.primary} />
+          <Text style={styles.backText}>{t("back")}</Text>
+        </Pressable>
+
+        {/* Monitoring pill + Switch Wound */}
+        <View style={{ gap: 6 }}>
           <Pressable
-            onPress={() => void setActiveWound(wound.id)}
-            style={styles.activateBtn}
+            onPress={() => {
+              if (!isActive) void setActiveWound(wound.id);
+            }}
+            style={isActive ? styles.monitoringPillActive : styles.activateBtn}
           >
-            <Feather name="radio" size={16} color={c.primary} />
-            <Text style={styles.activateText}>
+            <Feather
+              name="radio"
+              size={16}
+              color={isActive ? c.normal : c.primary}
+            />
+            <Text
+              style={[
+                styles.activateText,
+                { color: isActive ? c.normal : c.primary },
+              ]}
+            >
               {t("monitoring")}: {wound.name}
             </Text>
           </Pressable>
-        )}
+          <Pressable
+            onPress={() => router.push("/(tabs)/wounds")}
+            hitSlop={8}
+            style={styles.switchRow}
+          >
+            <Text style={styles.switchText}>{t("switchWound")} →</Text>
+          </Pressable>
+        </View>
 
+        {/* Status card (or calm placeholder) */}
         {isActive && sensor.status ? (
           <StatusCard status={sensor.status} />
         ) : (
@@ -108,6 +161,7 @@ export default function WoundDetail() {
           </Card>
         )}
 
+        {/* Circular healing journey */}
         {wound.status === "active" && (
           <HealingProgress
             wound={wound}
@@ -116,75 +170,40 @@ export default function WoundDetail() {
           />
         )}
 
-        {lastReading && (
+        {/* Last reading + start date — small, calm */}
+        <View style={{ gap: 4 }}>
+          {lastReading ? (
+            <Text style={styles.meta}>
+              {t("lastReading")}:{" "}
+              {new Date(lastReading.timestamp).toLocaleString()}
+            </Text>
+          ) : null}
           <Text style={styles.meta}>
-            {t("lastReading")}:{" "}
-            {new Date(lastReading.timestamp).toLocaleString()}
+            {t("monitoringSince")}: {startedOn}
           </Text>
-        )}
+        </View>
 
-        {!!wound.description && (
-          <Card>
-            <Text style={styles.section}>{wound.description}</Text>
-          </Card>
-        )}
-
-        {!!wound.notes && (
-          <Card>
-            <Text style={styles.sectionTitle}>{t("notes")}</Text>
-            <Text style={styles.noteText}>{wound.notes}</Text>
-          </Card>
-        )}
-
-        {woundReadings.length > 0 && (
-          <View style={{ gap: 10 }}>
-            <Text style={styles.sectionTitle}>{t("readingTimeline")}</Text>
-            {woundReadings.slice(0, 20).map((r) => {
-              const color =
-                r.status === "yellow"
-                  ? c.normal
-                  : r.status === "green"
-                    ? c.warning
-                    : c.alert;
-              return (
-                <View
-                  key={r.id}
-                  style={[styles.timeline, { borderLeftColor: color }]}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.timelineLabel}>
-                      R {r.red} · G {r.green} · B {r.blue}
-                    </Text>
-                    <Text style={styles.timelineTime}>
-                      {new Date(r.timestamp).toLocaleString()}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        <View style={{ gap: 10, marginTop: 8 }}>
+        {/* Actions */}
+        <View style={{ gap: 10, marginTop: 4 }}>
           <PrimaryButton
             label={t("doctorReport")}
             icon="file-text"
-            variant="outline"
             onPress={() => setReportOpen(true)}
           />
-          {isActive && sensor.status === "yellow" && (
-            <PrimaryButton
-              label={t("markHealed")}
-              icon="check-circle"
-              onPress={handleHealed}
-            />
-          )}
           <PrimaryButton
             label={t("addNote")}
             icon="edit-2"
             variant="outline"
             onPress={() => setNoteOpen(true)}
           />
+          {isActive && sensor.status === "yellow" && (
+            <PrimaryButton
+              label={t("markHealed")}
+              icon="check-circle"
+              variant="outline"
+              onPress={handleHealed}
+            />
+          )}
         </View>
       </ScrollView>
 
@@ -232,33 +251,63 @@ export default function WoundDetail() {
 }
 
 const styles = StyleSheet.create({
+  backRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+  },
+  backText: {
+    color: c.primary,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+    fontSize: 15,
+  },
   activateBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     paddingVertical: 12,
+    paddingHorizontal: 14,
     backgroundColor: c.tabBg,
-    borderRadius: 12,
+    borderRadius: 999,
+    alignSelf: "center",
+  },
+  monitoringPillActive: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: c.normalBg,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: c.normal,
+    alignSelf: "center",
   },
   activateText: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+  },
+  switchRow: { alignSelf: "center", paddingVertical: 4 },
+  switchText: {
     color: c.primary,
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
   },
   meta: {
     fontSize: 13,
     color: c.textSecondary,
     fontFamily: "Inter_500Medium",
+    textAlign: "center",
   },
   muted: {
     fontSize: 14,
     color: c.textSecondary,
-    fontFamily: "Inter_500Medium",
-  },
-  section: {
-    fontSize: 14,
-    color: c.textPrimary,
     fontFamily: "Inter_500Medium",
   },
   sectionTitle: {
@@ -267,32 +316,6 @@ const styles = StyleSheet.create({
     color: c.textPrimary,
     marginBottom: 6,
     fontFamily: "Inter_700Bold",
-  },
-  noteText: {
-    fontSize: 14,
-    color: c.textPrimary,
-    lineHeight: 20,
-    fontFamily: "Inter_400Regular",
-  },
-  timeline: {
-    flexDirection: "row",
-    padding: 12,
-    backgroundColor: c.card,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: c.border,
-    borderLeftWidth: 4,
-  },
-  timelineLabel: {
-    fontSize: 13,
-    color: c.textPrimary,
-    fontFamily: "Inter_600SemiBold",
-  },
-  timelineTime: {
-    fontSize: 12,
-    color: c.textSecondary,
-    marginTop: 2,
-    fontFamily: "Inter_400Regular",
   },
   modalBg: {
     flex: 1,
