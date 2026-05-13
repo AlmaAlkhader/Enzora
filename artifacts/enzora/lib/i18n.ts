@@ -265,7 +265,7 @@ const en = {
   pushBlockerSimulator:
     "Push notifications require a physical device or supported native build.",
   pushBlockerExpoGoSdk53:
-    "Remote push notifications do not work in Expo Go for SDK 53+. Use a development build to test closed-app push notifications.",
+    "Remote push notifications cannot be tested in Expo Go for SDK 53+. Use a development build.",
   pushBlockerPermissionDenied: "Notification permission was not granted.",
   pushBlockerMissingProjectId:
     "Missing EAS projectId. Add expo.extra.eas.projectId in app.json.",
@@ -728,7 +728,7 @@ const ar: typeof en = {
   pushBlockerSimulator:
     "تتطلب الإشعارات جهازاً حقيقياً أو نسخة مبنية أصلية مدعومة.",
   pushBlockerExpoGoSdk53:
-    "الإشعارات البعيدة لا تعمل في Expo Go للإصدار 53 وما بعده. استخدم نسخة تطوير لاختبار الإشعارات.",
+    "لا يمكن اختبار الإشعارات البعيدة في Expo Go للإصدار 53 وما بعده. استخدم نسخة تطوير.",
   pushBlockerPermissionDenied: "لم يتم منح إذن الإشعارات.",
   pushBlockerMissingProjectId:
     "معرّف مشروع EAS مفقود. أضف expo.extra.eas.projectId في app.json.",

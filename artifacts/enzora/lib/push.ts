@@ -201,7 +201,7 @@ export async function registerForPushNotificationsAsync(): Promise<PushRegistrat
     return {
       ...base,
       error:
-        "Remote push notifications do not work in Expo Go for SDK 53+. Use a development build to test closed-app push notifications.",
+        "Remote push notifications cannot be tested in Expo Go for SDK 53+. Use a development build.",
       blocker: "expo-go-sdk53",
     };
   }
