@@ -37,11 +37,6 @@ const c = colors.light;
 //  - "splash": 160px tall (splash/loading screen)
 //  - "auth": 90px container with overflow hidden — crops the
 //    "Smart Wound Patch" tagline at the bottom
-// On web we apply `mixBlendMode: multiply` so any residual white halo
-// inside the logo letters blends cleanly into the purple gradient.
-const LOGO_BLEND_STYLE: Record<string, unknown> =
-  Platform.OS === "web" ? { mixBlendMode: "multiply" } : {};
-
 export function EnzoraLogo({
   variant = "header",
 }: {
@@ -65,10 +60,11 @@ export function EnzoraLogo({
       >
         <Image
           source={LOGO_SOURCE}
-          style={[
-            { width: imageW, height: imageH, backgroundColor: "transparent" },
-            LOGO_BLEND_STYLE as object,
-          ]}
+          style={{
+            width: imageW,
+            height: imageH,
+            backgroundColor: "transparent",
+          }}
           contentFit="contain"
         />
       </View>
@@ -76,15 +72,12 @@ export function EnzoraLogo({
   }
 
   const height =
-    variant === "splash" ? 160 : variant === "headerLg" ? 72 : 36;
+    variant === "splash" ? 160 : variant === "headerLg" ? 110 : 36;
   const width = Math.round(height * LOGO_ASPECT);
   return (
     <Image
       source={LOGO_SOURCE}
-      style={[
-        { width, height, backgroundColor: "transparent" },
-        LOGO_BLEND_STYLE as object,
-      ]}
+      style={{ width, height, backgroundColor: "transparent" }}
       contentFit="contain"
     />
   );
@@ -162,7 +155,7 @@ export function GradientHeader({
   const isSplit = layout === "split";
   const topPad = Math.max(insets.top, 0) + (isSplit ? 56 : 60);
   const bottomReserve = isSplit ? 56 : 0;
-  const minHeight = topPad + (logoSize === "lg" ? 110 : 80) + bottomReserve;
+  const minHeight = topPad + (logoSize === "lg" ? 150 : 80) + bottomReserve;
   return (
     <LinearGradient
       colors={gradient}
@@ -228,7 +221,7 @@ export function GradientHeader({
       </View>
       {isSplit && (
         <View style={styles.headerSplitBottom}>
-          <View style={{ flex: 1, paddingRight: 12 }}>
+          <View style={{ flex: 1, paddingRight: 12, alignItems: "flex-start" }}>
             {title && (
               <Text
                 style={[styles.headerTitle, { textAlign: "left", marginTop: 0 }]}

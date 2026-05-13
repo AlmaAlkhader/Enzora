@@ -55,23 +55,6 @@ export default function HomeScreen() {
         layout="split"
         logoSize="lg"
         title={`${t("hello")}, ${firstName || ""}`.trim()}
-        right={
-          <Pressable
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Alerts"
-            onPress={() => router.push("/(tabs)/alerts")}
-            style={({ pressed }) => [
-              styles.bell,
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
-          >
-            <Feather name="bell" size={20} color={c.textWhite} />
-            {readings.some((r) => r.status !== "yellow") && (
-              <View style={styles.bellDot} />
-            )}
-          </Pressable>
-        }
       />
       <ScrollView
         contentContainerStyle={{ padding: 18, paddingBottom: 40, gap: 16 }}
