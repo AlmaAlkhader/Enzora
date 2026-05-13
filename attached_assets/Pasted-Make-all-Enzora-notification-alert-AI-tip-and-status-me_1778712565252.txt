@@ -1,0 +1,266 @@
+Make all Enzora notification, alert, AI tip, and status messages shorter, warmer, and less boring.
+
+Problem:
+The current messages are too long, repetitive, and feel boring. Elderly users need short, clear, friendly messages that tell them exactly what to do.
+
+Do not change authentication.
+Do not change Firebase ESP32 sensor logic.
+Do not redesign unrelated UI.
+Only improve message wording and message length.
+
+General message style:
+- Short
+- Warm
+- Human
+- Reassuring
+- Clear
+- Not robotic
+- Not too medical
+- Not too dramatic unless urgent
+- One clear action only
+- No long paragraphs
+- No repeated explanations
+- No technical terms
+- No raw RGB values
+
+Message length rules:
+- Push notifications: maximum 1 short sentence in body.
+- Home status message: maximum 2 short lines.
+- Alert card message: maximum 1–2 short lines.
+- Daily AI care tip: maximum 3 short sentences.
+- WhatsApp/share message: maximum 4 short lines.
+- Avoid long blocks of text.
+
+STATUS MESSAGES
+
+Yellow / Normal:
+Title:
+“Wound is Normal”
+
+Short message:
+“Looks good today. Keep it clean and dry.”
+
+Arabic:
+Title:
+“الجرح طبيعي”
+Message:
+“الوضع جيد اليوم. حافظ عليه نظيفاً وجافاً.”
+
+Green / Watch:
+Title:
+“Watch Closely”
+
+Short message:
+“A small change was noticed. Keep an eye on it.”
+
+Arabic:
+Title:
+“راقب الجرح”
+Message:
+“تم ملاحظة تغير بسيط. راقبه جيداً.”
+
+Blue / Alert:
+Title:
+“Infection Alert”
+
+Short message:
+“Call your doctor today.”
+
+Arabic:
+Title:
+“تنبيه عدوى”
+Message:
+“اتصل بطبيبك اليوم.”
+
+PUSH NOTIFICATIONS
+
+Green:
+Title:
+“Small change detected”
+Body:
+“Please check your wound today.”
+
+Arabic:
+Title:
+“تم اكتشاف تغير بسيط”
+Body:
+“يرجى فحص الجرح اليوم.”
+
+Blue:
+Title:
+“Infection alert”
+Body:
+“Call your doctor today.”
+
+Arabic:
+Title:
+“تنبيه عدوى”
+Body:
+“اتصل بطبيبك اليوم.”
+
+Yellow after green/blue:
+Title:
+“Wound looks better”
+Body:
+“Your reading is back to normal.”
+
+Arabic:
+Title:
+“تحسنت حالة الجرح”
+Body:
+“عادت القراءة إلى الوضع الطبيعي.”
+
+HOME BANNERS
+
+Green banner:
+“Small color change detected. Watch your wound today.”
+
+Arabic:
+“تم اكتشاف تغير بسيط في اللون. راقب الجرح اليوم.”
+
+Blue banner:
+“Alert reading detected. Call your doctor today.”
+
+Arabic:
+“تم اكتشاف قراءة تنبيه. اتصل بطبيبك اليوم.”
+
+DAILY AI CARE TIP
+
+Make daily AI tips shorter and more natural.
+
+System instruction update:
+“You are Enzora Care Assistant. Write short, warm wound-care tips. Do not diagnose. Do not scare the patient. Use simple words. Maximum 3 short sentences. Give one helpful tip and one clear action.”
+
+Rules:
+- Maximum 3 short sentences.
+- No long introductions.
+- No repeated “you are doing great” every time.
+- Use one gentle motivational phrase only.
+- Include one practical tip.
+- Include one action for today.
+- If blue, be urgent but brief.
+
+Examples:
+
+Yellow:
+“Good morning, Sarah. Your wound looks stable today. Keep it clean and dry.”
+
+Arabic:
+“صباح الخير يا سارة. يبدو الجرح مستقراً اليوم. حافظي عليه نظيفاً وجافاً.”
+
+Green:
+“Good morning, Sarah. A small change was noticed. Check the wound today and call your doctor if pain or swelling increases.”
+
+Arabic:
+“صباح الخير يا سارة. تم ملاحظة تغير بسيط. افحصي الجرح اليوم واتصلي بالطبيب إذا زاد الألم أو التورم.”
+
+Blue:
+“Good morning, Sarah. Enzora detected an alert reading. Call your doctor today.”
+
+Arabic:
+“صباح الخير يا سارة. اكتشف إنزورا قراءة تنبيه. اتصلي بطبيبك اليوم.”
+
+WHATSAPP SHARE MESSAGE
+
+Make the WhatsApp message short and nicely formatted.
+
+English format:
+“Good morning, Sarah 🌿
+Today’s status: Normal.
+Tip: Keep the wound clean and dry.
+— Enzora”
+
+For green:
+“Good morning, Sarah 🌿
+Today’s status: Watch closely.
+Tip: Check the wound today.
+— Enzora”
+
+For blue:
+“Important alert from Enzora.
+Status: Infection alert.
+Please call your doctor today.
+— Enzora”
+
+Arabic format:
+“صباح الخير يا سارة 🌿
+حالة اليوم: طبيعية.
+النصيحة: حافظي على الجرح نظيفاً وجافاً.
+— إنزورا”
+
+For blue:
+“تنبيه مهم من إنزورا.
+الحالة: تنبيه عدوى.
+يرجى الاتصال بالطبيب اليوم.
+— إنزورا”
+
+ALERT CARDS
+
+Green alert:
+Title:
+“Small change detected”
+Text:
+“Check your wound today.”
+
+Blue alert:
+Title:
+“Infection alert”
+Text:
+“Call your doctor today.”
+
+Yellow improvement:
+Title:
+“Wound looks better”
+Text:
+“Reading is back to normal.”
+
+Arabic:
+Green:
+“تم اكتشاف تغير بسيط”
+“افحص الجرح اليوم.”
+
+Blue:
+“تنبيه عدوى”
+“اتصل بطبيبك اليوم.”
+
+Yellow:
+“تحسنت حالة الجرح”
+“عادت القراءة إلى الوضع الطبيعي.”
+
+COLOR GUIDE TEXT
+
+Make color guide shorter:
+
+Yellow:
+“Normal — keep it clean and dry.”
+
+Green:
+“Watch closely — check it today.”
+
+Blue:
+“Call doctor — get help today.”
+
+Arabic:
+Yellow:
+“طبيعي — حافظ عليه نظيفاً وجافاً.”
+
+Green:
+“راقب الجرح — افحصه اليوم.”
+
+Blue:
+“اتصل بالطبيب — اطلب المساعدة اليوم.”
+
+IMPORTANT:
+Update all places where long messages appear:
+- Home status card
+- Home status change banner
+- Push notifications
+- Alerts screen
+- History timeline descriptions
+- Daily AI care tip
+- WhatsApp share text
+- Color guide
+- Doctor report summary if needed
+
+Final goal:
+Messages should feel quick, clear, and caring — not long, boring, or robotic.

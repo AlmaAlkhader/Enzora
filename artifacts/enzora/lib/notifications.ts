@@ -12,6 +12,50 @@ try {
 }
 
 const DAILY_ID = "enzora-daily-reminder";
+const ANDROID_CHANNEL_ID = "enzora-alerts";
+
+// ---------------------------------------------------------------------------
+// Module-level setup
+//
+// 1. Foreground notification handler — without this, local notifications
+//    fire silently when the app is in the foreground on SDK 53+ (the
+//    default for shouldShowBanner / shouldShowList is false). This was the
+//    reason status-change notifications looked broken even though the
+//    listener was firing them correctly.
+// 2. Android notification channel — Android requires an explicit channel
+//    for any visible notification on API 26+; without it, scheduled local
+//    notifications are dropped.
+// ---------------------------------------------------------------------------
+if (Notifications) {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        // New SDK 53+ flags — show a banner + list entry while the app is
+        // foregrounded so the user actually sees status-change alerts.
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        // Older flag kept for back-compat with any intermediate runtime.
+        shouldShowAlert: true,
+      }),
+    });
+  } catch (err) {
+    console.warn("[notifications] setNotificationHandler failed", err);
+  }
+  if (Platform.OS === "android") {
+    Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+      name: "Enzora alerts",
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: "default",
+      vibrationPattern: [0, 250, 250, 250],
+      lockscreenVisibility:
+        Notifications.AndroidNotificationVisibility.PUBLIC,
+    }).catch((err) => {
+      console.warn("[notifications] android channel failed", err);
+    });
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Local notification helpers
@@ -35,6 +79,11 @@ async function ensurePermission(): Promise<boolean> {
     return false;
   }
 }
+
+// Public alias — used by callers that want a clearly-named entry point for
+// kicking off the OS permission prompt (e.g. when enabling notifications
+// from settings). Returns true once permission is granted.
+export const requestNotificationPermission = ensurePermission;
 
 interface LocalAlertCopy {
   title: string;
@@ -60,7 +109,11 @@ function transitionCopy(
 ): LocalAlertCopy | null {
   const en = language === "en";
   if (next === "blue") return infectionCopy(language);
-  if (next === "green") {
+  // "Small change" only on yellow → green. A blue → green improvement is
+  // handled below as a recovery (no separate "small change" alert) so we
+  // don't surprise the patient with a worsening-toned message right after
+  // an infection alert resolves.
+  if (next === "green" && prev === "yellow") {
     return en
       ? {
           title: "Small change detected",
@@ -112,6 +165,9 @@ export async function presentLocalTransition(input: {
           status: input.newStatus,
           local: true,
         },
+        ...(Platform.OS === "android"
+          ? { channelId: ANDROID_CHANNEL_ID }
+          : {}),
       },
       trigger: null,
     });
@@ -119,6 +175,10 @@ export async function presentLocalTransition(input: {
     console.warn("[notifications] transition mirror failed", err);
   }
 }
+
+// Spec-named alias so callers can read as "notify status change". Behaves
+// identically to presentLocalTransition.
+export const notifyStatusChange = presentLocalTransition;
 
 export async function scheduleDailyReminder({
   enabled,

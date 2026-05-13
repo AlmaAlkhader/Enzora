@@ -1,0 +1,133 @@
+Restore and keep Expo notifications working, but keep the developer diagnostics section hidden.
+
+Important:
+Do NOT bring back the visible Push Notification Diagnostics card.
+Do NOT bring back testing/debug buttons in the normal Profile screen.
+Do NOT change authentication.
+Do NOT change Firebase ESP32 sensor logic.
+Do NOT redesign unrelated UI.
+
+Problem:
+After hiding the Push Notification Diagnostics section, Expo notifications are no longer working when the wound color/status changes.
+
+I still want Expo notifications.
+I only wanted to hide the diagnostic UI, not remove or disable the notification logic.
+
+Required behavior:
+When Firebase /sensor/status changes, the app should still trigger an Expo/local notification in the current Expo Go-compatible version.
+
+Status-change behavior:
+
+1. yellow → green
+Send/show Expo notification:
+Title: “Small change detected”
+Body: “Please keep an eye on your wound today.”
+
+Arabic:
+Title: “تم اكتشاف تغير بسيط”
+Body: “يرجى مراقبة الجرح اليوم.”
+
+2. green/yellow → blue
+Send/show Expo notification:
+Title: “Infection alert”
+Body: “Please call your doctor today. If you feel unwell, go to the hospital.”
+
+Arabic:
+Title: “تنبيه عدوى”
+Body: “يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.”
+
+3. green/blue → yellow
+Send/show Expo notification:
+Title: “Wound status improved”
+Body: “Your wound reading is back to normal.”
+
+Arabic:
+Title: “تحسنت حالة الجرح”
+Body: “عادت قراءة الجرح إلى الحالة الطبيعية.”
+
+What to fix:
+- Keep notification setup active even though diagnostics UI is hidden.
+- Make sure notification permission is still requested where appropriate.
+- Make sure local Expo notifications still work in Expo Go.
+- Make sure status-change handler calls the Expo notification helper.
+- Make sure hiding diagnostics does not disable notification initialization.
+- Make sure notification helpers are not inside a hidden/unmounted diagnostics component.
+- Move notification logic to a shared service/hook if needed.
+
+Implementation requirements:
+1. Create or restore a shared notification service, for example:
+   lib/notifications.ts
+   or
+   lib/push.ts
+
+It should expose functions like:
+- requestNotificationPermission()
+- scheduleLocalStatusNotification(status, previousStatus, language)
+- notifyStatusChange(status, previousStatus, language)
+
+2. The Firebase status listener should call the notification function whenever status actually changes.
+
+Example logic:
+- read previousStatus
+- read newStatus
+- if previousStatus !== newStatus:
+  - update UI
+  - add history/alert
+  - call notifyStatusChange(newStatus, previousStatus, language)
+
+3. Avoid duplicate notifications:
+- Do not notify repeatedly if the status did not actually change.
+- Do not spam the same status repeatedly.
+- If needed, store lastNotifiedStatus and lastNotifiedAt.
+
+4. Expo Go limitation:
+In Expo Go, use local notifications for status-change demo.
+Keep the future remote/backend push setup intact for development builds.
+
+5. Hidden diagnostics:
+Keep the diagnostics component hidden from normal users.
+If needed, leave:
+const SHOW_PUSH_DIAGNOSTICS = false;
+
+But this flag must only control UI rendering.
+It must NOT disable:
+- notification permission setup
+- local notification scheduling
+- status-change notifications
+- daily reminder notifications
+- backend push support for future builds
+
+6. Profile screen:
+Normal Profile should not show:
+- Push Notification Diagnostics
+- Platform rows
+- token rows
+- test notification buttons
+
+But it should still show:
+- Daily Wellness Reminder
+- medical profile
+- color guide
+- logout
+
+7. Test in Expo Go:
+Test this exact flow:
+- Open app on phone in Expo Go.
+- Allow notifications.
+- Make sure an active wound exists.
+- Change Firebase /sensor/status from yellow to green.
+- Confirm Home updates.
+- Confirm Expo/local notification appears.
+- Change green to blue.
+- Confirm infection notification appears.
+- Change blue to yellow.
+- Confirm improvement notification appears.
+
+8. Test while app is backgrounded:
+- Open app once so listener/permissions are active.
+- Put app in background.
+- Change Firebase status.
+- Confirm local notification appears if supported by Expo Go.
+
+Expected final result:
+The developer diagnostics card stays hidden, but Expo notifications still work when wound status changes.
