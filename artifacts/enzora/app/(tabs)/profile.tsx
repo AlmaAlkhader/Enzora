@@ -69,7 +69,6 @@ export default function ProfileScreen() {
   >(null);
 
   useEffect(() => {
-    if (!demoMode) return;
     void (async () => {
       setPermStatus(await getNotificationPermissionStatus());
       // Force a token fetch so the developer sees a value even before any
@@ -77,7 +76,7 @@ export default function ProfileScreen() {
       const tok = await getExpoPushToken();
       setLocalToken(tok);
     })();
-  }, [demoMode]);
+  }, []);
 
   const onSendTestPush = async () => {
     if (!user || !profile?.activeWoundId) {
@@ -235,9 +234,14 @@ export default function ProfileScreen() {
                 <Text style={styles.demoBtnText}>{t("simulateBlue")}</Text>
               </Pressable>
             </View>
+          </Card>
+        )}
 
-            <View style={styles.pushDevSection}>
-              <Text style={styles.pushDevTitle}>{t("pushTestTitle")}</Text>
+        {/* Always-visible developer card so the test button is findable
+            without the hidden 7-tap gesture. Safe to remove before launch. */}
+        <Card>
+          <View>
+            <Text style={styles.section}>{t("pushTestTitle")}</Text>
               <View style={styles.pushDevRow}>
                 <Text style={styles.pushDevLabel}>
                   {t("pushTestPermission")}
@@ -343,9 +347,8 @@ export default function ProfileScreen() {
                   ) : null}
                 </View>
               )}
-            </View>
-          </Card>
-        )}
+          </View>
+        </Card>
 
         <Card>
           <Text style={styles.section}>{t("medicalProfile")}</Text>
