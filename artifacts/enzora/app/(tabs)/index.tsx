@@ -12,8 +12,8 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
-  BrandedHeader,
   Card,
+  GradientHeader,
   IconChip,
   PrimaryButton,
   StatusCard,
@@ -98,9 +98,9 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <BrandedHeader
+      <GradientHeader
         greeting={t("greetingHello")}
-        name={firstName || t("welcomeBack")}
+        title={firstName || t("welcomeBack")}
       />
 
       <ScrollView
