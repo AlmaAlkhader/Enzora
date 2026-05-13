@@ -174,7 +174,7 @@ export function generateDoctorReport({
   const last10Str = last10
     .map(
       (r) =>
-        `${new Date(r.timestamp).toLocaleString()} — ${r.status.toUpperCase()} (R:${r.red} G:${r.green} B:${r.blue})`,
+        `${new Date(r.timestamp).toLocaleString()} — ${r.status.toUpperCase()}`,
     )
     .join("\n");
 
