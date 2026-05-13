@@ -1,0 +1,143 @@
+Fix Expo push token generation.
+
+Current phone result:
+- Notification permission is granted on my phone.
+- But Local token still says: none / permission denied.
+
+This means permission is not the main problem. The app is failing to generate the Expo push token.
+
+Do not change authentication.
+Do not change Firebase ESP32 sensor logic.
+Do not redesign UI.
+Only fix notification registration diagnostics and token generation.
+
+Tasks:
+
+1. Fix misleading diagnostics
+If permission is granted but token is missing, do not show “permission denied.”
+Instead show the real reason:
+- “Permission granted, but Expo push token could not be generated.”
+- Show the exact error message from getExpoPushTokenAsync.
+- Show whether the app is running in Expo Go.
+- Show whether this is web / iOS / Android.
+- Show SDK version if available.
+
+2. Add proper token generation code
+Use expo-notifications, expo-device, and expo-constants.
+
+Make sure token generation:
+- only runs on a real physical device / supported native environment
+- does not run on web
+- requests permission first
+- checks final permission status
+- calls getExpoPushTokenAsync correctly
+- saves the token to the backend user profile after generation
+
+Use the EAS project ID if available.
+
+Pseudo-code structure:
+
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+
+async function registerForPushNotificationsAsync() {
+  if (Platform.OS === "web") {
+    throw new Error("Push notifications cannot be tested in the web preview.");
+  }
+
+  if (!Device.isDevice) {
+    throw new Error("Push notifications require a physical device or supported native build.");
+  }
+
+  const existing = await Notifications.getPermissionsAsync();
+  let finalStatus = existing.status;
+
+  if (existing.status !== "granted") {
+    const requested = await Notifications.requestPermissionsAsync();
+    finalStatus = requested.status;
+  }
+
+  if (finalStatus !== "granted") {
+    throw new Error("Notification permission was not granted.");
+  }
+
+  const projectId =
+    Constants.expoConfig?.extra?.eas?.projectId ||
+    Constants.easConfig?.projectId;
+
+  if (!projectId) {
+    throw new Error("Missing EAS projectId. getExpoPushTokenAsync needs the projectId.");
+  }
+
+  const tokenResult = await Notifications.getExpoPushTokenAsync({
+    projectId
+  });
+
+  return tokenResult.data;
+}
+
+3. Add EAS projectId if missing
+Check app.json / app.config.js.
+
+Make sure it includes the EAS project ID in extra.eas.projectId.
+
+Example:
+
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
+
+Do not invent a fake projectId. If it is missing, show a clear message telling me it is missing and where to add it.
+
+4. Expo Go warning
+If the app is running in Expo Go and SDK is 53 or newer, show this message:
+
+“Remote push notifications do not work in Expo Go for SDK 53+. Use a development build to test closed-app push notifications.”
+
+This should appear in the Push notification diagnostics card.
+
+5. Keep the diagnostic card
+Update the card to show:
+
+- Platform
+- Running in Expo Go: yes/no
+- Permission status
+- Token generation status
+- Token generation error
+- Local Expo push token preview
+- Backend token saved: yes/no
+- Last backend save response
+- Last test notification response
+
+6. Add button behavior
+“Enable Notifications / Register Token” should:
+- request permission
+- generate token
+- save token to backend
+- refresh diagnostics
+- display real error if it fails
+
+“Send Test Notification” should:
+- only work after backend token exists
+- otherwise say “Register notifications first.”
+
+7. Do not continue with Firebase status-change notifications until:
+- Permission = granted
+- Local token exists
+- Backend has token = yes
+- Send Test Notification works
+
+Deliver:
+Tell me:
+- Whether projectId was missing
+- Whether Expo Go is blocking remote push notifications
+- Whether token generation now succeeds
+- What exact error is shown if it still fails

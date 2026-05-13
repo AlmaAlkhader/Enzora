@@ -21,9 +21,11 @@ import { useApp } from "@/contexts/AppContext";
 import { isBiometricAvailable } from "@/lib/biometric";
 import {
   getCachedExpoPushToken,
-  getExpoPushToken,
-  getNotificationPermissionStatus,
+  registerForPushNotificationsAsync,
   sendBackendTestPush,
+  syncPushSubscription,
+  type PushRegistration,
+  type PushSyncResult,
   type PushTestResponse,
 } from "@/lib/push";
 
@@ -49,18 +51,17 @@ export default function ProfileScreen() {
     demoMode,
     setDemoMode,
     simulateStatus,
+    wounds,
+    connectedDeviceId,
   } = useApp();
-  // `language` and `notificationsEnabled` are read above; reference them
-  // here only to silence unused-warnings if a future edit relies on them.
-  void language;
-  void notificationsEnabled;
   const [bioAvailable, setBioAvailable] = useState(false);
-  // Dev-only push diagnostics state. Lives behind the same Demo Mode gate
-  // (7-tap on the avatar) as the simulate buttons.
-  const [permStatus, setPermStatus] = useState<string>("…");
-  const [localToken, setLocalToken] = useState<string | null>(
-    getCachedExpoPushToken(),
+  // Dev-only push diagnostics state. The card is always visible so the
+  // tester can see what's wrong without the hidden 7-tap gesture.
+  const [registration, setRegistration] = useState<PushRegistration | null>(
+    null,
   );
+  const [registerBusy, setRegisterBusy] = useState(false);
+  const [saveResult, setSaveResult] = useState<PushSyncResult | null>(null);
   const [testBusy, setTestBusy] = useState(false);
   const [testResult, setTestResult] = useState<
     | (PushTestResponse & { transportError?: string })
@@ -68,29 +69,70 @@ export default function ProfileScreen() {
     | null
   >(null);
 
+  // On mount: probe state without prompting. We do NOT call
+  // registerForPushNotificationsAsync here because it would trigger the
+  // permission prompt on first visit. The user must press the button.
   useEffect(() => {
-    void (async () => {
-      setPermStatus(await getNotificationPermissionStatus());
-      // Force a token fetch so the developer sees a value even before any
-      // background sync has run.
-      const tok = await getExpoPushToken();
-      setLocalToken(tok);
-    })();
+    const cached = getCachedExpoPushToken();
+    if (cached) {
+      // We already registered earlier in this session; reflect it.
+      setRegistration({
+        platform: Platform.OS,
+        isDevice: true,
+        isExpoGo: false,
+        sdkVersion: null,
+        permissionStatus: "granted",
+        projectId: null,
+        token: cached,
+        error: null,
+        blocker: null,
+      });
+    }
   }, []);
+
+  const onRegister = async () => {
+    setRegisterBusy(true);
+    setSaveResult(null);
+    try {
+      const reg = await registerForPushNotificationsAsync();
+      setRegistration(reg);
+      // If we got a token AND we have an active wound, save it to the
+      // backend immediately so the test push has somewhere to land.
+      if (reg.token && user && profile?.activeWoundId) {
+        // Mirror the AppContext sync effect so we don't overwrite the
+        // existing deviceId / healed status on the row.
+        const activeWound =
+          wounds.find((w) => w.id === profile.activeWoundId) ?? null;
+        const woundDeviceId =
+          activeWound?.deviceId ?? connectedDeviceId ?? null;
+        const isHealed = activeWound?.status === "healed";
+        const result = await syncPushSubscription({
+          email: user.email,
+          woundId: profile.activeWoundId,
+          deviceId: woundDeviceId,
+          language,
+          notificationsEnabled,
+          woundHealed: isHealed,
+        });
+        setSaveResult(result);
+      }
+    } finally {
+      setRegisterBusy(false);
+    }
+  };
 
   const onSendTestPush = async () => {
     if (!user || !profile?.activeWoundId) {
       setTestResult({ transportError: t("pushTestNoWound") });
       return;
     }
+    if (!registration?.token) {
+      setTestResult({ transportError: t("pushTestRegisterFirst") });
+      return;
+    }
     setTestBusy(true);
     setTestResult(null);
     try {
-      // Note: we intentionally do NOT call syncPushSubscription here. The
-      // AppContext effect already keeps the row up to date whenever any
-      // relevant input changes, and re-syncing with partial data would
-      // overwrite real fields (deviceId, woundHealed) and break the
-      // poller-driven notification flow.
       const result = await sendBackendTestPush({
         email: user.email,
         woundId: profile.activeWoundId,
@@ -105,9 +147,36 @@ export default function ProfileScreen() {
     }
   };
 
+  const localToken = registration?.token ?? getCachedExpoPushToken();
   const tokenPreview = localToken
     ? `${localToken.slice(0, 18)}…${localToken.slice(-6)}`
     : null;
+  const projectIdPreview = registration?.projectId
+    ? `${registration.projectId.slice(0, 8)}…${registration.projectId.slice(-4)}`
+    : null;
+  // Map machine-readable blocker codes to localized strings so the card
+  // doesn't leak hardcoded English from push.ts.
+  const localizedRegistrationError = (() => {
+    if (!registration?.error) return null;
+    switch (registration.blocker) {
+      case "web":
+        return t("pushBlockerWeb");
+      case "simulator":
+        return t("pushBlockerSimulator");
+      case "expo-go-sdk53":
+        return t("pushBlockerExpoGoSdk53");
+      case "permission-denied":
+        return t("pushBlockerPermissionDenied");
+      case "missing-project-id":
+        return t("pushBlockerMissingProjectId");
+      case "token-error":
+        // Token error: combine the localized headline with the raw Expo
+        // error so the developer still sees the underlying message.
+        return `${t("pushBlockerTokenError")} ${registration.error}`;
+      default:
+        return registration.error;
+    }
+  })();
   // Hidden gesture: 7 quick taps on the avatar reveal Judge Demo Mode.
   // Once demoMode is on, the card stays visible without re-tapping.
   // We use a functional setState (not the closed-over `avatarTaps`) so a fast
@@ -244,9 +313,73 @@ export default function ProfileScreen() {
             <Text style={styles.section}>{t("pushTestTitle")}</Text>
               <View style={styles.pushDevRow}>
                 <Text style={styles.pushDevLabel}>
+                  {t("pushTestPlatform")}
+                </Text>
+                <Text style={styles.pushDevValue}>
+                  {registration?.platform ?? Platform.OS}
+                </Text>
+              </View>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>{t("pushTestExpoGo")}</Text>
+                <Text style={styles.pushDevValue}>
+                  {registration
+                    ? registration.isExpoGo
+                      ? t("pushTestYes")
+                      : t("pushTestNo")
+                    : t("pushTestUnknown")}
+                </Text>
+              </View>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>{t("pushTestSdk")}</Text>
+                <Text style={styles.pushDevValue}>
+                  {registration?.sdkVersion ?? t("pushTestUnknown")}
+                </Text>
+              </View>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>
+                  {t("pushTestProjectId")}
+                </Text>
+                <Text
+                  style={[
+                    styles.pushDevValueMono,
+                    !projectIdPreview && { color: c.alert },
+                  ]}
+                  numberOfLines={1}
+                  selectable
+                >
+                  {projectIdPreview ?? t("pushTestProjectIdMissing")}
+                </Text>
+              </View>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>
                   {t("pushTestPermission")}
                 </Text>
-                <Text style={styles.pushDevValue}>{permStatus}</Text>
+                <Text style={styles.pushDevValue}>
+                  {registration?.permissionStatus ?? t("pushTestUnknown")}
+                </Text>
+              </View>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>
+                  {t("pushTestTokenGenStatus")}
+                </Text>
+                <Text
+                  style={[
+                    styles.pushDevValue,
+                    {
+                      color: !registration
+                        ? c.textSecondary
+                        : registration.token
+                          ? c.normal
+                          : c.alert,
+                    },
+                  ]}
+                >
+                  {!registration
+                    ? t("pushTestUnknown")
+                    : registration.token
+                      ? t("pushTestTokenGenOk")
+                      : t("pushTestTokenGenFailed")}
+                </Text>
               </View>
               <View style={styles.pushDevRow}>
                 <Text style={styles.pushDevLabel}>{t("pushTestToken")}</Text>
@@ -258,12 +391,75 @@ export default function ProfileScreen() {
                   {tokenPreview ?? t("pushTestNoToken")}
                 </Text>
               </View>
+              {localizedRegistrationError && (
+                <View style={styles.pushDevRow}>
+                  <Text style={styles.pushDevLabel}>
+                    {t("pushTestTokenGenError")}
+                  </Text>
+                  <Text
+                    style={[styles.pushDevValueMono, { color: c.alert }]}
+                    selectable
+                  >
+                    {localizedRegistrationError}
+                  </Text>
+                </View>
+              )}
+              {/* Always render the backend-save row so the diagnostic is
+                  consistent regardless of whether a save was attempted. */}
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>
+                  {t("pushTestSaveStatus")}
+                </Text>
+                <Text
+                  style={[
+                    styles.pushDevValue,
+                    {
+                      color: !saveResult
+                        ? c.textSecondary
+                        : saveResult.ok
+                          ? c.normal
+                          : c.alert,
+                    },
+                  ]}
+                >
+                  {!saveResult
+                    ? t("pushTestSaveNotAttempted")
+                    : saveResult.ok
+                      ? t("pushTestSaveOk", {
+                          status: saveResult.status ?? "?",
+                        })
+                      : `${t("pushTestSaveFail")}: ${saveResult.error ?? "?"}`}
+                </Text>
+              </View>
               <Pressable
-                onPress={() => void onSendTestPush()}
-                disabled={testBusy}
+                onPress={() => void onRegister()}
+                disabled={registerBusy}
                 style={[
                   styles.pushDevBtn,
-                  { backgroundColor: testBusy ? c.border : c.primary },
+                  {
+                    backgroundColor: registerBusy ? c.border : c.primary,
+                    marginTop: 12,
+                  },
+                ]}
+              >
+                <Feather name="bell" size={14} color="#fff" />
+                <Text style={styles.pushDevBtnText}>
+                  {registerBusy
+                    ? t("pushTestRegistering")
+                    : t("pushTestRegister")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void onSendTestPush()}
+                disabled={testBusy || !registration?.token}
+                style={[
+                  styles.pushDevBtn,
+                  {
+                    backgroundColor:
+                      testBusy || !registration?.token
+                        ? c.border
+                        : c.primary,
+                  },
                 ]}
               >
                 <Feather name="send" size={14} color="#fff" />
