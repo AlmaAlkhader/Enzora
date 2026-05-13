@@ -52,6 +52,8 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <GradientHeader
+        layout="split"
+        logoSize="lg"
         title={`${t("hello")}, ${firstName || ""}`.trim()}
         right={
           <Pressable

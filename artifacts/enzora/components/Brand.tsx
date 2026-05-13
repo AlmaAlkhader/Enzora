@@ -32,21 +32,25 @@ const c = colors.light;
 
 // ---------------- Enzora Logo ----------------
 // Variants:
-//  - "header": 36px tall, full logo with tagline (auto width, contain)
-//  - "splash": 160px tall, full logo with tagline (auto width, contain)
-//  - "auth": 90px container with overflow hidden — image rendered larger so
-//    the "Smart Wound Patch" tagline at the bottom is cropped off
+//  - "header": 36px tall (small header)
+//  - "headerLg": 72px tall (prominent header — used on home)
+//  - "splash": 160px tall (splash/loading screen)
+//  - "auth": 90px container with overflow hidden — crops the
+//    "Smart Wound Patch" tagline at the bottom
+// On web we apply `mixBlendMode: multiply` so any residual white halo
+// inside the logo letters blends cleanly into the purple gradient.
+const LOGO_BLEND_STYLE: Record<string, unknown> =
+  Platform.OS === "web" ? { mixBlendMode: "multiply" } : {};
+
 export function EnzoraLogo({
   variant = "header",
 }: {
-  variant?: "header" | "splash" | "auth";
+  variant?: "header" | "headerLg" | "splash" | "auth";
   color?: string;
 }) {
   if (variant === "auth") {
-    // The tagline occupies roughly the bottom ~22% of the source image.
-    // Render the image taller than the container and crop the bottom.
     const containerH = 90;
-    const imageH = Math.round(containerH / 0.78); // ~115
+    const imageH = Math.round(containerH / 0.78);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
       <View
@@ -61,19 +65,26 @@ export function EnzoraLogo({
       >
         <Image
           source={LOGO_SOURCE}
-          style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
+          style={[
+            { width: imageW, height: imageH, backgroundColor: "transparent" },
+            LOGO_BLEND_STYLE as object,
+          ]}
           contentFit="contain"
         />
       </View>
     );
   }
 
-  const height = variant === "splash" ? 160 : 36;
+  const height =
+    variant === "splash" ? 160 : variant === "headerLg" ? 72 : 36;
   const width = Math.round(height * LOGO_ASPECT);
   return (
     <Image
       source={LOGO_SOURCE}
-      style={{ width, height, backgroundColor: "transparent" }}
+      style={[
+        { width, height, backgroundColor: "transparent" },
+        LOGO_BLEND_STYLE as object,
+      ]}
       contentFit="contain"
     />
   );
@@ -130,15 +141,28 @@ export function GradientHeader({
   right,
   back,
   onBack,
+  layout = "centered",
+  logoSize = "sm",
 }: {
   title?: string;
   subtitle?: string;
   right?: React.ReactNode;
   back?: boolean;
   onBack?: () => void;
+  /**
+   * "centered": logo + title stacked and centered. `right` sits in the top-right
+   * cluster next to the language toggle. (default — used by most screens)
+   * "split": logo centered (and typically larger) on top, title on bottom-LEFT
+   * and `right` slot on bottom-RIGHT. Language toggle stays top-right.
+   */
+  layout?: "centered" | "split";
+  logoSize?: "sm" | "lg";
 }) {
   const insets = useSafeAreaInsets();
-  const topPad = Math.max(insets.top, 0) + 60;
+  const isSplit = layout === "split";
+  const topPad = Math.max(insets.top, 0) + (isSplit ? 56 : 60);
+  const bottomReserve = isSplit ? 56 : 0;
+  const minHeight = topPad + (logoSize === "lg" ? 110 : 80) + bottomReserve;
   return (
     <LinearGradient
       colors={gradient}
@@ -148,7 +172,8 @@ export function GradientHeader({
         styles.header,
         {
           paddingTop: topPad,
-          minHeight: topPad + 80,
+          paddingBottom: isSplit ? 16 : 20,
+          minHeight,
         },
       ]}
     >
@@ -177,12 +202,12 @@ export function GradientHeader({
           { top: Math.max(insets.top, 0) + 44 },
         ]}
       >
-        {right}
+        {!isSplit && right}
         <LanguageToggle dark />
       </View>
       <View style={styles.headerCenter}>
-        <EnzoraLogo variant="header" />
-        {title && (
+        <EnzoraLogo variant={logoSize === "lg" ? "headerLg" : "header"} />
+        {!isSplit && title && (
           <Text
             style={styles.headerTitle}
             numberOfLines={1}
@@ -191,7 +216,7 @@ export function GradientHeader({
             {title}
           </Text>
         )}
-        {subtitle && (
+        {!isSplit && subtitle && (
           <Text
             style={styles.headerSubtitle}
             numberOfLines={1}
@@ -201,6 +226,31 @@ export function GradientHeader({
           </Text>
         )}
       </View>
+      {isSplit && (
+        <View style={styles.headerSplitBottom}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            {title && (
+              <Text
+                style={[styles.headerTitle, { textAlign: "left", marginTop: 0 }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {title}
+              </Text>
+            )}
+            {subtitle && (
+              <Text
+                style={[styles.headerSubtitle, { textAlign: "left" }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {subtitle}
+              </Text>
+            )}
+          </View>
+          {right}
+        </View>
+      )}
     </LinearGradient>
   );
 }
@@ -487,8 +537,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    maxWidth: 140,
+    maxWidth: 200,
     zIndex: 2,
+  },
+  headerSplitBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
   },
   backBtnAbs: {
     position: "absolute",
