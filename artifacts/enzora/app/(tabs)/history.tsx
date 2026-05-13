@@ -95,7 +95,7 @@ export default function HistoryScreen() {
         </View>
 
         <Card>
-          <Text style={styles.sectionTitle}>{t("rgbTrend")}</Text>
+          <Text style={styles.sectionTitle}>{t("statusJourney")}</Text>
           <ColorTrend readings={filtered} counts={counts} />
         </Card>
 
