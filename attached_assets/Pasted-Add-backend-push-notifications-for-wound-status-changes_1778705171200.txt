@@ -1,0 +1,282 @@
+Add backend push notifications for wound status changes when the Enzora app is closed.
+
+Important:
+Do NOT change authentication.
+Do NOT change the existing Replit/default database auth system.
+Do NOT change the ESP32 code.
+Do NOT change the Firebase Realtime Database path.
+Firebase is still used for ESP32 sensor readings only.
+The app frontend can still listen to Firebase while open, but status-change notifications must also work when the app is closed.
+
+Goal:
+When the ESP32 updates Firebase and the wound status changes, the user should receive a push notification even if the Enzora app is closed or not running.
+
+Current Firebase sensor path:
+
+/sensor
+  red: number
+  green: number
+  blue: number
+  status: "yellow" | "green" | "blue"
+
+Required flow:
+ESP32 writes new status to Firebase
+→ backend detects that /sensor/status changed
+→ backend compares it with the last saved status
+→ if the status actually changed, save the new status in the backend/database
+→ create an alert/history entry
+→ send a push notification to the user’s saved Expo push token
+→ app receives notification even if closed
+
+PART 1 — Store Expo push token
+
+In the app frontend:
+- Request notification permission.
+- Get Expo push token.
+- Save the Expo push token to the logged-in user profile in the existing backend database.
+- Do not save it only locally.
+- Update the token if it changes.
+
+Store fields such as:
+- expoPushToken
+- notificationsEnabled
+- notificationPermissionStatus
+
+Add or reuse a notification setting:
+English: “Wound status alerts”
+Arabic: “تنبيهات حالة الجرح”
+
+Default: ON if permission is granted.
+
+PART 2 — Backend Firebase status monitor
+
+Create a backend service/job that monitors Firebase status changes.
+
+Because the app may be closed, do NOT rely only on frontend Firebase onValue listener.
+
+Backend options:
+Use the easiest reliable method for this Replit project:
+
+Option A:
+Create a backend polling job that checks Firebase /sensor/status every few seconds or every minute.
+
+Option B:
+Use Firebase Admin SDK listener on the backend if supported and stable in this project.
+
+Choose the safest option for Replit.
+
+The monitor should:
+- read /sensor/status
+- read /sensor/red, /sensor/green, /sensor/blue if needed for internal history
+- compare current status with last known status stored in the backend database
+- only trigger notification when status changes
+- do not spam repeated notifications for the same unchanged status
+
+PART 3 — Last status tracking
+
+Store the last known status in the backend database.
+
+Possible fields:
+- lastSensorStatus
+- lastSensorStatusChangedAt
+- lastSensorReadingAt
+
+When Firebase status is the same as the stored last status:
+- do nothing
+- do not send notification
+
+When Firebase status is different:
+- update lastSensorStatus
+- update lastSensorStatusChangedAt
+- add a status reading/history entry
+- create an alert if status is green or blue
+- send push notification
+
+PART 4 — Notification messages
+
+Send different push notification content based on the new status.
+
+If status changes to yellow after green or blue:
+Title:
+“Wound status improved”
+Body:
+“Your wound reading is back to normal.”
+
+Arabic:
+Title:
+“تحسنت حالة الجرح”
+Body:
+“عادت قراءة الجرح إلى الحالة الطبيعية.”
+
+If status changes to green:
+Title:
+“Small change detected”
+Body:
+“Please keep an eye on your wound today.”
+
+Arabic:
+Title:
+“تم اكتشاف تغير بسيط”
+Body:
+“يرجى مراقبة الجرح اليوم.”
+
+If status changes to blue:
+Title:
+“Infection alert”
+Body:
+“Please call your doctor today. If you feel unwell, go to the hospital.”
+
+Arabic:
+Title:
+“تنبيه عدوى”
+Body:
+“يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.”
+
+Important:
+For blue status, make the notification urgent but calm.
+Do not say anything overly scary.
+Do not say the app is making a medical diagnosis.
+Use “alert reading” or “infection alert” wording consistently with the app.
+
+PART 5 — Send Expo push notification from backend
+
+Create a backend notification service that sends push notifications to Expo.
+
+Use Expo push API:
+POST https://exp.host/--/api/v2/push/send
+
+Payload should include:
+- to: user.expoPushToken
+- title
+- body
+- sound: "default"
+- data:
+  {
+    type: "wound_status_change",
+    status: "yellow" | "green" | "blue",
+    woundId: activeWoundId if available
+  }
+
+If multiple users/caregivers can monitor wounds:
+- send to the person monitoring the wound
+- send to caregiver/family member if that feature exists and notifications are enabled
+
+PART 6 — Active wound logic
+
+Only send wound status notifications if:
+- the user has notifications enabled
+- the user has an active monitored wound
+- the wound is not healed
+- the status actually changed
+
+If the active wound is healed:
+- do not send active wound alerts
+- do not treat it as monitored
+
+If there is no active wound:
+- do not send wound status notifications
+- optionally log that sensor changed but no active wound is selected
+
+PART 7 — Alert/history entry
+
+When status changes:
+Save an entry in the existing backend database.
+
+History entry should include:
+- woundId
+- userId
+- status
+- previousStatus
+- timestamp
+- source: "firebase_sensor"
+- red/green/blue if available internally
+- patient-friendly meaning
+
+Alert entry should be created for:
+- green
+- blue
+
+Green alert:
+“Small change detected”
+
+Blue alert:
+“Infection alert”
+
+Yellow after green/blue:
+Optional alert:
+“Wound status improved”
+
+PART 8 — Avoid duplicate notifications
+
+Add duplicate protection:
+- do not notify if status did not change
+- do not notify repeatedly for same status
+- add cooldown if needed, for example:
+  do not send the same status notification more than once within 10 minutes
+
+But if status changes from:
+yellow → green
+green → blue
+blue → yellow
+
+Each should notify once.
+
+PART 9 — Frontend behavior when notification is tapped
+
+When the user taps the push notification:
+- open the app
+- navigate to Home or Wound Detail if woundId is available
+- show the updated status
+- show the relevant alert banner if needed
+
+PART 10 — Keep existing open-app behavior
+
+If the app is already open:
+- frontend Firebase listener can still update the UI in real time
+- avoid duplicate local + push notifications if both frontend and backend detect the same change
+- prefer backend push notification for real notification delivery
+- frontend should mainly update UI live
+
+PART 11 — Environment variables
+
+Use Replit Secrets for Firebase Admin credentials if needed.
+
+Do not hardcode secrets.
+
+If Firebase Admin SDK is used, document the required env variables.
+
+If polling Firebase REST API is used, document the required env variables.
+
+PART 12 — Testing checklist
+
+Test this exact flow:
+
+1. Log in to Enzora.
+2. Allow notifications.
+3. Confirm Expo push token is saved to backend user profile.
+4. Make sure there is an active wound.
+5. Close the app completely.
+6. Change Firebase /sensor/status from yellow to green.
+7. Confirm backend detects status change.
+8. Confirm push notification appears on the phone.
+9. Tap notification.
+10. Confirm app opens to Home or Wound Detail with updated status.
+11. Close app again.
+12. Change status from green to blue.
+13. Confirm urgent notification appears.
+14. Change status from blue to yellow.
+15. Confirm improvement notification appears.
+16. Change status to yellow again without changing.
+17. Confirm no duplicate notification is sent.
+18. Mark wound as healed.
+19. Change Firebase status.
+20. Confirm no active wound notification is sent for healed wound.
+
+Deliver:
+- Files changed.
+- Whether polling or Firebase Admin listener was used.
+- How often backend checks Firebase if polling.
+- Where Expo push token is stored.
+- Where last status is stored.
+- How duplicate notifications are prevented.
+- How to test status-change notifications while the app is closed.

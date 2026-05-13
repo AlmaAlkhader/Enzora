@@ -1,6 +1,7 @@
 import type { Server } from "node:http";
 
 import app from "./app";
+import { startFirebasePoller, stopFirebasePoller } from "./lib/firebase-poller";
 import { logger } from "./lib/logger";
 
 const rawPort = process.env["PORT"];
@@ -28,6 +29,9 @@ function startServer(attempt: number): void {
 
   s.once("listening", () => {
     logger.info({ port, attempt }, "Server listening");
+    // Start the wound status monitor only after we've successfully bound to
+    // the port — avoids races during retry attempts.
+    startFirebasePoller();
   });
 
   s.once("error", (err: NodeJS.ErrnoException) => {
@@ -46,6 +50,7 @@ function startServer(attempt: number): void {
 
 function shutdown(signal: string): void {
   logger.info({ signal }, "Received shutdown signal, closing server");
+  stopFirebasePoller();
   if (!server) {
     process.exit(0);
   }

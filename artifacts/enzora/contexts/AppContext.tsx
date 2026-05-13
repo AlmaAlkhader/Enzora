@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { rtdb } from "@/lib/firebase";
 import i18n, { loadLanguage, saveLanguage } from "@/lib/i18n";
 import { scheduleDailyReminder } from "@/lib/notifications";
+import { clearPushSubscription, syncPushSubscription } from "@/lib/push";
 import {
   type Patient,
   readActivePatientId,
@@ -761,6 +762,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     prefsLoaded,
   ]);
 
+  // Sync the push subscription to the backend whenever any input that
+  // affects polling/delivery changes (active wound, linked device, healed
+  // flag, notification toggle, language). One effect keeps the wiring in
+  // a single place — no mutation site needs to remember to call this.
+  const activeWoundForSync = useMemo(
+    () => wounds.find((w) => w.id === profile?.activeWoundId) ?? null,
+    [wounds, profile?.activeWoundId],
+  );
+  useEffect(() => {
+    if (!user || !profile?.activeWoundId) return;
+    const woundDeviceId = activeWoundForSync?.deviceId ?? connectedDeviceId ?? null;
+    const isHealed = activeWoundForSync?.status === "healed";
+    void syncPushSubscription({
+      email: user.email,
+      woundId: profile.activeWoundId,
+      deviceId: woundDeviceId,
+      language,
+      notificationsEnabled,
+      woundHealed: isHealed,
+    });
+  }, [
+    user,
+    profile?.activeWoundId,
+    activeWoundForSync?.deviceId,
+    activeWoundForSync?.status,
+    connectedDeviceId,
+    language,
+    notificationsEnabled,
+  ]);
+
   const setLanguage = useCallback(
     async (lang: "en" | "ar") => {
       setLanguageState(lang);
@@ -875,6 +906,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOutUser = useCallback(async () => {
+    // Tell the backend to stop pushing to this device's token before we drop
+    // local user state. Best-effort — failures here shouldn't block logout.
+    if (user) {
+      void clearPushSubscription(user.email);
+    }
     await AsyncStorage.removeItem(SESSION_KEY);
     setUser(null);
     setProfile(null);
@@ -884,7 +920,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setActivePatientIdState(null);
     setBiometricEnabledState(false);
     setConnectedDeviceIdState(null);
-  }, []);
+  }, [user]);
 
   const updateAccount = useCallback(
     async (mutate: (acc: StoredAccount) => StoredAccount) => {

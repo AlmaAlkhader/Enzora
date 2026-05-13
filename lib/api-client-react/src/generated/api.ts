@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  HealthStatus,
+  PushClearInput,
+  PushSubscriptionInput,
+  PushSubscriptionResult,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,184 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Called by the mobile app whenever the active wound, linked device,
+Expo push token, preferred language, healed flag, or notifications
+toggle changes. The backend uses these rows to poll Firebase and
+deliver wound status push notifications.
+
+ * @summary Upsert a push subscription
+ */
+export const getSyncPushSubscriptionUrl = () => {
+  return `/api/push/sync`;
+};
+
+export const syncPushSubscription = async (
+  pushSubscriptionInput: PushSubscriptionInput,
+  options?: RequestInit,
+): Promise<PushSubscriptionResult> => {
+  return customFetch<PushSubscriptionResult>(getSyncPushSubscriptionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(pushSubscriptionInput),
+  });
+};
+
+export const getSyncPushSubscriptionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof syncPushSubscription>>,
+    TError,
+    { data: BodyType<PushSubscriptionInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof syncPushSubscription>>,
+  TError,
+  { data: BodyType<PushSubscriptionInput> },
+  TContext
+> => {
+  const mutationKey = ["syncPushSubscription"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof syncPushSubscription>>,
+    { data: BodyType<PushSubscriptionInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return syncPushSubscription(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SyncPushSubscriptionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof syncPushSubscription>>
+>;
+export type SyncPushSubscriptionMutationBody = BodyType<PushSubscriptionInput>;
+export type SyncPushSubscriptionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Upsert a push subscription
+ */
+export const useSyncPushSubscription = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof syncPushSubscription>>,
+    TError,
+    { data: BodyType<PushSubscriptionInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof syncPushSubscription>>,
+  TError,
+  { data: BodyType<PushSubscriptionInput> },
+  TContext
+> => {
+  return useMutation(getSyncPushSubscriptionMutationOptions(options));
+};
+
+/**
+ * Removes the Expo push token from every subscription belonging to the
+given email so the user stops receiving wound notifications after
+signing out.
+
+ * @summary Clear push subscriptions on logout
+ */
+export const getClearPushSubscriptionsUrl = () => {
+  return `/api/push/clear`;
+};
+
+export const clearPushSubscriptions = async (
+  pushClearInput: PushClearInput,
+  options?: RequestInit,
+): Promise<PushSubscriptionResult> => {
+  return customFetch<PushSubscriptionResult>(getClearPushSubscriptionsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(pushClearInput),
+  });
+};
+
+export const getClearPushSubscriptionsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof clearPushSubscriptions>>,
+    TError,
+    { data: BodyType<PushClearInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof clearPushSubscriptions>>,
+  TError,
+  { data: BodyType<PushClearInput> },
+  TContext
+> => {
+  const mutationKey = ["clearPushSubscriptions"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof clearPushSubscriptions>>,
+    { data: BodyType<PushClearInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return clearPushSubscriptions(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClearPushSubscriptionsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof clearPushSubscriptions>>
+>;
+export type ClearPushSubscriptionsMutationBody = BodyType<PushClearInput>;
+export type ClearPushSubscriptionsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Clear push subscriptions on logout
+ */
+export const useClearPushSubscriptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof clearPushSubscriptions>>,
+    TError,
+    { data: BodyType<PushClearInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof clearPushSubscriptions>>,
+  TError,
+  { data: BodyType<PushClearInput> },
+  TContext
+> => {
+  return useMutation(getClearPushSubscriptionsMutationOptions(options));
+};

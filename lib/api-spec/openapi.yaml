@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: push
+    description: Push notification subscriptions
 paths:
   /healthz:
     get:
@@ -24,6 +26,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /push/sync:
+    post:
+      operationId: syncPushSubscription
+      tags: [push]
+      summary: Upsert a push subscription
+      description: |
+        Called by the mobile app whenever the active wound, linked device,
+        Expo push token, preferred language, healed flag, or notifications
+        toggle changes. The backend uses these rows to poll Firebase and
+        deliver wound status push notifications.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushSubscriptionInput"
+      responses:
+        "200":
+          description: Synced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushSubscriptionResult"
+  /push/clear:
+    post:
+      operationId: clearPushSubscriptions
+      tags: [push]
+      summary: Clear push subscriptions on logout
+      description: |
+        Removes the Expo push token from every subscription belonging to the
+        given email so the user stops receiving wound notifications after
+        signing out.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushClearInput"
+      responses:
+        "200":
+          description: Cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushSubscriptionResult"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +80,43 @@ components:
           type: string
       required:
         - status
-
+    PushSubscriptionInput:
+      type: object
+      required:
+        - email
+        - woundId
+      properties:
+        email:
+          type: string
+          minLength: 3
+        woundId:
+          type: string
+          minLength: 1
+        deviceId:
+          type: ["string", "null"]
+        expoPushToken:
+          type: ["string", "null"]
+        language:
+          type: string
+          enum: [en, ar]
+        notificationsEnabled:
+          type: boolean
+        woundHealed:
+          type: boolean
+    PushClearInput:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          minLength: 3
+        expoPushToken:
+          type: ["string", "null"]
+    PushSubscriptionResult:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean

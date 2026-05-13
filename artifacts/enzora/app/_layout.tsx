@@ -6,11 +6,20 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { Platform, View } from "react-native";
+
+import {
+  attachNotificationTapHandler,
+  configureForegroundHandler,
+} from "@/lib/push";
+
+// Configure foreground notification display once at module load. Without
+// this Expo silently drops notifications while the app is open.
+configureForegroundHandler();
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -30,6 +39,19 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const router = useRouter();
+  // Route the user to the right screen when they tap a wound status push.
+  useEffect(() => {
+    const detach = attachNotificationTapHandler((path) => {
+      try {
+        router.push(path as never);
+      } catch {
+        // ignore navigation errors (e.g. before navigator is mounted)
+      }
+    });
+    return detach;
+  }, [router]);
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />

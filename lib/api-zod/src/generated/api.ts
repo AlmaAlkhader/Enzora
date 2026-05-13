@@ -14,3 +14,45 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Called by the mobile app whenever the active wound, linked device,
+Expo push token, preferred language, healed flag, or notifications
+toggle changes. The backend uses these rows to poll Firebase and
+deliver wound status push notifications.
+
+ * @summary Upsert a push subscription
+ */
+export const syncPushSubscriptionBodyEmailMin = 3;
+
+export const SyncPushSubscriptionBody = zod.object({
+  email: zod.string().min(syncPushSubscriptionBodyEmailMin),
+  woundId: zod.string().min(1),
+  deviceId: zod.string().nullish(),
+  expoPushToken: zod.string().nullish(),
+  language: zod.enum(["en", "ar"]).optional(),
+  notificationsEnabled: zod.boolean().optional(),
+  woundHealed: zod.boolean().optional(),
+});
+
+export const SyncPushSubscriptionResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * Removes the Expo push token from every subscription belonging to the
+given email so the user stops receiving wound notifications after
+signing out.
+
+ * @summary Clear push subscriptions on logout
+ */
+export const clearPushSubscriptionsBodyEmailMin = 3;
+
+export const ClearPushSubscriptionsBody = zod.object({
+  email: zod.string().min(clearPushSubscriptionsBodyEmailMin),
+  expoPushToken: zod.string().nullish(),
+});
+
+export const ClearPushSubscriptionsResponse = zod.object({
+  ok: zod.boolean(),
+});

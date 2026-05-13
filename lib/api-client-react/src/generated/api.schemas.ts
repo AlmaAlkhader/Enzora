@@ -8,3 +8,36 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type PushSubscriptionInputLanguage =
+  (typeof PushSubscriptionInputLanguage)[keyof typeof PushSubscriptionInputLanguage];
+
+export const PushSubscriptionInputLanguage = {
+  en: "en",
+  ar: "ar",
+} as const;
+
+export interface PushSubscriptionInput {
+  /** @minLength 3 */
+  email: string;
+  /** @minLength 1 */
+  woundId: string;
+  /** @nullable */
+  deviceId?: string | null;
+  /** @nullable */
+  expoPushToken?: string | null;
+  language?: PushSubscriptionInputLanguage;
+  notificationsEnabled?: boolean;
+  woundHealed?: boolean;
+}
+
+export interface PushClearInput {
+  /** @minLength 3 */
+  email: string;
+  /** @nullable */
+  expoPushToken?: string | null;
+}
+
+export interface PushSubscriptionResult {
+  ok: boolean;
+}
