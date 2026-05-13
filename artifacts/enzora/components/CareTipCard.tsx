@@ -1,5 +1,4 @@
 import { Feather } from "@expo/vector-icons";
-import * as Linking from "expo-linking";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,43 +20,8 @@ import {
 
 const c = colors.light;
 
-// Build the short, nicely-formatted WhatsApp share text. We strip the
-// leading greeting from the AI tip (if present) so the wrapper's greeting
-// doesn't repeat. Blue uses an alert-toned wrapper instead of "Good
-// morning" so the recipient sees urgency immediately.
-function formatWhatsAppShare(opts: {
-  message: string;
-  status: SensorStatus | null;
-  language: "en" | "ar";
-  firstName: string;
-}): string {
-  const { message, status, language, firstName } = opts;
-  // Strip a leading "Good morning, X. " or Arabic equivalent from the AI
-  // body so the WhatsApp wrapper isn't double-greeted.
-  const tip = message
-    .replace(
-      /^\s*(Good morning|صباح الخير)[^.!?\n]*[.!?\n]\s*/u,
-      "",
-    )
-    .trim();
-  if (status === "blue") {
-    return language === "ar"
-      ? `تنبيه مهم من إنزورا.\nالحالة: تنبيه عدوى.\nيرجى الاتصال بالطبيب اليوم.\n— إنزورا`
-      : `Important alert from Enzora.\nStatus: Infection alert.\nPlease call your doctor today.\n— Enzora`;
-  }
-  if (language === "ar") {
-    const label = status === "green" ? "راقب الجرح" : "طبيعية";
-    const greet = firstName ? `صباح الخير يا ${firstName} 🌿` : `صباح الخير 🌿`;
-    return `${greet}\nحالة اليوم: ${label}.\nالنصيحة: ${tip || "حافظ على الجرح نظيفاً وجافاً."}\n— إنزورا`;
-  }
-  const label = status === "green" ? "Watch closely" : "Normal";
-  const greet = firstName ? `Good morning, ${firstName} 🌿` : `Good morning 🌿`;
-  return `${greet}\nToday's status: ${label}.\nTip: ${tip || "Keep the wound clean and dry."}\n— Enzora`;
-}
-
 // Today's Care Tip — personalized AI message for the active wound. Cached
-// per (user, wound, day); the user can refresh on demand and share the
-// message via WhatsApp.
+// per (user, wound, day); the user can refresh on demand.
 export function CareTipCard() {
   const { t } = useTranslation();
   const {
@@ -173,34 +137,6 @@ export function CareTipCard() {
     // ctx object, so re-renders don't refetch on every keystroke elsewhere.
   }, [user, activeWound, sensor.status, language, load]);
 
-  const onShareWhatsApp = useCallback(async () => {
-    if (!message) return;
-    const phoneRaw =
-      profile?.medicalProfile?.emergencyPhone?.trim() ?? "";
-    const phone = phoneRaw.replace(/[^+\d]/g, "").replace(/^\+/, "");
-    const formatted = formatWhatsAppShare({
-      message,
-      status: sensor.status ?? null,
-      language,
-      firstName: (patientName || "").split(" ")[0]?.trim() || "",
-    });
-    const text = encodeURIComponent(formatted);
-    const url = phone
-      ? `https://wa.me/${phone}?text=${text}`
-      : `https://wa.me/?text=${text}`;
-    try {
-      await Linking.openURL(url);
-    } catch (err) {
-      console.warn("[careTip] whatsapp open failed", err);
-    }
-  }, [
-    message,
-    profile?.medicalProfile?.emergencyPhone,
-    sensor.status,
-    language,
-    patientName,
-  ]);
-
   if (!activeWound) return null;
 
   return (
@@ -233,21 +169,6 @@ export function CareTipCard() {
         >
           <Feather name="refresh-ccw" size={14} color={c.primary} />
           <Text style={styles.refreshText}>{t("refreshTip")}</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => void onShareWhatsApp()}
-          disabled={!message || loading}
-          style={({ pressed }) => [
-            styles.actionBtn,
-            styles.waBtn,
-            {
-              opacity: pressed ? 0.85 : 1,
-              backgroundColor: !message || loading ? c.border : "#25D366",
-            },
-          ]}
-        >
-          <Feather name="message-circle" size={14} color="#fff" />
-          <Text style={styles.waText}>{t("sendOnWhatsApp")}</Text>
         </Pressable>
       </View>
     </Card>
@@ -317,15 +238,6 @@ const styles = StyleSheet.create({
   },
   refreshText: {
     color: c.primary,
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-  },
-  waBtn: {
-    backgroundColor: "#25D366",
-  },
-  waText: {
-    color: "#fff",
     fontSize: 13,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",

@@ -31,6 +31,12 @@ import {
 
 const c = colors.light;
 
+// Hard switch for the developer-facing Push Notification Diagnostics card
+// on the Profile screen. Must remain false in shipped builds — this only
+// hides the visible UI; permission requests, status-change notifications,
+// daily reminders, and backend push registration logic are unaffected.
+const SHOW_PUSH_DIAGNOSTICS = false;
+
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -306,8 +312,13 @@ export default function ProfileScreen() {
           </Card>
         )}
 
-        {/* Always-visible developer card so the test button is findable
-            without the hidden 7-tap gesture. Safe to remove before launch. */}
+        {/* Push Notification Diagnostics card is intentionally hidden from
+            the normal Profile UI. Notification setup, status-change alerts,
+            daily reminders, and backend push registration all keep working —
+            only the visible developer-facing card is suppressed. Flip this
+            constant to true to inspect tokens / send test pushes during
+            development. Must stay false in shipped builds. */}
+        {SHOW_PUSH_DIAGNOSTICS ? (
         <Card>
           <View>
             <Text style={styles.section}>{t("pushTestTitle")}</Text>
@@ -561,6 +572,7 @@ export default function ProfileScreen() {
               )}
           </View>
         </Card>
+        ) : null}
 
         <Card>
           <Text style={styles.section}>{t("medicalProfile")}</Text>

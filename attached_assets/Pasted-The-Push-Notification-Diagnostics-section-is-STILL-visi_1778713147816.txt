@@ -1,0 +1,83 @@
+The Push Notification Diagnostics section is STILL visible on the Profile screen.
+
+Please remove it from the visible Profile UI completely.
+
+Important:
+Do NOT delete notification logic.
+Do NOT break Expo notifications.
+Do NOT break daily wellness reminders.
+Do NOT change Firebase ESP32 logic.
+Do NOT change authentication.
+Do NOT redesign the Profile screen.
+
+Problem:
+The Profile screen still shows this card:
+
+“Push notification diagnostics”
+- Permission
+- Local token
+- Send Test Notification
+- Expo response
+- Backend has token
+- Reason
+
+I do not want users to see this section at all.
+
+Task:
+Find every place where the Push Notification Diagnostics / Push notification test component is rendered and stop rendering it in the normal Profile screen.
+
+Remove/hide the entire visible card, including:
+- title: “Push notification diagnostics”
+- Permission row
+- Local token row
+- Expo SDK / Platform rows if present
+- Send Test Notification button
+- Enable notifications / register token button
+- Expo response
+- Backend has token
+- Reason
+- any testing/diagnostic notification UI
+
+Expected Profile screen order after removal:
+1. Header
+2. User profile card
+3. Medical Profile
+4. Daily Wellness Reminder
+5. Monitoring / family section if present
+6. Color Guide / help
+7. Logout
+
+Keep notification logic:
+- Keep helper functions in lib/push.ts or lib/notifications.ts.
+- Keep local notification support.
+- Keep status-change notification logic.
+- Keep daily reminder scheduling logic.
+- Keep future backend push support.
+- Only remove the visible diagnostics UI.
+
+Implementation requirement:
+Search the whole project for these strings and remove the rendered UI:
+- “Push notification diagnostics”
+- “Send Test Notification”
+- “Enable notifications / register token”
+- “Backend has token”
+- “Local token”
+- “Expo response”
+
+If there is a component like PushDiagnostics, PushNotificationDiagnostics, NotificationDiagnosticsCard, or DeveloperNotificationCard:
+- Do not render it inside Profile.
+- Either remove the import from profile.tsx or wrap it with a hard false flag:
+
+const SHOW_PUSH_DIAGNOSTICS = false;
+
+{SHOW_PUSH_DIAGNOSTICS ? <PushNotificationDiagnostics /> : null}
+
+Make sure the flag is not true in development.
+
+After the change:
+- Run typecheck.
+- Restart/hot reload the Expo preview.
+- Confirm the Profile screen no longer shows any push diagnostics or test notification card.
+
+Deliver:
+Tell me exactly which file was rendering the card and confirm it is no longer visible.
