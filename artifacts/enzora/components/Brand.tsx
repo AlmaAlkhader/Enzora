@@ -12,6 +12,7 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from "react-native";
+import Svg, { Text as SvgText } from "react-native-svg";
 
 const webCursor =
   Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
@@ -23,7 +24,47 @@ import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
 
-// ---------------- Logo (text wordmark) ----------------
+// ---------------- Enzora Logo (SVG placeholder) ----------------
+export function EnzoraLogo({
+  variant = "header",
+  color,
+}: {
+  variant?: "header" | "hero";
+  color?: string;
+}) {
+  if (variant === "hero") {
+    return (
+      <Svg width={160} height={44} viewBox="0 0 160 44">
+        <SvgText
+          x={0}
+          y={36}
+          fontFamily="Georgia, serif"
+          fontSize={36}
+          fontWeight="700"
+          fill={color ?? "#1B2A6B"}
+        >
+          enzora
+        </SvgText>
+      </Svg>
+    );
+  }
+  return (
+    <Svg width={80} height={28} viewBox="0 0 80 28">
+      <SvgText
+        x={0}
+        y={22}
+        fontFamily="Georgia, serif"
+        fontSize={22}
+        fontWeight="700"
+        fill={color ?? "#FFFFFF"}
+      >
+        enzora
+      </SvgText>
+    </Svg>
+  );
+}
+
+// ---------------- Logo (back-compat wrapper) ----------------
 export function Logo({
   size = "sm",
   color,
@@ -31,36 +72,26 @@ export function Logo({
   size?: "sm" | "lg";
   color?: string;
 }) {
-  const fontSize = size === "lg" ? 30 : 18;
-  return (
-    <View style={{ flexShrink: 0 }}>
-      <Text
-        style={{
-          fontSize,
-          fontWeight: "800",
-          color: color ?? c.textWhite,
-          letterSpacing: -0.5,
-          fontFamily: "Inter_700Bold",
-        }}
-      >
-        enzora
-      </Text>
-      {size === "lg" && (
+  if (size === "lg") {
+    return (
+      <View style={{ alignItems: "center" }}>
+        <EnzoraLogo variant="hero" color={color ?? c.textWhite} />
         <Text
           style={{
             fontSize: 10,
             color: color ?? c.textWhite,
             opacity: 0.85,
             letterSpacing: 2,
-            marginTop: 2,
+            marginTop: 4,
             fontFamily: "Inter_500Medium",
           }}
         >
           SMART HEALING
         </Text>
-      )}
-    </View>
-  );
+      </View>
+    );
+  }
+  return <EnzoraLogo variant="header" color={color ?? c.textWhite} />;
 }
 
 // ---------------- Language Toggle ----------------
@@ -112,44 +143,49 @@ export function GradientHeader({
   onBack?: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const topPad = Math.max(insets.top, 40);
   return (
     <LinearGradient
       colors={gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.header, { paddingTop: insets.top + 12 }]}
+      style={[
+        styles.header,
+        {
+          paddingTop: topPad,
+          minHeight: 120 + Math.max(0, insets.top - 40),
+        },
+      ]}
     >
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeft}>
-          {back ? (
-            <Pressable
-              onPress={onBack}
-              hitSlop={16}
-              accessibilityRole="button"
-              accessibilityLabel="Back"
-              style={({ pressed }) => [
-                styles.backBtn,
-                webCursor,
-                { opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Feather name="chevron-left" size={24} color={c.textWhite} />
-            </Pressable>
-          ) : (
-            <Logo size="sm" />
-          )}
+      <View style={styles.headerTopLeft}>
+        {back ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={16}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            style={({ pressed }) => [
+              styles.backBtn,
+              webCursor,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Feather name="chevron-left" size={22} color={c.textWhite} />
+          </Pressable>
+        ) : (
+          <EnzoraLogo variant="header" />
+        )}
+      </View>
+      <View style={styles.headerBottomRow}>
+        <View style={{ flex: 1, paddingRight: 12 }}>
+          {title && <Text style={styles.headerTitle}>{title}</Text>}
+          {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
         </View>
         <View style={styles.headerRight}>
           {right}
           <LanguageToggle dark />
         </View>
       </View>
-      {title && (
-        <View style={{ marginTop: 14 }}>
-          <Text style={styles.headerTitle}>{title}</Text>
-          {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
-        </View>
-      )}
     </LinearGradient>
   );
 }
@@ -422,17 +458,21 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 16,
     borderBottomLeftRadius: 22,
     borderBottomRightRadius: 22,
+    justifyContent: "flex-end",
   },
-  headerRow: {
+  headerTopLeft: {
+    position: "absolute",
+    top: 12,
+    left: 16,
+  },
+  headerBottomRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     justifyContent: "space-between",
-    minHeight: 36,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   backBtn: {
     width: 32,
@@ -444,14 +484,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: c.textWhite,
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.3,
   },
   headerSubtitle: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 12,
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 13,
     marginTop: 2,
     fontFamily: "Inter_400Regular",
   },
