@@ -32,7 +32,6 @@ export default function MedicalProfileScreen() {
   const genders = [
     { v: "male", l: t("male") },
     { v: "female", l: t("female") },
-    { v: "other", l: t("other") },
     { v: "prefer", l: t("preferNotToSay") },
   ];
 
