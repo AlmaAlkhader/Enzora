@@ -24,9 +24,9 @@ const webCursor =
   Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
 
 const COLOR_DOTS = {
-  yellow: "#FFB703",
-  green: "#06D6A0",
-  blue: "#4DABF7",
+  yellow: c.normal,   // #FFB703
+  green: c.warning,   // #7BC47F
+  blue: c.alert,      // #4A90E2
 } as const;
 
 type StatusColor = keyof typeof COLOR_DOTS;
@@ -130,14 +130,14 @@ export function ColorAlertBanner({
   const palette =
     status === "green"
       ? {
-          bg: "#FFF3CD",
-          border: "#FFB703",
+          bg: c.warningBg,
+          border: c.warning,
           icon: "🟢",
           textKey: "colorBannerGreen",
         }
       : {
-          bg: "#FDEDF0",
-          border: "#EF233C",
+          bg: c.alertBg,
+          border: c.alert,
           icon: "🔵",
           textKey: "colorBannerBlue",
         };

@@ -36,11 +36,11 @@ export function PendingConfirmationCard({
   const [note, setNote] = useState("");
 
   const isBlue = status === "blue";
-  const bg = isBlue ? "#FDEDF0" : "#FFF0F0";
-  const accent = isBlue ? "#B91C1C" : "#B45309";
+  const bg = isBlue ? c.alertBg : c.warningBg;
+  const accent = isBlue ? "#1F60B0" : "#3F8F4F";
   const icon: keyof typeof Feather.glyphMap = isBlue
-    ? "alert-octagon"
-    : "alert-triangle";
+    ? "phone-call"
+    : "eye";
 
   const submit = async () => {
     if (!mode) return;
@@ -120,10 +120,12 @@ export function PendingConfirmationCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 22,
+    borderRadius: 24,
     padding: 22,
     alignItems: "center",
     gap: 12,
+    borderWidth: 1,
+    borderColor: c.border,
   },
   iconWrap: {
     width: 72,

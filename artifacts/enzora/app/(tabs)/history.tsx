@@ -189,25 +189,25 @@ function RGBChart({
           <View
             style={{
               height: (d.red / 255) * 120,
-              backgroundColor: "#EF233C",
-              borderRadius: 2,
-              opacity: 0.85,
+              backgroundColor: c.normal,
+              borderRadius: 3,
+              opacity: 0.9,
             }}
           />
           <View
             style={{
               height: (d.green / 255) * 120,
-              backgroundColor: "#22C55E",
-              borderRadius: 2,
-              opacity: 0.85,
+              backgroundColor: c.warning,
+              borderRadius: 3,
+              opacity: 0.9,
             }}
           />
           <View
             style={{
               height: (d.blue / 255) * 120,
-              backgroundColor: "#3B82F6",
-              borderRadius: 2,
-              opacity: 0.85,
+              backgroundColor: c.alert,
+              borderRadius: 3,
+              opacity: 0.9,
             }}
           />
         </View>

@@ -1,0 +1,145 @@
+The first two screens shown in the canvas are the NEW preferred design direction created from the redesign prompt.
+
+The rest of the app screens are the OLD design.
+
+I want you to keep the visual style of the first two canvas screens and apply it across the entire app, while preserving the features and functionality from the old screens.
+
+Important:
+Do NOT use the old screens as the visual style.
+Use them only to understand what features still need to exist.
+
+Target visual style:
+Use the first two canvas mockups as the design reference:
+1. Home — Dashboard Grid
+2. Home — Hero-Led Status
+
+These screens have the style I want:
+- soft pastel medical dashboard
+- light blue/lavender background
+- clean rounded white cards
+- soft borders and subtle shadows
+- navy Enzora text
+- indigo/violet accents
+- centered Enzora logo
+- clean language toggle
+- modern bottom navigation
+- calm elderly-friendly layout
+- modular health-dashboard cards
+- premium and polished look
+
+Apply this same style to all real app screens.
+
+Screens to update:
+- Home
+- Wounds
+- Wound Detail
+- History
+- Ask AI
+- Alerts
+- Profile
+- Color Guide
+- Doctor Report modal/screen
+- Onboarding if present
+
+Use the old screens only as a feature checklist.
+
+Preserve these features from the old app:
+
+HOME:
+- greeting
+- Enzora logo/header
+- Arabic toggle
+- device connected pill
+- current wound status card
+- status message: normal / watch closely / call doctor
+- last reading time
+- collapsible “What the colors mean” card
+- view wounds / main action button
+- green/blue explanation banner when status changes
+
+WOUNDS:
+- My Wounds page
+- wound list
+- each wound card shows name, note/description, date, status badge, and arrow
+- Add New Wound button
+
+WOUND DETAIL:
+- wound name
+- monitoring pill
+- Switch Wound button
+- current status card
+- Healing Journey circular progress widget
+- day of monitoring
+- last reading
+- monitoring since date
+- Generate Doctor Report button
+- Add a Note button
+- Mark as Healed button
+- clean spacing with no clutter
+
+HISTORY:
+- Today / 7 Days / 30 Days tabs
+- normal / caution / alert summary cards
+- color trend card/section
+- reading timeline
+- timestamps
+- status descriptions
+
+ASK AI:
+- full Ask AI tab in bottom navigation
+- disclaimer at top
+- chat messages
+- user and AI bubbles
+- Arabic and English support
+- input bar fixed at bottom
+- send button
+- suggested questions or empty state if there are no messages
+
+ALERTS:
+- alert list
+- infection detected cards
+- early signs detected cards
+- timestamps
+- severity styling
+- keep it clear but visually softer and consistent with the new style
+
+PROFILE:
+- profile card
+- avatar / initial
+- name and email
+- wellness this week section
+- monitoring for myself/family member
+- add family member
+- medical conditions if present
+- SOS button if present
+- Color Guide button/help section
+
+COLOR GUIDE:
+- yellow = normal
+- green = watch closely
+- blue = call doctor
+- large readable cards
+- simple patient-friendly language
+- accessible from Profile
+
+DOCTOR REPORT:
+- keep report generation
+- fix close X button if broken
+- make close button at least 44x44px
+- use the same Enzora header/card style
+- make report readable and clean
+
+Design rules:
+- Do not remove features.
+- Do not bring back the old visual design.
+- Do not mix two styles.
+- Use the first two canvas mockups as the style source.
+- Use the old screens only as the functionality source.
+- If an old feature looks cluttered, redesign the layout so it fits the new style instead of deleting it.
+- All screens must feel like one consistent app.
+
+Bottom nav must remain:
+Home | Wounds | History | Ask AI | Alerts | Profile
+
+Final goal:
+The whole app should look like the first two Replit canvas mockups, but include all the useful features from the old design.

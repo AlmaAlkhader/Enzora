@@ -192,17 +192,17 @@ export default function ProfileScreen() {
         >
           <View style={styles.settingLeft}>
             <View style={styles.colorGuideIcons}>
-              <View style={[styles.colorGuideDot, { backgroundColor: "#FFB703" }]} />
+              <View style={[styles.colorGuideDot, { backgroundColor: c.normal }]} />
               <View
                 style={[
                   styles.colorGuideDot,
-                  { backgroundColor: "#06D6A0", marginLeft: -6 },
+                  { backgroundColor: c.warning, marginLeft: -6 },
                 ]}
               />
               <View
                 style={[
                   styles.colorGuideDot,
-                  { backgroundColor: "#4DABF7", marginLeft: -6 },
+                  { backgroundColor: c.alert, marginLeft: -6 },
                 ]}
               />
             </View>

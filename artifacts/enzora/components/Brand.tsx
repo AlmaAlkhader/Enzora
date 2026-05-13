@@ -1,5 +1,5 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
 import {
   ActivityIndicator,
@@ -10,39 +10,63 @@ import {
   Text,
   TextInput,
   View,
-  type TextInputProps,
+  type StyleProp,
+  type TextStyle,
   type ViewStyle,
+  type TextInputProps,
 } from "react-native";
-import { Image } from "expo-image";
-
-const LOGO_SOURCE = require("@/assets/images/enzora-logo.png");
-// Original PNG aspect ratio (width / height) — used to derive width from height
-// while keeping object-fit: contain. Image is ~787x1024.
-const LOGO_ASPECT = 787 / 1024;
-
-const webCursor =
-  Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import Svg, { Circle } from "react-native-svg";
 
-import colors, { gradient } from "@/constants/colors";
+import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
 
+const LOGO_SOURCE = require("@/assets/images/enzora-logo.png");
+const LOGO_ASPECT = 787 / 1024;
+
+const webCursor =
+  Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
+
+// Soft elevation used by all white cards. A near-invisible navy shadow plus
+// a 1px hairline border that matches the mockup's `border-[#E4EAF5]`.
+export const softShadow = Platform.select<ViewStyle>({
+  ios: {
+    shadowColor: "#1B2A6B",
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  android: { elevation: 2 },
+  default: {
+    boxShadow: "0 4px 20px rgba(27,42,107,0.04)",
+  } as object,
+}) as ViewStyle;
+
 // ---------------- Enzora Logo ----------------
-// Variants:
-//  - "header": 36px tall (small header)
-//  - "headerLg": 72px tall (prominent header — used on home)
-//  - "splash": 160px tall (splash/loading screen)
-//  - "auth": 90px container with overflow hidden — crops the
-//    "Smart Wound Patch" tagline at the bottom
 export function EnzoraLogo({
   variant = "header",
 }: {
-  variant?: "header" | "headerLg" | "splash" | "auth";
+  variant?: "header" | "headerLg" | "splash" | "auth" | "round";
   color?: string;
 }) {
+  if (variant === "round") {
+    // Small white circle with logo inside — used in the new pastel header.
+    const containerH = 40;
+    const imageH = Math.round(containerH * 0.55);
+    const imageW = Math.round(imageH * LOGO_ASPECT);
+    return (
+      <View style={styles.logoCircle}>
+        <Image
+          source={LOGO_SOURCE}
+          style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
+          contentFit="contain"
+        />
+      </View>
+    );
+  }
   if (variant === "auth") {
     const containerH = 90;
     const imageH = Math.round(containerH / 0.78);
@@ -60,62 +84,13 @@ export function EnzoraLogo({
       >
         <Image
           source={LOGO_SOURCE}
-          style={{
-            width: imageW,
-            height: imageH,
-            backgroundColor: "transparent",
-          }}
+          style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
           contentFit="contain"
         />
       </View>
     );
   }
-
-  if (variant === "headerLg") {
-    // Crop the PNG to show ONLY the swoosh icon (no wordmark, no tagline),
-    // then render "Enzora" below as white text so it reads cleanly on the
-    // purple gradient header. Icon occupies ~top 60% of the source image.
-    const iconH = 78;
-    const imageH = Math.round(iconH / 0.6);
-    const imageW = Math.round(imageH * LOGO_ASPECT);
-    return (
-      <View style={{ alignItems: "center", marginTop: 24 }}>
-        <View
-          style={{
-            height: iconH,
-            width: imageW,
-            overflow: "hidden",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            backgroundColor: "transparent",
-          }}
-        >
-          <Image
-            source={LOGO_SOURCE}
-            style={{
-              width: imageW,
-              height: imageH,
-              backgroundColor: "transparent",
-            }}
-            contentFit="contain"
-          />
-        </View>
-        <Text
-          style={{
-            color: "#ffffff",
-            fontSize: 20,
-            fontWeight: "100",
-            letterSpacing: 0.5,
-            marginTop: 2,
-          }}
-        >
-          Enzora
-        </Text>
-      </View>
-    );
-  }
-
-  const height = variant === "splash" ? 160 : 36;
+  const height = variant === "splash" ? 160 : variant === "headerLg" ? 56 : 32;
   const width = Math.round(height * LOGO_ASPECT);
   return (
     <Image
@@ -126,51 +101,38 @@ export function EnzoraLogo({
   );
 }
 
-// ---------------- Logo (back-compat wrapper) ----------------
-export function Logo({
-  size = "sm",
-}: {
-  size?: "sm" | "lg";
-  color?: string;
-}) {
+export function Logo({ size = "sm" }: { size?: "sm" | "lg"; color?: string }) {
   return <EnzoraLogo variant={size === "lg" ? "splash" : "header"} />;
 }
 
-// ---------------- Language Toggle ----------------
-export function LanguageToggle({ dark = false }: { dark?: boolean }) {
+// ---------------- Language Toggle (pill style) ----------------
+export function LanguageToggle({ dark: _dark = false }: { dark?: boolean }) {
   const { language, toggleLanguage } = useApp();
+  const isEn = language === "en";
   return (
     <Pressable
       onPress={() => void toggleLanguage()}
-      hitSlop={12}
+      hitSlop={10}
       accessibilityRole="button"
       accessibilityLabel="Toggle language"
       style={({ pressed }) => [
-        styles.langPill,
+        styles.langWrap,
         webCursor,
-        {
-          backgroundColor: dark ? "rgba(255,255,255,0.18)" : c.card,
-          borderColor: dark ? "rgba(255,255,255,0.3)" : c.border,
-          opacity: pressed ? 0.7 : 1,
-        },
+        { opacity: pressed ? 0.8 : 1 },
       ]}
     >
-      <Feather name="globe" size={14} color={dark ? c.textWhite : c.primary} />
-      <Text
-        style={{
-          fontSize: 13,
-          fontWeight: "600",
-          color: dark ? c.textWhite : c.primary,
-          fontFamily: "Inter_600SemiBold",
-        }}
-      >
-        {language === "en" ? "العربية" : "English"}
-      </Text>
+      <View style={[styles.langSeg, isEn && styles.langSegActive]}>
+        <Text style={[styles.langText, isEn && styles.langTextActive]}>EN</Text>
+      </View>
+      <View style={[styles.langSeg, !isEn && styles.langSegActive]}>
+        <Text style={[styles.langText, !isEn && styles.langTextActive]}>AR</Text>
+      </View>
     </Pressable>
   );
 }
 
-// ---------------- Gradient Header ----------------
+// ---------------- App Header (pastel, replaces GradientHeader) ----------------
+// Keeps the legacy `GradientHeader` API so every screen using it still works.
 export function GradientHeader({
   title,
   subtitle,
@@ -178,121 +140,83 @@ export function GradientHeader({
   back,
   onBack,
   layout = "centered",
-  logoSize = "sm",
+  logoSize: _logoSize = "sm",
   titleStyle,
+  greeting,
 }: {
   title?: string;
   subtitle?: string;
   right?: React.ReactNode;
   back?: boolean;
   onBack?: () => void;
-  /**
-   * "centered": logo + title stacked and centered. `right` sits in the top-right
-   * cluster next to the language toggle. (default — used by most screens)
-   * "split": logo centered (and typically larger) on top, title on bottom-LEFT
-   * and `right` slot on bottom-RIGHT. Language toggle stays top-right.
-   */
   layout?: "centered" | "split";
   logoSize?: "sm" | "lg";
-  /** Optional override for the title text style (e.g. lighter/smaller on home) */
-  titleStyle?: import("react-native").StyleProp<import("react-native").TextStyle>;
+  titleStyle?: StyleProp<TextStyle>;
+  /** Optional small line above title, e.g. "Good morning,". When provided
+   * with `title` (a name) the header becomes the home greeting layout. */
+  greeting?: string;
 }) {
   const insets = useSafeAreaInsets();
-  const isSplit = layout === "split";
-  const topPad = Math.max(insets.top, 0) + (isSplit ? 16 : 60);
-  const bottomReserve = isSplit ? 8 : 0;
-  const minHeight = topPad + (logoSize === "lg" ? 110 : 80) + bottomReserve;
+  const topPad = Math.max(insets.top, 0) + 14;
   return (
-    <LinearGradient
-      colors={gradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[
-        styles.header,
-        {
-          paddingTop: topPad,
-          paddingBottom: isSplit ? 16 : 20,
-          minHeight,
-        },
-      ]}
-    >
-      {back && (
-        <Pressable
-          onPress={onBack}
-          hitSlop={16}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={({ pressed }) => [
-            styles.backBtnAbs,
-            webCursor,
-            { top: Math.max(insets.top, 0) + 44, opacity: pressed ? 0.7 : 1 },
-          ]}
-        >
-          <Feather
-            name={I18nManager.isRTL ? "chevron-right" : "chevron-left"}
-            size={22}
-            color={c.textWhite}
-          />
-        </Pressable>
-      )}
-      <View
-        style={[
-          styles.headerLangAbs,
-          { top: Math.max(insets.top, 0) + 44 },
-        ]}
-      >
-        {!isSplit && right}
-        <LanguageToggle dark />
-      </View>
-      <View style={styles.headerCenter}>
-        <EnzoraLogo variant={logoSize === "lg" ? "headerLg" : "header"} />
-        {!isSplit && title && (
-          <Text
-            style={[styles.headerTitle, titleStyle]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
+    <View style={[styles.header, { paddingTop: topPad }]}>
+      <View style={styles.headerLeft}>
+        {back ? (
+          <Pressable
+            onPress={onBack}
+            hitSlop={14}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            style={({ pressed }) => [
+              styles.backBtn,
+              webCursor,
+              { opacity: pressed ? 0.7 : 1 },
+            ]}
           >
-            {title}
-          </Text>
+            <Feather
+              name={I18nManager.isRTL ? "chevron-right" : "chevron-left"}
+              size={22}
+              color={c.textPrimary}
+            />
+          </Pressable>
+        ) : (
+          <EnzoraLogo variant="round" />
         )}
-        {!isSplit && subtitle && (
-          <Text
-            style={styles.headerSubtitle}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {subtitle}
-          </Text>
-        )}
-      </View>
-      {isSplit && (
-        <View style={styles.headerSplitBottom}>
-          <View style={{ flex: 1, paddingRight: 12, alignItems: "flex-start" }}>
-            {title && (
-              <Text
-                style={[styles.headerTitle, { textAlign: "left", marginTop: 0 }, titleStyle]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {title}
-              </Text>
-            )}
-            {subtitle && (
-              <Text
-                style={[styles.headerSubtitle, { textAlign: "left" }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {subtitle}
-              </Text>
-            )}
-          </View>
-          {right}
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          {greeting ? (
+            <Text style={styles.headerGreeting} numberOfLines={1}>
+              {greeting}
+            </Text>
+          ) : null}
+          {title ? (
+            <Text
+              style={[
+                greeting ? styles.headerName : styles.headerTitle,
+                titleStyle,
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+          ) : null}
+          {subtitle ? (
+            <Text style={styles.headerSubtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
-      )}
-    </LinearGradient>
+      </View>
+      <View style={styles.headerRight}>
+        {right}
+        {layout ? <LanguageToggle /> : null}
+      </View>
+    </View>
   );
 }
+
+// Alias for clarity in new code; identical behaviour.
+export const AppHeader = GradientHeader;
 
 // ---------------- Primary Button ----------------
 export function PrimaryButton({
@@ -309,10 +233,11 @@ export function PrimaryButton({
   loading?: boolean;
   disabled?: boolean;
   icon?: React.ComponentProps<typeof Feather>["name"];
-  variant?: "gradient" | "outline" | "white";
+  variant?: "gradient" | "outline" | "white" | "soft";
   style?: ViewStyle;
 }) {
   const inactive = disabled || loading;
+
   if (variant === "outline") {
     return (
       <Pressable
@@ -329,7 +254,7 @@ export function PrimaryButton({
           style,
         ]}
       >
-        {icon && <Feather name={icon} size={18} color={c.primary} />}
+        {icon ? <Feather name={icon} size={18} color={c.primary} /> : null}
         <Text style={[styles.btnText, { color: c.primary }]}>{label}</Text>
       </Pressable>
     );
@@ -344,7 +269,7 @@ export function PrimaryButton({
         accessibilityState={{ disabled: inactive }}
         style={({ pressed }) => [
           styles.btn,
-          { backgroundColor: c.card, borderWidth: 1, borderColor: c.border },
+          styles.btnWhite,
           webCursor,
           { opacity: pressed ? 0.7 : inactive ? 0.5 : 1 },
           style,
@@ -354,15 +279,36 @@ export function PrimaryButton({
           <ActivityIndicator color={c.primary} />
         ) : (
           <>
-            {icon && <Feather name={icon} size={18} color={c.textPrimary} />}
-            <Text style={[styles.btnText, { color: c.textPrimary }]}>
-              {label}
-            </Text>
+            {icon ? <Feather name={icon} size={18} color={c.textPrimary} /> : null}
+            <Text style={[styles.btnText, { color: c.textPrimary }]}>{label}</Text>
           </>
         )}
       </Pressable>
     );
   }
+  if (variant === "soft") {
+    return (
+      <Pressable
+        onPress={onPress}
+        disabled={inactive}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: inactive }}
+        style={({ pressed }) => [
+          styles.btn,
+          styles.btnSoft,
+          webCursor,
+          { opacity: pressed ? 0.7 : inactive ? 0.5 : 1 },
+          style,
+        ]}
+      >
+        {icon ? <Feather name={icon} size={18} color={c.primary} /> : null}
+        <Text style={[styles.btnText, { color: c.primary }]}>{label}</Text>
+      </Pressable>
+    );
+  }
+
+  // Solid indigo (replaces gradient — flatter, calmer for medical UI).
   return (
     <Pressable
       onPress={onPress}
@@ -371,26 +317,21 @@ export function PrimaryButton({
       accessibilityLabel={label}
       accessibilityState={{ disabled: inactive }}
       style={({ pressed }) => [
-        { opacity: pressed ? 0.85 : inactive ? 0.6 : 1, borderRadius: 14 },
+        styles.btn,
+        styles.btnSolid,
         webCursor,
+        { opacity: pressed ? 0.85 : inactive ? 0.6 : 1 },
         style,
       ]}
     >
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.btn, Platform.OS === "web" ? { pointerEvents: "none" } as ViewStyle : null]}
-      >
-        {loading ? (
-          <ActivityIndicator color={c.textWhite} />
-        ) : (
-          <>
-            {icon && <Feather name={icon} size={20} color={c.textWhite} />}
-            <Text style={styles.btnText}>{label}</Text>
-          </>
-        )}
-      </LinearGradient>
+      {loading ? (
+        <ActivityIndicator color={c.textWhite} />
+      ) : (
+        <>
+          {icon ? <Feather name={icon} size={18} color={c.textWhite} /> : null}
+          <Text style={styles.btnText}>{label}</Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -407,14 +348,14 @@ export function Field({
 }) {
   return (
     <View style={{ gap: 6 }}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label ? <Text style={styles.label}>{label}</Text> : null}
       {children}
-      {error && (
+      {error ? (
         <View style={styles.errRow}>
           <Feather name="alert-triangle" size={12} color={c.alert} />
           <Text style={styles.errText}>{error}</Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -444,7 +385,7 @@ export function TextField({
         autoCapitalize={secure ? "none" : rest.autoCapitalize}
         {...rest}
       />
-      {secure && (
+      {secure ? (
         <Pressable
           onPress={() => setHidden((h) => !h)}
           hitSlop={10}
@@ -456,7 +397,7 @@ export function TextField({
             color={c.textSecondary}
           />
         </Pressable>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -465,63 +406,279 @@ export function TextField({
 export function Card({
   children,
   style,
+  flat,
 }: {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
+  /** Drop the elevation shadow (e.g. when nested inside another card). */
+  flat?: boolean;
 }) {
-  return <View style={[styles.card, style]}>{children}</View>;
+  return (
+    <View style={[styles.card, !flat && softShadow, style]}>{children}</View>
+  );
 }
 
-// ---------------- Status Card ----------------
-export function StatusCard({ status }: { status: "yellow" | "green" | "blue" }) {
-  const { t } = useTranslation();
-  const config =
-    status === "yellow"
-      ? {
-          bg: c.normalBg,
-          border: c.normal,
-          icon: "check-circle" as const,
-          iconColor: c.normal,
-          title: t("woundNormal"),
-          sub: t("woundNormalSub"),
-        }
-      : status === "green"
-        ? {
-            bg: c.warningBg,
-            border: c.warning,
-            icon: "alert-triangle" as const,
-            iconColor: c.warning,
-            title: t("earlySigns"),
-            sub: t("earlySignsSub"),
-          }
-        : {
-            bg: c.alertBg,
-            border: c.alert,
-            icon: "alert-octagon" as const,
-            iconColor: c.alert,
-            title: t("infectionDetected"),
-            sub: t("infectionDetectedSub"),
-          };
+// ---------------- Section Title ----------------
+export function SectionTitle({
+  children,
+  style,
+  right,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<TextStyle>;
+  right?: React.ReactNode;
+}) {
+  return (
+    <View style={styles.sectionRow}>
+      <Text style={[styles.sectionTitle, style]}>{children}</Text>
+      {right}
+    </View>
+  );
+}
 
+// ---------------- Icon Chip ----------------
+// A small rounded square with a tinted background — used in stat cards
+// and list rows to host a Feather icon.
+export function IconChip({
+  icon,
+  tone = "primary",
+  size = 36,
+}: {
+  icon: React.ComponentProps<typeof Feather>["name"];
+  tone?: "primary" | "blue" | "green" | "yellow" | "violet" | "neutral";
+  size?: number;
+}) {
+  const palette: Record<string, { bg: string; fg: string }> = {
+    primary: { bg: "rgba(110,117,191,0.10)", fg: c.primary },
+    blue: { bg: c.paleBlue, fg: c.alert },
+    green: { bg: "rgba(123,196,127,0.18)", fg: c.warning },
+    yellow: { bg: "rgba(255,183,3,0.14)", fg: c.normal },
+    violet: { bg: "rgba(136,121,184,0.14)", fg: c.primaryDark },
+    neutral: { bg: c.bg, fg: c.textSecondary },
+  };
+  const p = palette[tone] ?? palette.primary;
+  const iconSize = Math.round(size * 0.5);
   return (
     <View
-      style={[
-        styles.statusCard,
-        { backgroundColor: config.bg, borderColor: config.border },
-      ]}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: p.bg,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
     >
-      <View
-        style={[
-          styles.statusIconWrap,
-          { backgroundColor: "rgba(255,255,255,0.7)" },
-        ]}
-      >
-        <Feather name={config.icon} size={36} color={config.iconColor} />
+      <Feather name={icon} size={iconSize} color={p.fg} />
+    </View>
+  );
+}
+
+// ---------------- Status Pill ----------------
+export function StatusPill({
+  status,
+  label,
+}: {
+  status: "yellow" | "green" | "blue";
+  label?: string;
+}) {
+  const { t } = useTranslation();
+  const cfg = {
+    yellow: { dot: c.normal, fg: "#B97A06", bg: c.normalBg, lbl: t("statusYellow") },
+    green: { dot: c.warning, fg: "#3F8F4F", bg: c.warningBg, lbl: t("statusGreen") },
+    blue: { dot: c.alert, fg: "#1F60B0", bg: c.alertBg, lbl: t("statusBlue") },
+  }[status];
+  return (
+    <View style={[styles.pill, { backgroundColor: cfg.bg }]}>
+      <View style={[styles.pillDot, { backgroundColor: cfg.dot }]} />
+      <Text style={[styles.pillText, { color: cfg.fg }]}>{label ?? cfg.lbl}</Text>
+    </View>
+  );
+}
+
+// ---------------- Circular Progress ----------------
+export function CircularProgress({
+  size = 64,
+  stroke = 6,
+  value,
+  color,
+  trackColor,
+  centerText,
+  centerSub,
+}: {
+  size?: number;
+  stroke?: number;
+  /** 0..100 */
+  value: number;
+  color?: string;
+  trackColor?: string;
+  centerText?: string;
+  centerSub?: string;
+}) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(100, value));
+  const offset = circ - (circ * pct) / 100;
+  const fg = color ?? c.primary;
+  const bg = trackColor ?? c.bg;
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Svg width={size} height={size}>
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={bg} strokeWidth={stroke} fill="none" />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={fg}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray={`${circ} ${circ}`}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
+      <View style={StyleSheet.absoluteFill as ViewStyle}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          {centerText ? (
+            <Text
+              style={{
+                color: c.textPrimary,
+                fontFamily: "Inter_700Bold",
+                fontWeight: "800",
+                fontSize: Math.round(size * 0.26),
+                lineHeight: Math.round(size * 0.3),
+              }}
+            >
+              {centerText}
+            </Text>
+          ) : null}
+          {centerSub ? (
+            <Text
+              style={{
+                color: c.textSecondary,
+                fontFamily: "Inter_600SemiBold",
+                fontSize: Math.round(size * 0.13),
+                marginTop: 2,
+                letterSpacing: 0.6,
+                textTransform: "uppercase",
+              }}
+            >
+              {centerSub}
+            </Text>
+          ) : null}
+        </View>
       </View>
-      <Text style={[styles.statusTitle, { color: config.iconColor }]}>
-        {config.title}
-      </Text>
-      <Text style={styles.statusSub}>{config.sub}</Text>
+    </View>
+  );
+}
+
+// ---------------- Stat Tile (square card with icon + value + caption) ----------------
+export function StatTile({
+  icon,
+  tone = "primary",
+  value,
+  unit,
+  caption,
+  style,
+}: {
+  icon?: React.ComponentProps<typeof Feather>["name"];
+  tone?: React.ComponentProps<typeof IconChip>["tone"];
+  value: string | number;
+  unit?: string;
+  caption: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <View style={[styles.statTile, softShadow, style]}>
+      {icon ? <IconChip icon={icon} tone={tone} size={32} /> : null}
+      <View>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
+          <Text style={styles.statValue}>{value}</Text>
+          {unit ? <Text style={styles.statUnit}>{unit}</Text> : null}
+        </View>
+        <Text style={styles.statCaption} numberOfLines={2}>
+          {caption}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// ---------------- Status Card (hero) ----------------
+// White card with a top accent strip, status pill on the left, and a small
+// circular progress ring on the right. Mirrors the DashboardGrid mockup.
+export function StatusCard({
+  status,
+  percent,
+  lastCheckLabel,
+  onPress,
+  ctaLabel,
+}: {
+  status: "yellow" | "green" | "blue";
+  percent?: number;
+  lastCheckLabel?: string;
+  onPress?: () => void;
+  ctaLabel?: string;
+}) {
+  const { t } = useTranslation();
+  const cfg = {
+    yellow: { color: c.normal, title: t("woundNormal"), sub: t("woundNormalSub") },
+    green: { color: c.warning, title: t("earlySigns"), sub: t("earlySignsSub") },
+    blue: { color: c.alert, title: t("infectionDetected"), sub: t("infectionDetectedSub") },
+  }[status];
+  return (
+    <View style={[styles.statusCard, softShadow]}>
+      <View style={[styles.statusAccent, { backgroundColor: cfg.color }]} />
+      <View style={styles.statusRow}>
+        <View style={{ flex: 1, paddingRight: 12 }}>
+          <View style={styles.statusPillRow}>
+            <View style={[styles.pillDot, { backgroundColor: cfg.color }]} />
+            <Text
+              style={[
+                styles.statusKicker,
+                { color: cfg.color },
+              ]}
+              numberOfLines={1}
+            >
+              {cfg.title}
+            </Text>
+          </View>
+          {lastCheckLabel ? (
+            <Text style={styles.statusMeta}>{lastCheckLabel}</Text>
+          ) : null}
+          <Text style={styles.statusSub}>{cfg.sub}</Text>
+        </View>
+        <CircularProgress
+          size={72}
+          stroke={6}
+          value={typeof percent === "number" ? percent : status === "yellow" ? 50 : status === "green" ? 30 : 90}
+          color={cfg.color}
+          trackColor={c.bg}
+          centerText={typeof percent === "number" ? `${percent}%` : undefined}
+        />
+      </View>
+      {onPress ? (
+        <Pressable
+          onPress={onPress}
+          style={({ pressed }) => [
+            styles.statusCta,
+            webCursor,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={ctaLabel ?? t("viewDetails")}
+        >
+          <Text style={styles.statusCtaText}>
+            {ctaLabel ?? t("viewDetails")}
+          </Text>
+          <Feather
+            name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
+            size={16}
+            color={c.primary}
+          />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -544,94 +701,147 @@ export function EmptyState({
         <Feather name={icon} size={42} color={c.primary} />
       </View>
       <Text style={styles.emptyTitle}>{title}</Text>
-      {subtitle && <Text style={styles.emptySub}>{subtitle}</Text>}
-      {action && <View style={{ marginTop: 16 }}>{action}</View>}
+      {subtitle ? <Text style={styles.emptySub}>{subtitle}</Text> : null}
+      {action ? <View style={{ marginTop: 16 }}>{action}</View> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  langPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
+  // Header
   header: {
-    paddingHorizontal: 18,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 22,
-    borderBottomRightRadius: 22,
-  },
-  headerCenter: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerLangAbs: {
-    position: "absolute",
-    right: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    maxWidth: 200,
-    zIndex: 2,
-  },
-  headerSplitBottom: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 4,
+    backgroundColor: c.bg,
   },
-  backBtnAbs: {
-    position: "absolute",
-    left: 16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.18)",
+  headerLeft: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingRight: 8,
+    minWidth: 0,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  logoCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.border,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerGreeting: {
+    fontSize: 13,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+  },
+  headerName: {
+    fontSize: 20,
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    letterSpacing: -0.3,
+    lineHeight: 24,
   },
   headerTitle: {
-    color: "#f7f8fa",
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 20,
+    color: c.textPrimary,
     fontFamily: "Inter_700Bold",
+    fontWeight: "700",
     letterSpacing: -0.3,
-    marginTop: 6,
-    textAlign: "center",
   },
   headerSubtitle: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 13,
-    marginTop: 2,
+    fontSize: 12,
+    color: c.textSecondary,
     fontFamily: "Inter_400Regular",
-    textAlign: "center",
+    marginTop: 2,
   },
+
+  // Language pill
+  langWrap: {
+    flexDirection: "row",
+    backgroundColor: c.card,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: c.border,
+    padding: 3,
+    alignItems: "center",
+  },
+  langSeg: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  langSegActive: {
+    backgroundColor: c.primary,
+  },
+  langText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: c.textSecondary,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
+  },
+  langTextActive: {
+    color: c.textWhite,
+  },
+
+  // Buttons
   btn: {
     height: 52,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     gap: 8,
     paddingHorizontal: 18,
+  },
+  btnSolid: {
+    backgroundColor: c.primary,
   },
   btnOutline: {
     backgroundColor: "transparent",
     borderWidth: 1.5,
     borderColor: c.primary,
   },
+  btnWhite: {
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  btnSoft: {
+    backgroundColor: c.bg,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
   btnText: {
     color: c.textWhite,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
+
+  // Inputs
   label: {
     fontSize: 12,
     fontWeight: "600",
@@ -640,15 +850,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     fontFamily: "Inter_600SemiBold",
   },
-  inputWrap: {
-    position: "relative",
-    justifyContent: "center",
-  },
+  inputWrap: { position: "relative", justifyContent: "center" },
   input: {
-    height: 48,
-    borderRadius: 10,
+    height: 50,
+    borderRadius: 14,
     backgroundColor: c.card,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: c.border,
     paddingHorizontal: 14,
     paddingRight: 40,
@@ -656,48 +863,151 @@ const styles = StyleSheet.create({
     color: c.textPrimary,
     fontFamily: "Inter_400Regular",
   },
-  eye: {
-    position: "absolute",
-    right: 10,
-    height: 48,
-    justifyContent: "center",
-  },
+  eye: { position: "absolute", right: 10, height: 48, justifyContent: "center" },
   errRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   errText: { fontSize: 12, color: c.alert, fontFamily: "Inter_500Medium" },
+
+  // Card
   card: {
     backgroundColor: c.card,
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
     borderWidth: 1,
     borderColor: c.border,
   },
-  statusCard: {
-    borderRadius: 22,
-    borderWidth: 2,
-    padding: 22,
+
+  // Section title
+  sectionRow: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+
+  // Status pill
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    alignSelf: "flex-start",
+  },
+  pillDot: { width: 8, height: 8, borderRadius: 4 },
+  pillText: {
+    fontSize: 12,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+
+  // Status card (hero)
+  statusCard: {
+    backgroundColor: c.card,
+    borderRadius: 24,
+    paddingTop: 22,
+    paddingBottom: 18,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: c.border,
+    overflow: "hidden",
+  },
+  statusAccent: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 12,
   },
-  statusIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  statusPillRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 8,
+    marginBottom: 4,
   },
-  statusTitle: {
-    fontSize: 19,
-    fontWeight: "800",
+  statusKicker: {
+    fontSize: 13,
     fontFamily: "Inter_700Bold",
-    textAlign: "center",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  statusMeta: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+    marginBottom: 4,
   },
   statusSub: {
-    fontSize: 13,
+    fontSize: 14,
     color: c.textPrimary,
-    textAlign: "center",
-    lineHeight: 21,
     fontFamily: "Inter_400Regular",
+    lineHeight: 20,
   },
+  statusCta: {
+    marginTop: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: c.bg,
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  statusCtaText: {
+    fontSize: 14,
+    color: c.primary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+
+  // Stat tile
+  statTile: {
+    backgroundColor: c.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: c.border,
+    padding: 14,
+    flex: 1,
+    minHeight: 110,
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  statValue: {
+    fontSize: 22,
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  statUnit: {
+    fontSize: 13,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+  },
+  statCaption: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+    marginTop: 2,
+  },
+
+  // Empty
   empty: {
     alignItems: "center",
     paddingHorizontal: 24,
@@ -708,7 +1018,7 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: "rgba(110,117,191,0.12)",
+    backgroundColor: "rgba(110,117,191,0.10)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
@@ -721,9 +1031,10 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   emptySub: {
-    fontSize: 12,
+    fontSize: 13,
     color: c.textSecondary,
     textAlign: "center",
     fontFamily: "Inter_400Regular",
+    lineHeight: 19,
   },
 });

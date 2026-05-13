@@ -22,14 +22,29 @@ export default function TabLayout() {
           backgroundColor: c.card,
           borderTopColor: c.border,
           borderTopWidth: 1,
-          ...(isWeb ? { height: 84 } : { height: 64, paddingBottom: 8 }),
-          paddingTop: 6,
+          ...(isWeb ? { height: 88 } : { height: 70, paddingBottom: 10 }),
+          paddingTop: 8,
+          ...Platform.select({
+            ios: {
+              shadowColor: "#1B2A6B",
+              shadowOpacity: 0.04,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: -4 },
+            },
+            android: { elevation: 8 },
+            default: {
+              boxShadow: "0 -4px 20px rgba(27,42,107,0.04)",
+            } as object,
+          }),
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: "Inter_600SemiBold",
-          fontWeight: "600",
+          fontSize: 10,
+          fontFamily: "Inter_700Bold",
+          fontWeight: "700",
+          marginTop: 2,
+          letterSpacing: 0.2,
         },
+        tabBarItemStyle: { paddingVertical: 2 },
       }}
     >
       <Tabs.Screen
@@ -37,7 +52,7 @@ export default function TabLayout() {
         options={{
           title: t("home"),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
+            <Feather name="home" size={size - 2} color={color} />
           ),
         }}
       />
@@ -46,7 +61,7 @@ export default function TabLayout() {
         options={{
           title: t("wounds"),
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="bandage" size={size + 2} color={color} />
+            <MaterialCommunityIcons name="bandage" size={size} color={color} />
           ),
         }}
       />
@@ -55,7 +70,7 @@ export default function TabLayout() {
         options={{
           title: t("history"),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="bar-chart-2" size={size} color={color} />
+            <Feather name="bar-chart-2" size={size - 2} color={color} />
           ),
         }}
       />
@@ -64,7 +79,7 @@ export default function TabLayout() {
         options={{
           title: t("askAI"),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="message-circle" size={size} color={color} />
+            <Feather name="message-circle" size={size - 2} color={color} />
           ),
         }}
       />
@@ -73,7 +88,7 @@ export default function TabLayout() {
         options={{
           title: t("alerts"),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="bell" size={size} color={color} />
+            <Feather name="bell" size={size - 2} color={color} />
           ),
         }}
       />
@@ -82,7 +97,7 @@ export default function TabLayout() {
         options={{
           title: t("profile"),
           tabBarIcon: ({ color, size }) => (
-            <Feather name="user" size={size} color={color} />
+            <Feather name="user" size={size - 2} color={color} />
           ),
         }}
       />

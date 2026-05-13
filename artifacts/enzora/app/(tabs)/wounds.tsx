@@ -1,4 +1,4 @@
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -10,7 +10,13 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { EmptyState, GradientHeader, PrimaryButton } from "@/components/Brand";
+import {
+  EmptyState,
+  GradientHeader,
+  IconChip,
+  PrimaryButton,
+  softShadow,
+} from "@/components/Brand";
 import colors from "@/constants/colors";
 import { useApp, type Wound } from "@/contexts/AppContext";
 
@@ -110,13 +116,12 @@ function WoundCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        softShadow,
         isActive && { borderColor: c.primary, borderWidth: 2 },
         { opacity: pressed ? 0.85 : 1 },
       ]}
     >
-      <View style={styles.iconWrap}>
-        <MaterialCommunityIcons name="bandage" size={24} color={c.primary} />
-      </View>
+      <IconChip icon="heart" tone="primary" size={44} />
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={styles.name}>{wound.name}</Text>
         {!!wound.location && (
@@ -144,18 +149,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     backgroundColor: c.card,
-    padding: 14,
-    borderRadius: 16,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: c.border,
-  },
-  iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(110,117,191,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
   },
   name: {
     fontSize: 17,
