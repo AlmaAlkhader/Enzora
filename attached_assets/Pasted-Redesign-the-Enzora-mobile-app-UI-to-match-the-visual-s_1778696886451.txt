@@ -1,0 +1,146 @@
+Redesign the Enzora mobile app UI to match the visual style and overall feel of the reference dashboard screenshot I provided, but DO NOT copy it exactly. Instead, create an Enzora-branded version inspired by that same aesthetic.
+
+Goal:
+Create a soft, modern, pastel medical dashboard UI with rounded cards, clean spacing, modular sections, friendly visual hierarchy, and a polished premium mobile-app feel. The final result should look visually similar in mood and layout style to the reference screenshot, but customized for Enzora, a smart wound monitoring app.
+
+Branding:
+Use the Enzora logo and derive the visual identity from it.
+Main brand feeling:
+- soft medical
+- calm
+- trustworthy
+- modern
+- elegant
+- elderly-friendly
+- lightweight and premium
+
+Use colors inspired by the Enzora logo:
+- deep navy: #1B2A6B
+- primary indigo: #6E75BF
+- soft violet: #8879B8
+- light lavender: #C9C3F4
+- pale blue: #DFF3FF
+- light mint accent: #BFEBD8
+- white cards: #FFFFFF
+- soft app background: #F4F8FF
+- soft border: #E4EAF5
+- muted text: #6B7FA3
+
+Status colors:
+- yellow status: #FFB703
+- green/watch status: #7BC47F
+- blue/doctor-call status: #4A90E2
+
+Important design direction:
+The app should feel very close to the screenshot’s style:
+- soft pastel background
+- white rounded cards
+- clean dashboard composition
+- slightly playful but still professional
+- subtle thin outlines
+- soft shadows
+- large headings
+- modular block layout
+- rounded small stat cards
+- nice pill buttons and circular elements
+- bottom navigation with simple icons
+- smooth spacing and breathing room
+
+Global styling:
+- app background: very light blue/gray pastel
+- cards: white background, 20px border radius
+- shadows: subtle and soft, never harsh
+- inputs/buttons: rounded and soft
+- icon style: outlined or minimal filled, simple and friendly
+- section spacing: generous
+- use a lot of rounded rectangles and pill shapes
+- no harsh alert-box style unless critical
+- everything should feel visually unified
+
+Typography:
+- use a clean, rounded, modern sans-serif
+- headings large and friendly
+- body text simple and readable
+- suitable for elderly patients
+- no tiny labels
+- strong visual hierarchy
+
+Header style:
+Design a top header similar in elegance to the reference screenshot, but Enzora-themed.
+- Show Enzora logo prominently
+- Use a soft Enzora gradient or pale background instead of a dark heavy header
+- Keep it light and modern
+- Include language toggle
+- Optional greeting on home screen
+- Make the header visually integrated with the rest of the dashboard
+
+Home screen style:
+The home screen should feel like a clean health dashboard similar to the screenshot:
+- top welcome/greeting area
+- hero wound status card
+- smaller supporting stat cards below
+- clean modular layout
+- a nice circular or semi-circular progress visual
+- care tips or guidance cards in the same soft visual style
+- “What the colors mean” card should match the overall design language
+- if a banner appears for green/blue status, make it soft, rounded, and elegant
+
+Wound detail screen:
+Make it feel like a focused premium health detail page:
+- same design language as home
+- soft top area with wound name
+- rounded sections
+- circular healing progress widget
+- compact stat/info cards
+- clean doctor report button
+- minimal clutter
+- visually consistent spacing
+
+Ask AI screen:
+Make the AI screen feel like a polished chat dashboard, still matching the same pastel medical style:
+- same overall app design language
+- clean chat bubbles
+- soft rounded input field
+- empty state with icon and suggested chips
+- elegant, minimal, friendly
+- should feel integrated with the rest of the app, not like a separate random screen
+
+Profile / settings:
+- same rounded card style
+- elegant sections
+- large readable rows
+- “Color Guide” button should feel like part of the premium dashboard system
+
+Bottom navigation:
+Use a clean modern bottom tab bar inspired by the screenshot:
+- rounded, soft, minimal
+- simple icons
+- active state in Enzora primary color
+- inactive state muted
+- visually lightweight
+- should feel smooth and premium
+
+Accessibility and usability:
+Because Enzora is for elderly patients:
+- larger touch targets
+- clear labels
+- large readable text
+- simple wording
+- obvious CTAs
+- avoid dense layouts
+- avoid tiny icons or thin low-contrast text
+
+Do not:
+- do not use harsh hospital-style UI
+- do not make it dark
+- do not clutter the screen
+- do not use too many strong colors at once
+- do not make it look generic or like a basic generated admin dashboard
+- do not copy the reference exactly
+- do not ignore Enzora branding
+
+Deliver:
+Redesign all app screens in a visually consistent system inspired by the reference image style, but fully adapted to Enzora’s logo, colors, and wound-care purpose.
+
+Main outcome:
+I want the app to look like a beautiful pastel healthcare dashboard app similar in vibe to the screenshot I shared, but clearly branded as Enzora Smart Wound Patch.
