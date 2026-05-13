@@ -649,7 +649,14 @@ export default function ProfileScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <Feather name="sun" size={20} color={c.primary} />
-                <Text style={styles.settingLabel}>{t("dailyReminder")}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.settingLabel}>{t("dailyReminder")}</Text>
+                  {dailyReminderEnabled ? (
+                    <Text style={styles.settingSub}>
+                      {t("dailyReminderTime")}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
               <Switch
                 value={dailyReminderEnabled}
@@ -793,6 +800,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: c.textSecondary,
     fontFamily: "Inter_600SemiBold",
+  },
+  settingSub: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+    marginTop: 2,
   },
   logoutBtn: {
     flexDirection: "row",

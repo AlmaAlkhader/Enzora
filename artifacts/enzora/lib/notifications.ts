@@ -140,14 +140,18 @@ export async function scheduleDailyReminder({
       granted = req.granted;
     }
     if (!granted) return;
+    // Short, warm reminder that nudges the user to open the app and read
+    // today's personalized AI care tip. We deliberately do NOT embed the
+    // full tip in the scheduled notification body — local schedules are
+    // pre-baked and would otherwise become stale before they fire.
     const title =
       language === "ar"
-        ? "صباح الخير من إنزورا 💙"
-        : "Good morning from Enzora 💙";
+        ? "نصيحة إنزورا جاهزة"
+        : "Your Enzora care tip is ready";
     const body =
       language === "ar"
-        ? "جهازك يراقب جرحك. اشرب الماء واسترح جيداً اليوم."
-        : "Your device is monitoring your wound. Stay hydrated and rest well today.";
+        ? "افتح إنزورا لقراءة نصيحة العناية اليوم."
+        : "Open Enzora for today's wound-care advice.";
     await Notifications.scheduleNotificationAsync({
       identifier: DAILY_ID,
       content: { title, body },

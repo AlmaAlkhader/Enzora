@@ -14,13 +14,13 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
-  Card,
   GradientHeader,
   IconChip,
   PrimaryButton,
   StatusCard,
   softShadow,
 } from "@/components/Brand";
+import { CareTipCard } from "@/components/CareTipCard";
 import { ColorAlertBanner } from "@/components/ColorGuide";
 import { PendingConfirmationCard } from "@/components/PendingConfirmation";
 import colors from "@/constants/colors";
@@ -268,16 +268,10 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        {/* Care tip — hidden when infected (secondary, can wait). */}
-        {sensor.status !== "blue" ? (
-          <Card style={styles.tipCard}>
-            <View style={styles.tipHeader}>
-              <IconChip icon="sun" tone="yellow" size={36} />
-              <Text style={styles.tipKicker}>{t("careTipsToday")}</Text>
-            </View>
-            <Text style={styles.tipBody}>{t("careTip1")}</Text>
-          </Card>
-        ) : null}
+        {/* Today's Care Tip — personalized AI message based on current wound
+            context. Shown for all statuses (including blue) because that's
+            exactly when warm, practical advice matters most. */}
+        {!hasNoCurrentWounds ? <CareTipCard /> : null}
 
         {/* Primary action */}
         <PrimaryButton
