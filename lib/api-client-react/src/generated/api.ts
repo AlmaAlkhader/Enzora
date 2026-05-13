@@ -21,6 +21,8 @@ import type {
   PushClearInput,
   PushSubscriptionInput,
   PushSubscriptionResult,
+  PushTestInput,
+  PushTestResult,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -197,6 +199,97 @@ export const useSyncPushSubscription = <
   TContext
 > => {
   return useMutation(getSyncPushSubscriptionMutationOptions(options));
+};
+
+/**
+ * Sends a test Expo push notification to the token saved on the
+subscription row for (email, woundId). Returns the saved token
+(preview only) and the raw Expo response so the developer can
+confirm end-to-end delivery.
+
+ * @summary Send a test push notification (developer diagnostic)
+ */
+export const getSendTestPushUrl = () => {
+  return `/api/push/test`;
+};
+
+export const sendTestPush = async (
+  pushTestInput: PushTestInput,
+  options?: RequestInit,
+): Promise<PushTestResult> => {
+  return customFetch<PushTestResult>(getSendTestPushUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(pushTestInput),
+  });
+};
+
+export const getSendTestPushMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendTestPush>>,
+    TError,
+    { data: BodyType<PushTestInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendTestPush>>,
+  TError,
+  { data: BodyType<PushTestInput> },
+  TContext
+> => {
+  const mutationKey = ["sendTestPush"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendTestPush>>,
+    { data: BodyType<PushTestInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return sendTestPush(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendTestPushMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendTestPush>>
+>;
+export type SendTestPushMutationBody = BodyType<PushTestInput>;
+export type SendTestPushMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a test push notification (developer diagnostic)
+ */
+export const useSendTestPush = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendTestPush>>,
+    TError,
+    { data: BodyType<PushTestInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendTestPush>>,
+  TError,
+  { data: BodyType<PushTestInput> },
+  TContext
+> => {
+  return useMutation(getSendTestPushMutationOptions(options));
 };
 
 /**

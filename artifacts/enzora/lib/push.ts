@@ -57,6 +57,51 @@ async function ensureAndroidChannels(): Promise<void> {
   }
 }
 
+export function getCachedExpoPushToken(): string | null {
+  return cachedToken;
+}
+
+export async function getNotificationPermissionStatus(): Promise<
+  "granted" | "denied" | "undetermined" | "unavailable"
+> {
+  if (!Notifications) return "unavailable";
+  try {
+    const perm = await Notifications.getPermissionsAsync();
+    if (perm.granted) return "granted";
+    if (perm.canAskAgain) return "undetermined";
+    return "denied";
+  } catch {
+    return "unavailable";
+  }
+}
+
+export interface PushTestResponse {
+  ok: boolean;
+  tokenOnFile: boolean;
+  tokenPreview: string | null;
+  notificationsEnabled: boolean;
+  expoStatus: string | null;
+  reason: string | null;
+}
+
+// Calls the backend's /push/test diagnostic endpoint. Returns parsed result
+// or throws on transport / non-200 errors so the UI can show the cause.
+export async function sendBackendTestPush(input: {
+  email: string;
+  woundId: string;
+}): Promise<PushTestResponse> {
+  if (!API_BASE) throw new Error("API base URL not configured");
+  const res = await fetch(`${API_BASE}/api/push/test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    throw new Error(`Backend returned HTTP ${res.status}`);
+  }
+  return (await res.json()) as PushTestResponse;
+}
+
 export async function getExpoPushToken(): Promise<string | null> {
   if (!Notifications) return null;
   if (cachedToken) return cachedToken;

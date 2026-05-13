@@ -49,6 +49,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PushSubscriptionResult"
+  /push/test:
+    post:
+      operationId: sendTestPush
+      tags: [push]
+      summary: Send a test push notification (developer diagnostic)
+      description: |
+        Sends a test Expo push notification to the token saved on the
+        subscription row for (email, woundId). Returns the saved token
+        (preview only) and the raw Expo response so the developer can
+        confirm end-to-end delivery.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushTestInput"
+      responses:
+        "200":
+          description: Test attempted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PushTestResult"
   /push/clear:
     post:
       operationId: clearPushSubscriptions
@@ -120,3 +143,34 @@ components:
       properties:
         ok:
           type: boolean
+    PushTestInput:
+      type: object
+      required:
+        - email
+        - woundId
+      properties:
+        email:
+          type: string
+          minLength: 3
+        woundId:
+          type: string
+          minLength: 1
+    PushTestResult:
+      type: object
+      required:
+        - ok
+        - tokenOnFile
+        - notificationsEnabled
+      properties:
+        ok:
+          type: boolean
+        tokenOnFile:
+          type: boolean
+        tokenPreview:
+          type: ["string", "null"]
+        notificationsEnabled:
+          type: boolean
+        expoStatus:
+          type: ["string", "null"]
+        reason:
+          type: ["string", "null"]

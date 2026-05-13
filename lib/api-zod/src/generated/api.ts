@@ -40,6 +40,30 @@ export const SyncPushSubscriptionResponse = zod.object({
 });
 
 /**
+ * Sends a test Expo push notification to the token saved on the
+subscription row for (email, woundId). Returns the saved token
+(preview only) and the raw Expo response so the developer can
+confirm end-to-end delivery.
+
+ * @summary Send a test push notification (developer diagnostic)
+ */
+export const sendTestPushBodyEmailMin = 3;
+
+export const SendTestPushBody = zod.object({
+  email: zod.string().min(sendTestPushBodyEmailMin),
+  woundId: zod.string().min(1),
+});
+
+export const SendTestPushResponse = zod.object({
+  ok: zod.boolean(),
+  tokenOnFile: zod.boolean(),
+  tokenPreview: zod.string().nullish(),
+  notificationsEnabled: zod.boolean(),
+  expoStatus: zod.string().nullish(),
+  reason: zod.string().nullish(),
+});
+
+/**
  * Removes the Expo push token from every subscription belonging to the
 given email so the user stops receiving wound notifications after
 signing out.

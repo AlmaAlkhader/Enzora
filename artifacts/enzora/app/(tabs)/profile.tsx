@@ -19,6 +19,13 @@ import { SOSButton } from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import { isBiometricAvailable } from "@/lib/biometric";
+import {
+  getCachedExpoPushToken,
+  getExpoPushToken,
+  getNotificationPermissionStatus,
+  sendBackendTestPush,
+  type PushTestResponse,
+} from "@/lib/push";
 
 const c = colors.light;
 
@@ -43,7 +50,65 @@ export default function ProfileScreen() {
     setDemoMode,
     simulateStatus,
   } = useApp();
+  // `language` and `notificationsEnabled` are read above; reference them
+  // here only to silence unused-warnings if a future edit relies on them.
+  void language;
+  void notificationsEnabled;
   const [bioAvailable, setBioAvailable] = useState(false);
+  // Dev-only push diagnostics state. Lives behind the same Demo Mode gate
+  // (7-tap on the avatar) as the simulate buttons.
+  const [permStatus, setPermStatus] = useState<string>("…");
+  const [localToken, setLocalToken] = useState<string | null>(
+    getCachedExpoPushToken(),
+  );
+  const [testBusy, setTestBusy] = useState(false);
+  const [testResult, setTestResult] = useState<
+    | (PushTestResponse & { transportError?: string })
+    | { transportError: string }
+    | null
+  >(null);
+
+  useEffect(() => {
+    if (!demoMode) return;
+    void (async () => {
+      setPermStatus(await getNotificationPermissionStatus());
+      // Force a token fetch so the developer sees a value even before any
+      // background sync has run.
+      const tok = await getExpoPushToken();
+      setLocalToken(tok);
+    })();
+  }, [demoMode]);
+
+  const onSendTestPush = async () => {
+    if (!user || !profile?.activeWoundId) {
+      setTestResult({ transportError: t("pushTestNoWound") });
+      return;
+    }
+    setTestBusy(true);
+    setTestResult(null);
+    try {
+      // Note: we intentionally do NOT call syncPushSubscription here. The
+      // AppContext effect already keeps the row up to date whenever any
+      // relevant input changes, and re-syncing with partial data would
+      // overwrite real fields (deviceId, woundHealed) and break the
+      // poller-driven notification flow.
+      const result = await sendBackendTestPush({
+        email: user.email,
+        woundId: profile.activeWoundId,
+      });
+      setTestResult(result);
+    } catch (err) {
+      setTestResult({
+        transportError: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setTestBusy(false);
+    }
+  };
+
+  const tokenPreview = localToken
+    ? `${localToken.slice(0, 18)}…${localToken.slice(-6)}`
+    : null;
   // Hidden gesture: 7 quick taps on the avatar reveal Judge Demo Mode.
   // Once demoMode is on, the card stays visible without re-tapping.
   // We use a functional setState (not the closed-over `avatarTaps`) so a fast
@@ -169,6 +234,115 @@ export default function ProfileScreen() {
               >
                 <Text style={styles.demoBtnText}>{t("simulateBlue")}</Text>
               </Pressable>
+            </View>
+
+            <View style={styles.pushDevSection}>
+              <Text style={styles.pushDevTitle}>{t("pushTestTitle")}</Text>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>
+                  {t("pushTestPermission")}
+                </Text>
+                <Text style={styles.pushDevValue}>{permStatus}</Text>
+              </View>
+              <View style={styles.pushDevRow}>
+                <Text style={styles.pushDevLabel}>{t("pushTestToken")}</Text>
+                <Text
+                  style={styles.pushDevValueMono}
+                  numberOfLines={1}
+                  selectable
+                >
+                  {tokenPreview ?? t("pushTestNoToken")}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => void onSendTestPush()}
+                disabled={testBusy}
+                style={[
+                  styles.pushDevBtn,
+                  { backgroundColor: testBusy ? c.border : c.primary },
+                ]}
+              >
+                <Feather name="send" size={14} color="#fff" />
+                <Text style={styles.pushDevBtnText}>
+                  {testBusy
+                    ? t("pushTestSending")
+                    : t("pushTestSend")}
+                </Text>
+              </Pressable>
+              {testResult && (
+                <View style={styles.pushDevResult}>
+                  {"transportError" in testResult && testResult.transportError ? (
+                    <Text style={[styles.pushDevValue, { color: c.alert }]}>
+                      {t("pushTestError")}: {testResult.transportError}
+                    </Text>
+                  ) : "ok" in testResult ? (
+                    <>
+                      <View style={styles.pushDevRow}>
+                        <Text style={styles.pushDevLabel}>
+                          {t("pushTestResultLabel")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.pushDevValue,
+                            { color: testResult.ok ? c.normal : c.alert },
+                          ]}
+                        >
+                          {testResult.ok
+                            ? t("pushTestSuccess")
+                            : t("pushTestFailed")}
+                        </Text>
+                      </View>
+                      <View style={styles.pushDevRow}>
+                        <Text style={styles.pushDevLabel}>
+                          {t("pushTestBackendToken")}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.pushDevValue,
+                            {
+                              color: testResult.tokenOnFile
+                                ? c.normal
+                                : c.alert,
+                            },
+                          ]}
+                        >
+                          {testResult.tokenOnFile
+                            ? t("pushTestTokenOnFile")
+                            : t("pushTestNoTokenSaved")}
+                        </Text>
+                      </View>
+                      {testResult.tokenPreview && (
+                        <View style={styles.pushDevRow}>
+                          <Text style={styles.pushDevLabel}>
+                            {t("pushTestSavedToken")}
+                          </Text>
+                          <Text
+                            style={styles.pushDevValueMono}
+                            numberOfLines={1}
+                            selectable
+                          >
+                            {testResult.tokenPreview}
+                          </Text>
+                        </View>
+                      )}
+                      {testResult.reason && (
+                        <View style={styles.pushDevRow}>
+                          <Text style={styles.pushDevLabel}>
+                            {t("pushTestReason")}
+                          </Text>
+                          <Text
+                            style={styles.pushDevValueMono}
+                            numberOfLines={2}
+                            selectable
+                          >
+                            {testResult.reason}
+                          </Text>
+                        </View>
+                      )}
+                    </>
+                  ) : null}
+                </View>
+              )}
             </View>
           </Card>
         )}
@@ -487,5 +661,70 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
+  },
+  pushDevSection: {
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: c.border,
+    gap: 8,
+  },
+  pushDevTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    marginBottom: 4,
+  },
+  pushDevRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  pushDevLabel: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+  },
+  pushDevValue: {
+    fontSize: 12,
+    color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+    flexShrink: 1,
+    textAlign: "right",
+  },
+  pushDevValueMono: {
+    fontSize: 11,
+    color: c.textPrimary,
+    fontFamily: Platform.select({
+      ios: "Menlo",
+      android: "monospace",
+      default: "monospace",
+    }),
+    flexShrink: 1,
+    textAlign: "right",
+  },
+  pushDevBtn: {
+    marginTop: 6,
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  pushDevBtnText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  pushDevResult: {
+    marginTop: 8,
+    gap: 6,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: c.bg,
   },
 });

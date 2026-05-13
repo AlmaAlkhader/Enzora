@@ -41,3 +41,22 @@ export interface PushClearInput {
 export interface PushSubscriptionResult {
   ok: boolean;
 }
+
+export interface PushTestInput {
+  /** @minLength 3 */
+  email: string;
+  /** @minLength 1 */
+  woundId: string;
+}
+
+export interface PushTestResult {
+  ok: boolean;
+  tokenOnFile: boolean;
+  /** @nullable */
+  tokenPreview?: string | null;
+  notificationsEnabled: boolean;
+  /** @nullable */
+  expoStatus?: string | null;
+  /** @nullable */
+  reason?: string | null;
+}

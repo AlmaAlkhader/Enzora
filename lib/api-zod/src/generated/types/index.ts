@@ -11,3 +11,5 @@ export * from "./pushClearInput";
 export * from "./pushSubscriptionInput";
 export * from "./pushSubscriptionInputLanguage";
 export * from "./pushSubscriptionResult";
+export * from "./pushTestInput";
+export * from "./pushTestResult";
