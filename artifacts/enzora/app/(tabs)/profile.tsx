@@ -39,8 +39,31 @@ export default function ProfileScreen() {
     setBiometricEnabled,
     dailyReminderEnabled,
     setDailyReminderEnabled,
+    demoMode,
+    setDemoMode,
+    simulateStatus,
   } = useApp();
   const [bioAvailable, setBioAvailable] = useState(false);
+  // Hidden gesture: 7 quick taps on the avatar reveal Judge Demo Mode.
+  // Once demoMode is on, the card stays visible without re-tapping.
+  // We use a functional setState (not the closed-over `avatarTaps`) so a fast
+  // burst of taps cannot drop increments due to stale closures / batching.
+  const lastTapRef = React.useRef<number>(0);
+  const onAvatarTap = () => {
+    const now = Date.now();
+    const within = now - lastTapRef.current < 800;
+    lastTapRef.current = now;
+    setAvatarTaps((prev) => {
+      const next = within ? prev + 1 : 1;
+      if (next >= 7) {
+        setDemoMode(true);
+        return 0;
+      }
+      return next;
+    });
+  };
+  const [avatarTaps, setAvatarTaps] = useState(0);
+  void avatarTaps;
 
   useEffect(() => {
     void (async () => {
@@ -102,14 +125,53 @@ export default function ProfileScreen() {
       />
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
         <Card style={{ alignItems: "center", gap: 8, padding: 24 }}>
-          <View style={styles.avatar}>
+          <Pressable onPress={onAvatarTap} style={styles.avatar}>
             <Text style={styles.avatarText}>
               {(profile?.name ?? user?.email ?? "?")[0]?.toUpperCase()}
             </Text>
-          </View>
+          </Pressable>
           <Text style={styles.name}>{profile?.name ?? "—"}</Text>
           <Text style={styles.email}>{user?.email}</Text>
         </Card>
+
+        {demoMode && (
+          <Card>
+            <View style={styles.demoHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.section}>{t("demoMode")}</Text>
+                <Text style={styles.muted}>{t("demoModeHint")}</Text>
+              </View>
+              <Pressable
+                onPress={() => setDemoMode(false)}
+                style={styles.demoExitBtn}
+                hitSlop={8}
+              >
+                <Feather name="x" size={16} color={c.textSecondary} />
+                <Text style={styles.demoExitText}>{t("exitDemo")}</Text>
+              </Pressable>
+            </View>
+            <View style={styles.demoBtnRow}>
+              <Pressable
+                onPress={() => simulateStatus("yellow")}
+                style={[styles.demoBtn, { backgroundColor: c.warning }]}
+              >
+                <Text style={styles.demoBtnText}>{t("simulateYellow")}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => simulateStatus("green")}
+                style={[styles.demoBtn, { backgroundColor: c.normal }]}
+              >
+                <Text style={styles.demoBtnText}>{t("simulateGreen")}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => simulateStatus("blue")}
+                style={[styles.demoBtn, { backgroundColor: c.alert }]}
+              >
+                <Text style={styles.demoBtnText}>{t("simulateBlue")}</Text>
+              </Pressable>
+            </View>
+          </Card>
+        )}
 
         <Card>
           <Text style={styles.section}>{t("medicalProfile")}</Text>
@@ -387,5 +449,43 @@ const styles = StyleSheet.create({
     color: c.textPrimary,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "700",
+  },
+  demoHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  demoExitBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: c.bg,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  demoExitText: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_600SemiBold",
+  },
+  demoBtnRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 14,
+  },
+  demoBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  demoBtnText: {
+    color: c.textWhite,
+    fontSize: 14,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
   },
 });

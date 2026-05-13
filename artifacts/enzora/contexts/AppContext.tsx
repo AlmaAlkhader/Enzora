@@ -151,6 +151,14 @@ interface AppCtx {
   statusLock: StatusLock | null;
   woundEvents: WoundEvent[];
   confirmStatusCheck: (c: StatusConfirmation) => Promise<void>;
+  // Demo / Judge mode — lets a presenter inject synthetic sensor readings
+  // without changing the real ESP32. When `demoMode` is on, `simulateStatus`
+  // pushes a synthetic SensorData into the merged `sensor` value, which
+  // drives the same downstream effects (status lock, history reading, urgent
+  // flow) as a real Firebase update.
+  demoMode: boolean;
+  setDemoMode: (v: boolean) => void;
+  simulateStatus: (s: SensorStatus) => void;
   // Setters
   setHasSeenOnboarding: (v: boolean) => Promise<void>;
   setLanguage: (lang: "en" | "ar") => Promise<void>;
@@ -341,7 +349,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [wounds, setWounds] = useState<Wound[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
-  const [sensor, setSensor] = useState<SensorData>({
+  // Real Firebase-driven sensor state. The exposed `sensor` below merges this
+  // with `demoSensor` so demo mode can shadow the live device without
+  // touching the Firebase listener.
+  const [firebaseSensor, setFirebaseSensor] = useState<SensorData>({
     status: null,
     red: 0,
     green: 0,
@@ -349,6 +360,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     lastUpdated: null,
     connected: false,
   });
+  const [demoMode, setDemoMode] = useState(false);
+  const [demoSensor, setDemoSensor] = useState<SensorData | null>(null);
+  // Merged view: when a demo reading is active, it wins. When demo mode is
+  // turned off we clear the override so the real device readings take over
+  // again on the very next render.
+  const sensor = useMemo<SensorData>(
+    () => (demoSensor ?? firebaseSensor),
+    [demoSensor, firebaseSensor],
+  );
   const [loading, setLoading] = useState(true);
   const [language, setLanguageState] = useState<"en" | "ar">("en");
   const [largeText, setLargeTextState] = useState(false);
@@ -593,6 +613,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [user, profile?.activeWoundId, runSerialized],
   );
 
+  // Demo mode controls. Each call to `simulateStatus` builds a fresh
+  // SensorData with `lastUpdated = Date.now()` so the lock-evaluator and
+  // reading-saver effects (which key off `sensor.lastUpdated`) treat each
+  // press as a brand new reading — the UI then behaves exactly as if a
+  // matching Firebase update had arrived.
+  const simulateStatus = useCallback((s: SensorStatus) => {
+    setDemoMode(true);
+    const channel =
+      s === "yellow"
+        ? { red: 255, green: 200, blue: 0 }
+        : s === "green"
+          ? { red: 0, green: 200, blue: 0 }
+          : s === "blue"
+            ? { red: 0, green: 0, blue: 255 }
+            : { red: 0, green: 0, blue: 0 };
+    setDemoSensor({
+      status: s,
+      ...channel,
+      lastUpdated: Date.now(),
+      connected: true,
+    });
+  }, []);
+
+  // Wrap setDemoMode so turning demo OFF also clears the synthetic reading,
+  // letting the real Firebase value (or its disconnected state) take over
+  // immediately.
+  const setDemoModeWrapped = useCallback((v: boolean) => {
+    setDemoMode(v);
+    if (!v) setDemoSensor(null);
+  }, []);
+
   // Resolve which device path to read from. Priority:
   //   1. The active wound's linked deviceId
   //   2. The user's currently-connected deviceId (fallback)
@@ -614,7 +665,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     if (!effectiveDeviceId) {
       console.log("[sensor] no deviceId — skipping listener");
-      setSensor((s) => ({ ...s, connected: false, status: null }));
+      setFirebaseSensor((s) => ({ ...s, connected: false, status: null }));
       return;
     }
     const path = `devices/${effectiveDeviceId}/sensor`;
@@ -633,7 +684,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const isConnected = !!(v && v.status);
         console.log("[sensor] Connected state ->", isConnected);
         if (isConnected) {
-          setSensor({
+          setFirebaseSensor({
             status: v.status as SensorStatus,
             red: typeof v.red === "number" ? v.red : 0,
             green: typeof v.green === "number" ? v.green : 0,
@@ -643,12 +694,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             connected: true,
           });
         } else {
-          setSensor((s) => ({ ...s, connected: false, status: null }));
+          setFirebaseSensor((s) => ({ ...s, connected: false, status: null }));
         }
       },
       (err) => {
         console.warn("[sensor] listener ERROR", err);
-        setSensor((s) => ({ ...s, connected: false }));
+        setFirebaseSensor((s) => ({ ...s, connected: false }));
       },
     );
     return () => {
@@ -1072,6 +1123,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     statusLock,
     woundEvents,
     confirmStatusCheck,
+    demoMode,
+    setDemoMode: setDemoModeWrapped,
+    simulateStatus,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

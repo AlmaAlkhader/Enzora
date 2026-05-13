@@ -247,6 +247,15 @@ const en = {
   relOther: "Other",
   relationshipLabel: "Relationship",
   monitoredPerson: "Monitored person",
+
+  // Judge / Demo mode
+  demoMode: "Judge Demo Mode",
+  demoModeHint:
+    "Inject synthetic sensor readings for the live demo. Real sensor stays connected.",
+  simulateYellow: "Simulate Yellow",
+  simulateGreen: "Simulate Green",
+  simulateBlue: "Simulate Blue",
+  exitDemo: "Exit demo",
   addFamilyMember: "+ Add Family Member",
   whoMonitoring: "Who are you monitoring?",
   whoMonitoringPlaceholder: "e.g. My mother, Father...",
@@ -657,6 +666,15 @@ const ar: typeof en = {
   relOther: "آخر",
   relationshipLabel: "صلة القرابة",
   monitoredPerson: "الشخص المُراقَب",
+
+  // Judge / Demo mode
+  demoMode: "وضع العرض التوضيحي",
+  demoModeHint:
+    "إدخال قراءات استشعار وهمية للعرض الحي. يبقى الجهاز الحقيقي متصلاً.",
+  simulateYellow: "محاكاة الأصفر",
+  simulateGreen: "محاكاة الأخضر",
+  simulateBlue: "محاكاة الأزرق",
+  exitDemo: "إنهاء العرض",
   addFamilyMember: "+ أضف فرداً من العائلة",
   whoMonitoring: "من تراقب؟",
   whoMonitoringPlaceholder: "مثلاً: والدتي، والدي...",
