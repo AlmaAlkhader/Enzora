@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import {
   Alert,
   I18nManager,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -15,13 +14,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import {
-  Card,
-  Field,
-  GradientHeader,
-  PrimaryButton,
-  TextField,
-} from "@/components/Brand";
+import { Card, GradientHeader } from "@/components/Brand";
 import { SOSButton } from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
@@ -42,22 +35,12 @@ export default function ProfileScreen() {
     setLargeText,
     notificationsEnabled,
     setNotificationsEnabled,
-    patients,
-    activePatientId,
-    setActivePatient,
-    removePatient,
-    addPatient,
     biometricEnabled,
     setBiometricEnabled,
     dailyReminderEnabled,
     setDailyReminderEnabled,
   } = useApp();
   const [bioAvailable, setBioAvailable] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const [pName, setPName] = useState("");
-  const [pRel, setPRel] =
-    useState<"myself" | "mother" | "father" | "spouse" | "child" | "other">("mother");
-  const [pConditions, setPConditions] = useState("");
 
   useEffect(() => {
     void (async () => {
@@ -94,20 +77,6 @@ export default function ProfileScreen() {
   };
 
   const med = profile?.medicalProfile;
-  const activePatient = patients.find((p) => p.id === activePatientId);
-
-  const submitPatient = async () => {
-    if (!pName.trim()) return;
-    await addPatient({
-      name: pName.trim(),
-      relationship: pRel,
-      conditions: pConditions.trim(),
-    });
-    setPName("");
-    setPConditions("");
-    setPRel("mother");
-    setAddOpen(false);
-  };
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -126,44 +95,6 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.name}>{profile?.name ?? "—"}</Text>
           <Text style={styles.email}>{user?.email}</Text>
-        </Card>
-
-        <Card>
-          <View style={styles.sectionRow}>
-            <Text style={styles.section}>{t("monitoringFor")}</Text>
-            <Pressable onPress={() => setAddOpen(true)} hitSlop={10}>
-              <Text style={styles.editText}>{t("addFamilyMember")}</Text>
-            </Pressable>
-          </View>
-          <View style={{ gap: 6, marginTop: 10 }}>
-            <PatientRow
-              name={t("myself")}
-              active={activePatientId === null}
-              onPress={() => void setActivePatient(null)}
-            />
-            {patients.map((p) => (
-              <PatientRow
-                key={p.id}
-                name={p.name}
-                relation={t(p.relationship)}
-                active={activePatientId === p.id}
-                onPress={() => void setActivePatient(p.id)}
-                onRemove={() => {
-                  Alert.alert(p.name, "Remove?", [
-                    { text: t("cancel"), style: "cancel" },
-                    {
-                      text: t("logout"),
-                      style: "destructive",
-                      onPress: () => void removePatient(p.id),
-                    },
-                  ]);
-                }}
-              />
-            ))}
-            {activePatient?.conditions ? (
-              <Text style={styles.muted}>{activePatient.conditions}</Text>
-            ) : null}
-          </View>
         </Card>
 
         <Card>
@@ -292,105 +223,7 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>{t("logout")}</Text>
         </Pressable>
       </ScrollView>
-
-      <Modal visible={addOpen} animationType="slide" transparent onRequestClose={() => setAddOpen(false)}>
-        <View style={styles.modalBg}>
-          <View style={styles.modalCard}>
-            <Text style={styles.section}>{t("addFamilyMember")}</Text>
-            <Field label={t("whoMonitoring")}>
-              <TextField
-                value={pName}
-                onChangeText={setPName}
-                placeholder={t("whoMonitoringPlaceholder")}
-                autoCapitalize="words"
-              />
-            </Field>
-            <Field label={t("relationship")}>
-              <View style={styles.relRow}>
-                {(["mother", "father", "spouse", "child", "other"] as const).map((r) => (
-                  <Pressable
-                    key={r}
-                    onPress={() => setPRel(r)}
-                    style={[
-                      styles.relChip,
-                      pRel === r && styles.relChipActive,
-                      Platform.OS === "web" ? ({ cursor: "pointer" } as never) : null,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.relChipText,
-                        pRel === r && styles.relChipTextActive,
-                      ]}
-                    >
-                      {t(r)}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </Field>
-            <Field label={t("theirConditions")}>
-              <TextField
-                value={pConditions}
-                onChangeText={setPConditions}
-                placeholder={t("conditionsPlaceholder")}
-              />
-            </Field>
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <PrimaryButton
-                label={t("cancel")}
-                variant="outline"
-                onPress={() => setAddOpen(false)}
-                style={{ flex: 1 }}
-              />
-              <PrimaryButton
-                label={t("save")}
-                onPress={() => void submitPatient()}
-                style={{ flex: 1 }}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
-  );
-}
-
-function PatientRow({
-  name,
-  relation,
-  active,
-  onPress,
-  onRemove,
-}: {
-  name: string;
-  relation?: string;
-  active: boolean;
-  onPress: () => void;
-  onRemove?: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.patientRow,
-        active && styles.patientRowActive,
-        Platform.OS === "web" ? ({ cursor: "pointer" } as never) : null,
-      ]}
-    >
-      <View style={{ flex: 1 }}>
-        <Text style={styles.patientName}>{name}</Text>
-        {relation ? <Text style={styles.patientRel}>{relation}</Text> : null}
-      </View>
-      {active ? (
-        <Feather name="check-circle" size={18} color={c.primary} />
-      ) : null}
-      {onRemove ? (
-        <Pressable hitSlop={10} onPress={onRemove} style={{ marginLeft: 8 }}>
-          <Feather name="x" size={16} color={c.textSecondary} />
-        </Pressable>
-      ) : null}
-    </Pressable>
   );
 }
 
@@ -430,11 +263,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: c.textSecondary,
     fontFamily: "Inter_400Regular",
-  },
-  sectionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
   section: {
     fontSize: 16,
@@ -516,67 +344,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-  },
-  patientRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: c.input,
-    gap: 8,
-  },
-  patientRowActive: {
-    backgroundColor: "rgba(110,117,191,0.10)",
-    borderWidth: 1,
-    borderColor: "rgba(110,117,191,0.35)",
-  },
-  patientName: {
-    fontSize: 14,
-    color: c.textPrimary,
-    fontFamily: "Inter_600SemiBold",
-    fontWeight: "700",
-  },
-  patientRel: {
-    fontSize: 12,
-    color: c.textSecondary,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
-  },
-  modalBg: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: c.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    gap: 14,
-  },
-  relRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  relChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: c.border,
-    backgroundColor: c.input,
-  },
-  relChipActive: {
-    borderColor: c.primary,
-    backgroundColor: "rgba(110,117,191,0.10)",
-  },
-  relChipText: {
-    fontSize: 13,
-    color: c.textSecondary,
-    fontFamily: "Inter_500Medium",
-  },
-  relChipTextActive: {
-    color: c.primary,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
   },
   colorGuideRow: {
     flexDirection: "row",
