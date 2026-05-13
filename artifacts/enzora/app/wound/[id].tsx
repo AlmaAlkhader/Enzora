@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import {
   Alert,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -78,14 +79,27 @@ export default function WoundDetail() {
   }
 
   const handleHealed = () => {
+    const confirmAndRun = async () => {
+      setConfetti(true);
+      await markHealed(wound.id);
+      setTimeout(() => router.back(), 2300);
+    };
+    // react-native-web's Alert.alert maps to window.alert (no buttons), so the
+    // confirm button's onPress never fires on web. Use window.confirm there
+    // and the real Alert dialog on native.
+    if (Platform.OS === "web") {
+      const ok =
+        typeof window !== "undefined" &&
+        window.confirm(`${t("markHealed")}\n\n${t("markHealedConfirm")}`);
+      if (ok) void confirmAndRun();
+      return;
+    }
     Alert.alert(t("markHealed"), t("markHealedConfirm"), [
       { text: t("notYet"), style: "cancel" },
       {
         text: t("yesHealed"),
-        onPress: async () => {
-          setConfetti(true);
-          await markHealed(wound.id);
-          setTimeout(() => router.back(), 2300);
+        onPress: () => {
+          void confirmAndRun();
         },
       },
     ]);

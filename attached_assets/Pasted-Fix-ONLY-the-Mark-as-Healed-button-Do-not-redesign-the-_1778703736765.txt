@@ -1,0 +1,75 @@
+Fix ONLY the “Mark as Healed” button.
+
+Do not redesign the UI.
+Do not change authentication.
+Do not change Firebase sensor logic.
+Do not change ESP32 logic.
+Do not refactor unrelated screens.
+
+Problem:
+The “Mark as Healed” button on the Wound Detail screen is not working.
+
+Expected behavior:
+When the user taps “Mark as Healed”:
+1. The selected wound should be updated in the app database/backend.
+2. The wound status should change to healed or inactive.
+3. The wound should no longer appear as an active monitored wound.
+4. The user should get clear feedback that the wound was marked as healed.
+5. The app should navigate to the correct screen after success:
+   - either History / Healed Wounds section if it exists
+   - or Wounds screen with the healed wound removed from active list
+6. The Home screen should no longer monitor that healed wound.
+7. If there are no active wounds left, the Home screen should show a friendly “No active wound being monitored” state or prompt the user to add/select a wound.
+
+Check these things:
+- Make sure the button has a real onPress/onClick handler.
+- Make sure the handler receives the correct wound id.
+- Make sure the update request is sent to the existing backend/Replit database, not Firebase.
+- Firebase should remain only for ESP32 sensor readings.
+- Make sure the wound list/state is refreshed after marking healed.
+- Make sure the current active wound state is cleared or switched if the healed wound was active.
+- Make sure loading and error states are handled.
+
+Possible data update:
+Use the existing wound model fields if already present, such as:
+- status: "healed"
+- isActive: false
+- healedAt: current date/time
+- updatedAt: current date/time
+
+Do not invent a conflicting schema if the project already has a healed/inactive field. First inspect the existing wound data structure and use the correct existing fields.
+
+Add a confirmation step if not already present:
+When tapping the button, show a simple confirmation:
+Title: “Mark as healed?”
+Message: “This will move the wound out of active monitoring.”
+Buttons:
+- Cancel
+- Yes, mark healed
+
+Arabic:
+Title: “تأكيد الشفاء؟”
+Message: “سيتم نقل هذا الجرح من المتابعة النشطة.”
+Buttons:
+- إلغاء
+- نعم، تم الشفاء
+
+After success:
+Show a success message:
+English: “Wound marked as healed.”
+Arabic: “تم تسجيل الجرح كمتعافٍ.”
+
+Testing checklist:
+1. Log in.
+2. Open Wounds.
+3. Select an active wound.
+4. Open Wound Detail.
+5. Tap “Mark as Healed”.
+6. Confirm the action.
+7. Confirm the wound is updated in the backend database.
+8. Confirm it disappears from active wounds or moves to healed/history.
+9. Confirm Home no longer treats it as the active monitored wound.
+10. Refresh the app and confirm the healed state persists.
+
+Deliver:
+Tell me exactly which file(s) were changed and what was wrong with the Mark as Healed button.
