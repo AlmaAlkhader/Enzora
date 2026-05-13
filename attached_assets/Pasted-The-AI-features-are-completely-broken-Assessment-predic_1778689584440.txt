@@ -1,0 +1,76 @@
+The AI features are completely broken.
+Assessment, prediction, and chatbot all 
+show "unavailable". 
+
+Please do a full debug and fix:
+
+1. First add this test button temporarily 
+   to the home screen:
+
+<button onClick={async () => {
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        systemPrompt: 'You are a helpful assistant.',
+        userMessage: 'Say hello',
+        history: []
+      })
+    })
+    const data = await res.json()
+    alert(JSON.stringify(data))
+  } catch(e) {
+    alert('Error: ' + e.message)
+  }
+}}>Test AI</button>
+
+Tell me what the alert shows when tapped.
+This will tell us if the problem is the 
+API connection or the UI components.
+
+2. Check ALL of these common issues:
+
+a) The fetch URL — make sure it is exactly:
+   '/api/claude'
+   Not 'http://localhost:3000/api/claude'
+   Not 'https://...'
+   
+b) The api-server — make sure it is 
+   running and not crashed again:
+   Check the api-server process status
+   Add a health check endpoint:
+   app.get('/api/health', (req, res) => 
+     res.json({ status: 'ok' }))
+   Then fetch('/api/health') from browser
+   
+c) CORS — make sure api-server allows 
+   requests from the frontend:
+   app.use(cors({ origin: '*' }))
+   
+d) The model name must be exactly:
+   'claude-sonnet-4-6'
+   Nothing else.
+
+e) The request body — log it before sending:
+   console.log('Sending to Claude:', {
+     systemPrompt: systemPrompt.slice(0,50),
+     userMessage: userMessage.slice(0,50)
+   })
+
+f) The response — log everything:
+   const res = await fetch('/api/claude', ...)
+   console.log('Status:', res.status)
+   const text = await res.text()
+   console.log('Raw response:', text)
+   const data = JSON.parse(text)
+   console.log('Parsed:', data)
+
+3. After identifying the exact error,
+   fix it and make all three AI features
+   work:
+   - AI Assessment card on home screen
+   - AI Prediction card on history screen
+   - AI Chatbot floating button
+
+4. Remove the test button after fixing.
