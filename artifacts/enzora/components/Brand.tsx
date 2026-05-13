@@ -99,7 +99,7 @@ export function EnzoraLogo({
   if (variant === "compactTile") {
     // Same white circular medallion, scaled down — used in every inner
     // screen header so all sections clearly belong to one branded family.
-    const tile = 52;
+    const tile = 60;
     const imageH = Math.round(tile * 0.58);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
@@ -242,10 +242,7 @@ export function GradientHeader({
             />
           </Pressable>
         ) : (
-          <View style={styles.appLockup}>
-            <EnzoraLogo variant="compactTile" />
-            <Text style={styles.appWordmark}>Enzora</Text>
-          </View>
+          <EnzoraLogo variant="compactTile" />
         )}
         <View style={{ flex: 1 }} />
         {right ? <View style={{ marginRight: 8 }}>{right}</View> : null}
