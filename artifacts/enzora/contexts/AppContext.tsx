@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 import { onValue, ref } from "firebase/database";
 import React, {
   createContext,
@@ -14,6 +15,19 @@ import { useTranslation } from "react-i18next";
 
 import { rtdb } from "@/lib/firebase";
 import i18n, { loadLanguage, saveLanguage } from "@/lib/i18n";
+import { scheduleDailyReminder } from "@/lib/notifications";
+import {
+  type Mood,
+  type MoodEntry,
+  type Patient,
+  readActivePatientId,
+  readMoods,
+  readPatients,
+  saveMood as persistMood,
+  todayKey,
+  writeActivePatientId,
+  writePatients,
+} from "@/lib/wellness";
 
 export type SensorStatus = "yellow" | "green" | "blue";
 
@@ -91,11 +105,21 @@ interface AppCtx {
   largeText: boolean;
   notificationsEnabled: boolean;
   hasSeenOnboarding: boolean;
+  // Wellness extensions
+  moods: MoodEntry[];
+  patients: Patient[];
+  activePatientId: string | null;
+  biometricEnabled: boolean;
+  dailyReminderEnabled: boolean;
+  isOnline: boolean;
+  // Setters
   setHasSeenOnboarding: (v: boolean) => Promise<void>;
   setLanguage: (lang: "en" | "ar") => Promise<void>;
   toggleLanguage: () => Promise<void>;
   setLargeText: (v: boolean) => Promise<void>;
   setNotificationsEnabled: (v: boolean) => Promise<void>;
+  setBiometricEnabled: (v: boolean) => Promise<void>;
+  setDailyReminderEnabled: (v: boolean) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOutUser: () => Promise<void>;
@@ -105,6 +129,13 @@ interface AppCtx {
   markHealed: (id: string) => Promise<void>;
   addNote: (id: string, note: string) => Promise<void>;
   emailExists: (email: string) => Promise<boolean>;
+  recordMood: (mood: Mood) => Promise<void>;
+  addPatient: (
+    p: Omit<Patient, "id" | "createdAt">,
+  ) => Promise<string>;
+  setActivePatient: (id: string | null) => Promise<void>;
+  removePatient: (id: string) => Promise<void>;
+  hasMoodToday: boolean;
 }
 
 const Ctx = createContext<AppCtx | null>(null);
@@ -113,15 +144,16 @@ const ONBOARD_KEY = "enzora.onboarded";
 const LARGE_TEXT_KEY = "enzora.largeText";
 const NOTIF_KEY = "enzora.notif";
 const SESSION_KEY = "enzora_session";
+const DAILY_REMINDER_KEY = "enzora.dailyReminder";
 
 const userKey = (email: string) => `enzora_user_${email.toLowerCase()}`;
 const woundsKey = (email: string) => `enzora_wounds_${email.toLowerCase()}`;
 const readingsKey = (email: string, woundId: string) =>
   `enzora_readings_${email.toLowerCase()}_${woundId}`;
+const biometricKey = (email: string) =>
+  `enzora.biometric.${email.toLowerCase()}`;
 
 function hashPassword(password: string): string {
-  // Lightweight salted hash. Not cryptographically strong, but fine for a
-  // local-only demo account store. Don't use this for real secrets.
   const salt = "enzora.v1";
   let h = 0;
   const s = salt + password;
@@ -214,6 +246,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
   const [hasSeenOnboarding, setHasSeenOnboardingState] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [moods, setMoods] = useState<MoodEntry[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [activePatientId, setActivePatientIdState] = useState<string | null>(
+    null,
+  );
+  const [biometricEnabled, setBiometricEnabledState] = useState(false);
+  const [dailyReminderEnabled, setDailyReminderEnabledState] = useState(true);
+  const [isOnline, setIsOnline] = useState(true);
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -230,15 +270,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } catch {
           // ignore
         }
-        const [onb, lt, nf, session] = await Promise.all([
+        const [onb, lt, nf, dr, session] = await Promise.all([
           AsyncStorage.getItem(ONBOARD_KEY),
           AsyncStorage.getItem(LARGE_TEXT_KEY),
           AsyncStorage.getItem(NOTIF_KEY),
+          AsyncStorage.getItem(DAILY_REMINDER_KEY),
           AsyncStorage.getItem(SESSION_KEY),
         ]);
         setHasSeenOnboardingState(onb === "1");
         setLargeTextState(lt === "1");
         setNotificationsEnabledState(nf !== "0");
+        setDailyReminderEnabledState(dr !== "0");
 
         if (session) {
           const acc = await readAccount(session);
@@ -247,6 +289,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setProfile(accountToProfile(acc));
             const ws = await readWounds(acc.email);
             setWounds(ws);
+            const [ms, pts, apId, bio] = await Promise.all([
+              readMoods(acc.email),
+              readPatients(acc.email),
+              readActivePatientId(acc.email),
+              AsyncStorage.getItem(biometricKey(acc.email)),
+            ]);
+            setMoods(ms);
+            setPatients(pts);
+            setActivePatientIdState(apId);
+            setBiometricEnabledState(bio === "1");
           } else {
             await AsyncStorage.removeItem(SESSION_KEY);
           }
@@ -258,6 +310,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     })();
+  }, []);
+
+  // NetInfo subscription
+  useEffect(() => {
+    const unsub = NetInfo.addEventListener((state) => {
+      setIsOnline(!!state.isConnected);
+    });
+    return unsub;
   }, []);
 
   // Load readings when active wound changes
@@ -353,6 +413,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     profile?.activeWoundId,
   ]);
 
+  // Re-schedule daily reminder when relevant prefs change
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    void scheduleDailyReminder({
+      enabled: dailyReminderEnabled && notificationsEnabled,
+      language,
+      hasActiveWound: !!profile?.activeWoundId,
+    });
+  }, [
+    dailyReminderEnabled,
+    notificationsEnabled,
+    language,
+    profile?.activeWoundId,
+    prefsLoaded,
+  ]);
+
   const setLanguage = useCallback(
     async (lang: "en" | "ar") => {
       setLanguageState(lang);
@@ -382,6 +458,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setNotificationsEnabledState(v);
     await AsyncStorage.setItem(NOTIF_KEY, v ? "1" : "0");
   }, []);
+
+  const setDailyReminderEnabled = useCallback(async (v: boolean) => {
+    setDailyReminderEnabledState(v);
+    await AsyncStorage.setItem(DAILY_REMINDER_KEY, v ? "1" : "0");
+  }, []);
+
+  const setBiometricEnabled = useCallback(
+    async (v: boolean) => {
+      setBiometricEnabledState(v);
+      if (user)
+        await AsyncStorage.setItem(biometricKey(user.email), v ? "1" : "0");
+    },
+    [user],
+  );
 
   const setHasSeenOnboarding = useCallback(async (v: boolean) => {
     setHasSeenOnboardingState(v);
@@ -415,6 +505,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUser({ uid: normEmail, email: normEmail });
       setProfile(accountToProfile(acc));
       setWounds([]);
+      setMoods([]);
+      setPatients([]);
+      setActivePatientIdState(null);
+      setBiometricEnabledState(false);
     },
     [],
   );
@@ -435,8 +529,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(SESSION_KEY, normEmail);
     setUser({ uid: normEmail, email: normEmail });
     setProfile(accountToProfile(acc));
-    const ws = await readWounds(normEmail);
+    const [ws, ms, pts, apId, bio] = await Promise.all([
+      readWounds(normEmail),
+      readMoods(normEmail),
+      readPatients(normEmail),
+      readActivePatientId(normEmail),
+      AsyncStorage.getItem(biometricKey(normEmail)),
+    ]);
     setWounds(ws);
+    setMoods(ms);
+    setPatients(pts);
+    setActivePatientIdState(apId);
+    setBiometricEnabledState(bio === "1");
   }, []);
 
   const signOutUser = useCallback(async () => {
@@ -445,6 +549,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
     setWounds([]);
     setReadings([]);
+    setMoods([]);
+    setPatients([]);
+    setActivePatientIdState(null);
+    setBiometricEnabledState(false);
   }, []);
 
   const updateAccount = useCallback(
@@ -534,10 +642,61 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [user],
   );
 
+  const recordMood = useCallback(
+    async (mood: Mood) => {
+      if (!user) return;
+      const next = await persistMood(user.email, mood);
+      setMoods(next);
+    },
+    [user],
+  );
+
+  const addPatient = useCallback(
+    async (p: Omit<Patient, "id" | "createdAt">) => {
+      if (!user) throw new Error("not authenticated");
+      const id =
+        Date.now().toString() + Math.random().toString(36).slice(2, 11);
+      const next: Patient = { ...p, id, createdAt: Date.now() };
+      const updated = [next, ...patients];
+      await writePatients(user.email, updated);
+      setPatients(updated);
+      return id;
+    },
+    [user, patients],
+  );
+
+  const setActivePatient = useCallback(
+    async (id: string | null) => {
+      if (!user) return;
+      await writeActivePatientId(user.email, id);
+      setActivePatientIdState(id);
+    },
+    [user],
+  );
+
+  const removePatient = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      const updated = patients.filter((p) => p.id !== id);
+      await writePatients(user.email, updated);
+      setPatients(updated);
+      if (activePatientId === id) {
+        await writeActivePatientId(user.email, null);
+        setActivePatientIdState(null);
+      }
+    },
+    [user, patients, activePatientId],
+  );
+
   const activeWound = useMemo(
     () => wounds.find((w) => w.id === profile?.activeWoundId) ?? null,
     [wounds, profile?.activeWoundId],
   );
+
+  const hasMoodToday = useMemo(() => {
+    const tk = todayKey();
+    return moods.some((m) => m.date === tk);
+  }, [moods]);
 
   const value: AppCtx = {
     user,
@@ -552,11 +711,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     largeText,
     notificationsEnabled,
     hasSeenOnboarding,
+    moods,
+    patients,
+    activePatientId,
+    biometricEnabled,
+    dailyReminderEnabled,
+    isOnline,
     setHasSeenOnboarding,
     setLanguage,
     toggleLanguage,
     setLargeText,
     setNotificationsEnabled,
+    setBiometricEnabled,
+    setDailyReminderEnabled,
     signUp,
     signIn,
     signOutUser,
@@ -566,6 +733,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     markHealed,
     addNote,
     emailExists,
+    recordMood,
+    addPatient,
+    setActivePatient,
+    removePatient,
+    hasMoodToday,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

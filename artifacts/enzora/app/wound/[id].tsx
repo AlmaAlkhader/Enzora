@@ -20,6 +20,11 @@ import {
   StatusCard,
   TextField,
 } from "@/components/Brand";
+import {
+  ConfettiOverlay,
+  DoctorReportModal,
+  HealingProgress,
+} from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
@@ -35,6 +40,8 @@ export default function WoundDetail() {
   const isActive = activeWound?.id === wound?.id;
   const [noteOpen, setNoteOpen] = useState(false);
   const [note, setNote] = useState("");
+  const [reportOpen, setReportOpen] = useState(false);
+  const [confetti, setConfetti] = useState(false);
 
   if (!wound) {
     return (
@@ -50,8 +57,9 @@ export default function WoundDetail() {
       {
         text: t("yesHealed"),
         onPress: async () => {
+          setConfetti(true);
           await markHealed(wound.id);
-          router.back();
+          setTimeout(() => router.back(), 2300);
         },
       },
     ]);
@@ -98,6 +106,14 @@ export default function WoundDetail() {
             <Feather name="activity" size={32} color={c.textSecondary} />
             <Text style={styles.muted}>{t("noReadingsYet")}</Text>
           </Card>
+        )}
+
+        {wound.status === "active" && (
+          <HealingProgress
+            wound={wound}
+            readings={woundReadings}
+            sensorStatus={isActive ? sensor.status : null}
+          />
         )}
 
         {lastReading && (
@@ -150,6 +166,12 @@ export default function WoundDetail() {
         )}
 
         <View style={{ gap: 10, marginTop: 8 }}>
+          <PrimaryButton
+            label={t("doctorReport")}
+            icon="file-text"
+            variant="outline"
+            onPress={() => setReportOpen(true)}
+          />
           {isActive && sensor.status === "yellow" && (
             <PrimaryButton
               label={t("markHealed")}
@@ -196,6 +218,15 @@ export default function WoundDetail() {
           </View>
         </View>
       </Modal>
+
+      <DoctorReportModal
+        visible={reportOpen}
+        onClose={() => setReportOpen(false)}
+        wound={wound}
+        readings={woundReadings}
+      />
+
+      <ConfettiOverlay visible={confetti} onDone={() => setConfetti(false)} />
     </View>
   );
 }

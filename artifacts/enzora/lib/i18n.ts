@@ -16,6 +16,8 @@ const en = {
   optional: "Optional",
   gotIt: "Got it!",
   close: "Close",
+  refresh: "Refresh",
+  share: "Share",
 
   // Auth
   login: "Login",
@@ -107,6 +109,9 @@ const en = {
   seeAll: "See All",
   noReadingsYet: "No readings yet",
   waitingForDevice: "Waiting for your device to send data",
+  liveSensor: "Live Sensor",
+  notConnected: "Not connected",
+  careTips: "Care Tips for You ✨",
 
   // Wounds
   myWounds: "My Wounds",
@@ -157,6 +162,7 @@ const en = {
   alertStep4: "If unwell, go to emergency room",
   callDoctor: "Call My Doctor Now",
   understand: "I Understand",
+  callEmergencyNow: "Call Emergency Contact Now 🚨",
 
   // Connect help
   setupTitle: "How to Set Up Your Device",
@@ -174,6 +180,9 @@ const en = {
   trouble2: "Make sure your WiFi is working",
   trouble3: "Keep the device within range of your router",
   trouble4: "Contact your doctor if problem continues",
+  callForHelp: "Call for Help",
+  whatsappUs: "Message us on WhatsApp",
+  whatsappPrefill: "Hi, I need help setting up my Enzora device",
 
   // Profile
   editProfile: "Edit Profile",
@@ -185,11 +194,85 @@ const en = {
   logoutConfirm: "Are you sure you want to log out?",
   noProfile: "No medical profile yet",
   completeProfile: "Complete your profile",
+  dailyReminder: "Daily wellness reminder",
+  biometricLogin: "Face ID / Fingerprint login",
+  monitoringFor: "Monitoring for",
+  addFamilyMember: "+ Add Family Member",
+  whoMonitoring: "Who are you monitoring?",
+  whoMonitoringPlaceholder: "e.g. My mother, Father...",
+  relationship: "Relationship",
+  myself: "Myself",
+  mother: "Mother",
+  father: "Father",
+  spouse: "Spouse",
+  child: "Child",
+  theirConditions: "Their medical conditions",
+  yourWellnessWeek: "Your wellness this week",
+  noMoodsYet: "No mood check-ins yet — your week shows here",
 
   // Status long labels
   normalLabel: "Normal – No infection signs",
   cautionLabel: "Caution – Early infection signs",
   alertFullLabel: "Alert – Infection confirmed",
+
+  // Healing journey
+  healingJourney: "Healing Journey",
+  dayOfMonitoring: "Day {{day}} of monitoring",
+  healMessageYellow: "Great progress! Keep it up 💪",
+  healMessageGreen: "Stay careful – you're almost there",
+  healMessageBlue: "Focus on recovery – contact your doctor",
+
+  // Confetti / celebration
+  congratulations: "Congratulations!",
+  healedSubtitle:
+    "Your wound has fully healed. Great job taking care of yourself!",
+  viewHealedWounds: "View Healed Wounds",
+
+  // Daily reminder notification
+  dailyReminderTitle: "Good morning from Enzora 💙",
+  dailyReminderBody:
+    "Your device is monitoring your wound. Stay hydrated and rest well today.",
+
+  // Mood check-in
+  moodTitle: "How are you feeling today?",
+  moodGreat: "Great",
+  moodOkay: "Okay",
+  moodNotGreat: "Not great",
+  moodPain: "In pain",
+  moodResponseGreat: "That's wonderful! Keep it up 🌟",
+  moodResponseOkay: "Take it easy today. You're doing great.",
+  moodResponseNotGreat: "We're here for you. Rest well today 💙",
+  moodResponsePain:
+    "Please rest and contact your doctor if the pain is related to your wound.",
+
+  // Doctor report
+  doctorReport: "Generate Doctor Report 📋",
+  doctorReportTitle: "Wound Status Report",
+  reportSectionPatient: "Patient Information",
+  reportSectionWound: "Wound Details",
+  reportSectionSummary: "Monitoring Summary",
+  reportSectionReadings: "Reading History",
+  reportSectionAssessment: "Current Assessment",
+  reportSectionRecs: "Recommendations",
+
+  // Offline / online banners
+  offlineBanner: "You're offline – showing last saved data",
+  backOnlineBanner: "Back online – data updated ✓",
+
+  // SOS
+  sosLabel: "SOS",
+  noEmergencyContact:
+    "Please add an emergency contact in your profile first.",
+  goToProfile: "Go to Profile",
+
+  // Biometric login
+  biometricEnableTitle: "Enable Face ID / Fingerprint login?",
+  biometricEnableSubtitle:
+    "Sign in faster next time without typing your password.",
+  enable: "Enable",
+  maybeLater: "Maybe later",
+  usePasswordInstead: "Use password instead",
+  biometricPromptMessage: "Sign in to Enzora",
 };
 
 const ar: typeof en = {
@@ -205,6 +288,8 @@ const ar: typeof en = {
   optional: "اختياري",
   gotIt: "فهمت!",
   close: "إغلاق",
+  refresh: "تحديث",
+  share: "مشاركة",
 
   login: "تسجيل الدخول",
   signUp: "إنشاء حساب",
@@ -286,6 +371,9 @@ const ar: typeof en = {
   seeAll: "عرض الكل",
   noReadingsYet: "لا توجد قراءات بعد",
   waitingForDevice: "في انتظار جهازك لإرسال البيانات",
+  liveSensor: "مستشعر مباشر",
+  notConnected: "غير متصل",
+  careTips: "نصائح العناية لك ✨",
 
   myWounds: "جروحي",
   activeWounds: "جرح نشط",
@@ -325,14 +413,14 @@ const ar: typeof en = {
   noAlerts: "لا توجد تنبيهات بعد — جرحك تحت المراقبة",
 
   alertTitle: "جرحك يحتاج إلى عناية",
-  alertBody:
-    "اكتشف مستشعرنا عدوى محتملة. لا تقلق — إليك ما يجب فعله:",
+  alertBody: "اكتشف مستشعرنا عدوى محتملة. لا تقلق — إليك ما يجب فعله:",
   alertStep1: "لا تنزع الضمادة بنفسك",
   alertStep2: "تحقق إذا كانت المنطقة حمراء أو متورمة أو دافئة",
   alertStep3: "اتصل بطبيبك في أقرب وقت ممكن",
   alertStep4: "إذا شعرت بتوعك، اذهب إلى الطوارئ",
   callDoctor: "اتصل بطبيبي الآن",
   understand: "فهمت",
+  callEmergencyNow: "اتصل بجهة الطوارئ الآن 🚨",
 
   setupTitle: "كيفية إعداد جهازك",
   setupStep1Title: "شغّل الجهاز",
@@ -349,6 +437,9 @@ const ar: typeof en = {
   trouble2: "تأكد من عمل الواي فاي",
   trouble3: "ابقِ الجهاز ضمن نطاق الراوتر",
   trouble4: "اتصل بطبيبك إذا استمرت المشكلة",
+  callForHelp: "اتصل للمساعدة",
+  whatsappUs: "راسلنا على واتساب",
+  whatsappPrefill: "مرحباً، أحتاج مساعدة في إعداد جهاز إنزورا",
 
   editProfile: "تعديل الملف",
   settings: "الإعدادات",
@@ -359,10 +450,74 @@ const ar: typeof en = {
   logoutConfirm: "هل أنت متأكد من تسجيل الخروج؟",
   noProfile: "لا يوجد ملف طبي بعد",
   completeProfile: "أكمل ملفك",
+  dailyReminder: "تذكير يومي للعناية",
+  biometricLogin: "تسجيل الدخول بالبصمة أو الوجه",
+  monitoringFor: "أراقب من أجل",
+  addFamilyMember: "+ أضف فرداً من العائلة",
+  whoMonitoring: "من تراقب؟",
+  whoMonitoringPlaceholder: "مثلاً: والدتي، والدي...",
+  relationship: "صلة القرابة",
+  myself: "نفسي",
+  mother: "الأم",
+  father: "الأب",
+  spouse: "الزوج/الزوجة",
+  child: "الطفل",
+  theirConditions: "حالاتهم الطبية",
+  yourWellnessWeek: "صحتك هذا الأسبوع",
+  noMoodsYet: "لا توجد فحوصات مزاج بعد — يظهر أسبوعك هنا",
 
   normalLabel: "طبيعي – لا توجد علامات عدوى",
   cautionLabel: "تحذير – علامات عدوى مبكرة",
   alertFullLabel: "تنبيه – تم تأكيد العدوى",
+
+  healingJourney: "رحلة الشفاء",
+  dayOfMonitoring: "اليوم {{day}} من المراقبة",
+  healMessageYellow: "تقدم رائع! واصل العناية 💪",
+  healMessageGreen: "كن حذراً – أنت قريب من الشفاء",
+  healMessageBlue: "ركز على التعافي – اتصل بطبيبك",
+
+  congratulations: "مبروك!",
+  healedSubtitle:
+    "جرحك شُفي تماماً. أحسنت على اهتمامك بصحتك!",
+  viewHealedWounds: "عرض الجروح الشافية",
+
+  dailyReminderTitle: "صباح الخير من إنزورا 💙",
+  dailyReminderBody:
+    "جهازك يراقب جرحك. اشرب الماء واسترح جيداً اليوم.",
+
+  moodTitle: "كيف تشعر اليوم؟",
+  moodGreat: "رائع",
+  moodOkay: "جيد",
+  moodNotGreat: "لست بخير",
+  moodPain: "أتألم",
+  moodResponseGreat: "هذا رائع! واصل التقدم 🌟",
+  moodResponseOkay: "خذ راحتك اليوم. أنت بخير.",
+  moodResponseNotGreat: "نحن هنا لأجلك. استرح جيداً اليوم 💙",
+  moodResponsePain:
+    "يرجى الراحة والاتصال بطبيبك إذا كان الألم متعلقاً بجرحك.",
+
+  doctorReport: "إنشاء تقرير للطبيب 📋",
+  doctorReportTitle: "تقرير حالة الجرح",
+  reportSectionPatient: "بيانات المريض",
+  reportSectionWound: "تفاصيل الجرح",
+  reportSectionSummary: "ملخص المراقبة",
+  reportSectionReadings: "سجل القراءات",
+  reportSectionAssessment: "التقييم الحالي",
+  reportSectionRecs: "التوصيات",
+
+  offlineBanner: "أنت غير متصل – تعرض آخر بيانات محفوظة",
+  backOnlineBanner: "عدت للاتصال – تم تحديث البيانات ✓",
+
+  sosLabel: "SOS",
+  noEmergencyContact: "يرجى إضافة جهة اتصال للطوارئ في ملفك الشخصي أولاً.",
+  goToProfile: "انتقل إلى الملف الشخصي",
+
+  biometricEnableTitle: "تفعيل الدخول بالبصمة أو الوجه؟",
+  biometricEnableSubtitle: "سجل الدخول أسرع في المرة القادمة بدون كتابة كلمة المرور.",
+  enable: "تفعيل",
+  maybeLater: "ربما لاحقاً",
+  usePasswordInstead: "استخدم كلمة المرور بدلاً من ذلك",
+  biometricPromptMessage: "سجل الدخول إلى إنزورا",
 };
 
 const STORAGE_KEY = "enzora.lang";

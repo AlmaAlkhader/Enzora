@@ -1,17 +1,38 @@
 import { Feather } from "@expo/vector-icons";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { GradientHeader, PrimaryButton } from "@/components/Brand";
 import colors from "@/constants/colors";
+import { SUPPORT_PHONE } from "@/lib/support";
 
 const c = colors.light;
 
 export default function ConnectHelp() {
   const { t } = useTranslation();
   const router = useRouter();
+
+  const callSupport = async () => {
+    try {
+      await Linking.openURL(`tel:${SUPPORT_PHONE.replace(/[^+\d]/g, "")}`);
+    } catch (err) {
+      console.warn("[connect-help] tel failed", err);
+    }
+  };
+
+  const whatsappSupport = async () => {
+    const number = SUPPORT_PHONE.replace(/[^+\d]/g, "").replace(/^\+/, "");
+    const text = encodeURIComponent(t("whatsappPrefill"));
+    const url = `https://wa.me/${number}?text=${text}`;
+    try {
+      await Linking.openURL(url);
+    } catch (err) {
+      console.warn("[connect-help] whatsapp failed", err);
+    }
+  };
 
   const steps = [
     {
@@ -64,9 +85,29 @@ export default function ConnectHelp() {
           ))}
         </View>
 
+        <View style={{ gap: 10, marginTop: 4 }}>
+          <PrimaryButton
+            label={t("callForHelp")}
+            icon="phone"
+            onPress={() => void callSupport()}
+          />
+          <Pressable
+            onPress={() => void whatsappSupport()}
+            style={({ pressed }) => [
+              styles.whatsapp,
+              Platform.OS === "web" ? ({ cursor: "pointer" } as never) : null,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Feather name="message-circle" size={20} color="#fff" />
+            <Text style={styles.whatsappText}>{t("whatsappUs")}</Text>
+          </Pressable>
+        </View>
+
         <PrimaryButton
           label={t("gotIt")}
           icon="check"
+          variant="outline"
           onPress={() => router.back()}
         />
       </ScrollView>
@@ -129,5 +170,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: c.textPrimary,
     fontFamily: "Inter_400Regular",
+  },
+  whatsapp: {
+    height: 52,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: "#25D366",
+  },
+  whatsappText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
   },
 });

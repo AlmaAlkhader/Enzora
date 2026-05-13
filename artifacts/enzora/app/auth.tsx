@@ -1,7 +1,10 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Dimensions,
   Pressable,
   StyleSheet,
@@ -21,6 +24,10 @@ import {
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import colors, { gradient } from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
+import {
+  authenticateWithBiometrics,
+  isBiometricAvailable,
+} from "@/lib/biometric";
 
 const c = colors.light;
 const { height } = Dimensions.get("window");
@@ -28,7 +35,7 @@ const { height } = Dimensions.get("window");
 export default function AuthScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { signUp, signIn, emailExists } = useApp();
+  const { signUp, signIn, emailExists, setBiometricEnabled } = useApp();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"signup" | "login">("signup");
   const [name, setName] = useState("");
@@ -37,6 +44,34 @@ export default function AuthScreen() {
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [bioPromptEmail, setBioPromptEmail] = useState<string | null>(null);
+  const [savedBioEmail, setSavedBioEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const last = await AsyncStorage.getItem("enzora.lastBiometricEmail");
+        if (!last) return;
+        const flag = await AsyncStorage.getItem(
+          `enzora.biometric.${last.toLowerCase()}`,
+        );
+        if (flag !== "1") return;
+        const ok = await isBiometricAvailable();
+        if (!ok) return;
+        setSavedBioEmail(last);
+        const success = await authenticateWithBiometrics(t("biometricPromptMessage"));
+        if (success) {
+          // Treat biometric success as a soft sign-in: pre-fill email so they
+          // only need to type their password (we don't store passwords).
+          setEmail(last);
+          setTab("login");
+        }
+      } catch (err) {
+        console.warn("[auth] biometric check failed", err);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -65,6 +100,20 @@ export default function AuthScreen() {
           return;
         }
         await signIn(email.trim(), password);
+        await AsyncStorage.setItem(
+          "enzora.lastBiometricEmail",
+          email.trim().toLowerCase(),
+        );
+        // Offer biometric enrollment after successful login if available and
+        // not yet enabled for this account.
+        const bioOk = await isBiometricAvailable();
+        const flag = await AsyncStorage.getItem(
+          `enzora.biometric.${email.trim().toLowerCase()}`,
+        );
+        if (bioOk && flag !== "1") {
+          setBioPromptEmail(email.trim());
+          return;
+        }
         router.replace("/");
       }
     } catch (err) {
@@ -208,7 +257,60 @@ export default function AuthScreen() {
               onPress={handleSubmit}
               loading={submitting}
             />
+            {tab === "login" && savedBioEmail && (
+              <Pressable
+                onPress={async () => {
+                  const ok = await authenticateWithBiometrics(
+                    t("biometricPromptMessage"),
+                  );
+                  if (ok) setEmail(savedBioEmail);
+                }}
+                hitSlop={10}
+                style={styles.bioBtn}
+              >
+                <Feather name="shield" size={18} color={c.primary} />
+                <Text style={styles.bioText}>{t("biometricLogin")}</Text>
+              </Pressable>
+            )}
           </View>
+
+          {bioPromptEmail && (
+            <View style={styles.bioPromptCard}>
+              <Text style={styles.bioPromptTitle}>
+                {t("biometricEnableTitle")}
+              </Text>
+              <Text style={styles.bioPromptSub}>
+                {t("biometricEnableSubtitle")}
+              </Text>
+              <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
+                <PrimaryButton
+                  label={t("maybeLater")}
+                  variant="outline"
+                  onPress={() => {
+                    setBioPromptEmail(null);
+                    router.replace("/");
+                  }}
+                  style={{ flex: 1 }}
+                />
+                <PrimaryButton
+                  label={t("enable")}
+                  onPress={async () => {
+                    const ok = await authenticateWithBiometrics(
+                      t("biometricPromptMessage"),
+                    );
+                    if (ok) {
+                      await setBiometricEnabled(true);
+                    } else {
+                      Alert.alert("", t("usePasswordInstead"));
+                    }
+                    setBioPromptEmail(null);
+                    router.replace("/");
+                  }}
+                  style={{ flex: 1 }}
+                />
+              </View>
+            </View>
+          )}
         </KeyboardAwareScrollViewCompat>
       </View>
     </View>
@@ -286,5 +388,42 @@ const styles = StyleSheet.create({
     color: c.alert,
     fontSize: 14,
     fontFamily: "Inter_500Medium",
+  },
+  bioBtn: {
+    marginTop: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "rgba(110,117,191,0.10)",
+  },
+  bioText: {
+    color: c.primary,
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+  },
+  bioPromptCard: {
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 14,
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  bioPromptTitle: {
+    fontSize: 16,
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+  bioPromptSub: {
+    fontSize: 13,
+    color: c.textSecondary,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
+    lineHeight: 19,
   },
 });

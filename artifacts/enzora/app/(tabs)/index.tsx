@@ -17,6 +17,12 @@ import {
   PrimaryButton,
   StatusCard,
 } from "@/components/Brand";
+import {
+  LiveColorCircle,
+  PatientPill,
+  SOSButton,
+  TipsCarousel,
+} from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp, type Reading } from "@/contexts/AppContext";
 
@@ -25,9 +31,19 @@ const c = colors.light;
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { profile, sensor, activeWound, wounds, readings } = useApp();
+  const {
+    profile,
+    sensor,
+    activeWound,
+    wounds,
+    readings,
+    patients,
+    activePatientId,
+    setActivePatient,
+  } = useApp();
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
+  const [patientPickerOpen, setPatientPickerOpen] = useState(false);
 
   useEffect(() => {
     if (
@@ -48,6 +64,7 @@ export default function HomeScreen() {
     ? new Date(activeWound.dateAdded).toLocaleDateString()
     : "—";
   const lastReading = readings[0];
+  const activePatient = patients.find((p) => p.id === activePatientId) ?? null;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -55,11 +72,19 @@ export default function HomeScreen() {
         layout="split"
         logoSize="lg"
         title={`${t("hello")}, ${firstName || ""}`.trim()}
+        right={<SOSButton />}
       />
       <ScrollView
         contentContainerStyle={{ padding: 18, paddingBottom: 40, gap: 16 }}
         showsVerticalScrollIndicator={false}
       >
+        {patients.length > 0 && (
+          <PatientPill
+            patient={activePatient}
+            onPress={() => setPatientPickerOpen(true)}
+          />
+        )}
+
         {sensor.connected ? (
           <View style={styles.devicePill}>
             <View style={[styles.dot, { backgroundColor: "#22C55E" }]} />
@@ -79,6 +104,14 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
         )}
+
+        <LiveColorCircle
+          red={sensor.red}
+          green={sensor.green}
+          blue={sensor.blue}
+          status={sensor.status}
+          connected={sensor.connected}
+        />
 
         {!sensor.connected ? (
           <Card style={{ alignItems: "center", padding: 24, gap: 12 }}>
@@ -144,6 +177,8 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {activeWound && <TipsCarousel />}
+
         {readings.length > 0 && (
           <View style={{ gap: 10 }}>
             <View style={styles.sectionHeader}>
@@ -164,6 +199,15 @@ export default function HomeScreen() {
         onClose={() => {
           setLastDismissed(sensor.lastUpdated);
           setAlertOpen(false);
+        }}
+      />
+
+      <PatientPicker
+        visible={patientPickerOpen}
+        onClose={() => setPatientPickerOpen(false)}
+        onSelect={async (id) => {
+          await setActivePatient(id);
+          setPatientPickerOpen(false);
         }}
       />
     </View>
@@ -215,6 +259,91 @@ export function ReadingRow({ reading }: { reading: Reading }) {
   );
 }
 
+function PatientPicker({
+  visible,
+  onClose,
+  onSelect,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSelect: (id: string | null) => Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const { patients, activePatientId } = useApp();
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={pickerStyles.bg} onPress={onClose}>
+        <Pressable style={pickerStyles.card} onPress={() => undefined}>
+          <Text style={pickerStyles.title}>{t("monitoringFor")}</Text>
+          <Pressable
+            onPress={() => void onSelect(null)}
+            style={[
+              pickerStyles.row,
+              activePatientId === null && pickerStyles.rowActive,
+            ]}
+          >
+            <Feather name="user" size={18} color={c.primary} />
+            <Text style={pickerStyles.rowText}>{t("myself")}</Text>
+            {activePatientId === null && (
+              <Feather name="check" size={16} color={c.primary} />
+            )}
+          </Pressable>
+          {patients.map((p) => (
+            <Pressable
+              key={p.id}
+              onPress={() => void onSelect(p.id)}
+              style={[
+                pickerStyles.row,
+                activePatientId === p.id && pickerStyles.rowActive,
+              ]}
+            >
+              <Feather name="users" size={18} color={c.primary} />
+              <Text style={pickerStyles.rowText}>
+                {p.name}
+              </Text>
+              {activePatientId === p.id && (
+                <Feather name="check" size={16} color={c.primary} />
+              )}
+            </Pressable>
+          ))}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const pickerStyles = StyleSheet.create({
+  bg: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 24,
+  },
+  card: { backgroundColor: c.card, borderRadius: 22, padding: 18, gap: 6 },
+  title: {
+    fontSize: 16,
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  rowActive: { backgroundColor: "rgba(110,117,191,0.10)" },
+  rowText: {
+    flex: 1,
+    fontSize: 15,
+    color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+  },
+});
+
 function InfectionModal({
   visible,
   onClose,
@@ -223,6 +352,21 @@ function InfectionModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const { profile } = useApp();
+  const callEmergency = async () => {
+    const phone = profile?.medicalProfile?.emergencyPhone?.trim();
+    if (!phone) {
+      onClose();
+      return;
+    }
+    try {
+      const Linking = await import("expo-linking");
+      await Linking.openURL(`tel:${phone.replace(/[^+\d]/g, "")}`);
+    } catch (err) {
+      console.warn("[alert] tel failed", err);
+    }
+    onClose();
+  };
   const steps = [
     { icon: "shield" as const, text: t("alertStep1") },
     { icon: "eye" as const, text: t("alertStep2") },
@@ -250,9 +394,9 @@ function InfectionModal({
           </View>
           <View style={{ gap: 10, marginTop: 12 }}>
             <PrimaryButton
-              label={t("callDoctor")}
+              label={t("callEmergencyNow")}
               icon="phone"
-              onPress={onClose}
+              onPress={() => void callEmergency()}
             />
             <PrimaryButton
               label={t("understand")}
