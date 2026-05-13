@@ -20,7 +20,6 @@ import {
   StatusCard,
   TextField,
 } from "@/components/Brand";
-import { AIAssessment, AITrend } from "@/components/AI";
 import {
   ConfettiOverlay,
   DoctorReportModal,
@@ -183,15 +182,6 @@ export default function WoundDetail() {
             {t("monitoringSince")}: {startedOn}
           </Text>
         </View>
-
-        {/* AI insights — only when this wound is the active one, since the
-            sensor + readings in context belong to the active wound. */}
-        {wound.status === "active" && isActive ? (
-          <>
-            <AIAssessment woundId={wound.id} />
-            <AITrend woundId={wound.id} />
-          </>
-        ) : null}
 
         {/* Actions */}
         <View style={{ gap: 10, marginTop: 4 }}>

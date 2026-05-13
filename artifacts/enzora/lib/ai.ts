@@ -43,100 +43,12 @@ export async function callClaude(
   return null;
 }
 
-// ============ Cache helpers (AsyncStorage) ============
-const ASSESS_PREFIX = "enzora_ai_assess_";
-const TREND_PREFIX = "enzora_ai_trend_";
+// ============ Chat history (AsyncStorage) ============
 const CHAT_PREFIX = "enzora_ai_chat_";
 
-export type CachedAssessment = {
-  text: string;
-  status: "yellow" | "green" | "blue";
-  language: string;
-  generatedAt: number;
-};
-
-export async function readAssessmentCache(
-  woundId: string,
-): Promise<CachedAssessment | null> {
-  try {
-    const raw = await AsyncStorage.getItem(ASSESS_PREFIX + woundId);
-    return raw ? (JSON.parse(raw) as CachedAssessment) : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function writeAssessmentCache(
-  woundId: string,
-  data: CachedAssessment,
-): Promise<void> {
-  try {
-    await AsyncStorage.setItem(ASSESS_PREFIX + woundId, JSON.stringify(data));
-  } catch {
-    /* ignore */
-  }
-}
-
-export async function clearAssessmentCache(woundId: string): Promise<void> {
-  try {
-    await AsyncStorage.removeItem(ASSESS_PREFIX + woundId);
-  } catch {
-    /* ignore */
-  }
-}
-
-export async function clearTrendCache(woundId: string): Promise<void> {
-  try {
-    await AsyncStorage.removeItem(TREND_PREFIX + woundId);
-  } catch {
-    /* ignore */
-  }
-}
-
-// One-time wipe of every cached AI result (assessments + trends), used on
-// app startup to recover from any stale entries left over from API outages.
-export async function clearAllAICaches(): Promise<void> {
-  try {
-    const keys = await AsyncStorage.getAllKeys();
-    const stale = keys.filter(
-      (k) => k.startsWith(ASSESS_PREFIX) || k.startsWith(TREND_PREFIX),
-    );
-    if (stale.length) await AsyncStorage.multiRemove(stale);
-  } catch {
-    /* ignore */
-  }
-}
-
-export type CachedTrend = {
-  trend: "improving" | "stable" | "worsening";
-  explanation: string;
-  recommendation: string;
-  language: string;
-  readingsCount: number;
-  generatedAt: number;
-};
-
-export async function readTrendCache(
-  woundId: string,
-): Promise<CachedTrend | null> {
-  try {
-    const raw = await AsyncStorage.getItem(TREND_PREFIX + woundId);
-    return raw ? (JSON.parse(raw) as CachedTrend) : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function writeTrendCache(
-  woundId: string,
-  data: CachedTrend,
-): Promise<void> {
-  try {
-    await AsyncStorage.setItem(TREND_PREFIX + woundId, JSON.stringify(data));
-  } catch {
-    /* ignore */
-  }
-}
+// Legacy cache prefixes from the removed AI Assessment / AI Prediction cards.
+// Kept here so the one-time wipe in _layout can still purge them on upgrade.
+const LEGACY_PREFIXES = ["enzora_ai_assess_", "enzora_ai_trend_"];
 
 export async function readChatHistory(
   email: string,
@@ -160,6 +72,28 @@ export async function writeChatHistory(
       CHAT_PREFIX + email.toLowerCase(),
       JSON.stringify(history.slice(-30)),
     );
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function clearChatHistory(email: string): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(CHAT_PREFIX + email.toLowerCase());
+  } catch {
+    /* ignore */
+  }
+}
+
+// One-time cleanup of any leftover assessment/trend cache entries from the
+// previous AI cards feature. Called once per install on app launch.
+export async function clearLegacyAICaches(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const stale = keys.filter((k) =>
+      LEGACY_PREFIXES.some((p) => k.startsWith(p)),
+    );
+    if (stale.length) await AsyncStorage.multiRemove(stale);
   } catch {
     /* ignore */
   }

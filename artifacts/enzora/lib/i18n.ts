@@ -280,24 +280,15 @@ const en = {
   onboardColorBlue: "Blue = Call your doctor",
   onboardColorBlueDesc: "Possible infection — contact your doctor.",
 
-  // AI features
-  aiAssessmentTitle: "AI Assessment",
-  aiAnalyzing: "Analyzing your wound",
-  aiUnavailable: "Assessment unavailable. Please try again later.",
+  // AI chat
   retry: "Retry",
-  aiDisclaimer:
-    "AI insights are for guidance only and do not replace medical advice.",
-  aiPredictionTitle: "AI Prediction",
-  aiAnalyzingHistory: "Analyzing your wound history",
-  aiNotEnoughReadings:
-    "Not enough readings yet for a prediction. Keep monitoring!",
-  aiPredict: "Generate prediction",
-  aiLastUpdated: "Last updated",
-  trendImproving: "Getting Better 📈",
-  trendStable: "Staying Stable ➡️",
-  trendWorsening: "Needs Attention 📉",
-  askEnzoraAI: "Ask Enzora AI",
-  chatIntro: "Hi! Ask me anything about your wound or healing.",
+  aiUnavailable:
+    "I couldn't reach the AI right now. Please try again in a moment.",
+  askAI: "Ask AI",
+  askAITitle: "Ask AI",
+  askAIEmpty: "Ask me anything about your wound",
+  askAIDisclaimer:
+    "AI responses are for guidance only. Always consult your doctor for medical decisions.",
   typeMessage: "Type your question…",
   chatChip1: "Is my wound getting better?",
   chatChip2: "What does green color mean?",
@@ -614,23 +605,15 @@ const ar: typeof en = {
   onboardColorBlue: "أزرق = اتصل بطبيبك",
   onboardColorBlueDesc: "عدوى محتملة — تواصل مع طبيبك.",
 
-  // AI features
-  aiAssessmentTitle: "تقييم الذكاء الاصطناعي",
-  aiAnalyzing: "نحلّل جرحك",
-  aiUnavailable: "التقييم غير متاح. يرجى المحاولة لاحقاً.",
+  // AI chat
   retry: "إعادة المحاولة",
-  aiDisclaimer:
-    "نصائح الذكاء الاصطناعي للإرشاد فقط ولا تحل محل استشارة الطبيب.",
-  aiPredictionTitle: "توقع الذكاء الاصطناعي",
-  aiAnalyzingHistory: "نحلّل سجل جرحك",
-  aiNotEnoughReadings: "لا توجد قراءات كافية بعد للتوقع. تابع المتابعة!",
-  aiPredict: "إنشاء توقع",
-  aiLastUpdated: "آخر تحديث",
-  trendImproving: "يتحسن 📈",
-  trendStable: "مستقر ➡️",
-  trendWorsening: "يحتاج إلى متابعة 📉",
-  askEnzoraAI: "اسأل إنزورا الذكي",
-  chatIntro: "مرحباً! اسألني أي شيء عن جرحك أو شفائك.",
+  aiUnavailable:
+    "تعذر الوصول إلى الذكاء الاصطناعي الآن. يرجى المحاولة بعد قليل.",
+  askAI: "اسأل",
+  askAITitle: "اسأل الذكاء الاصطناعي",
+  askAIEmpty: "اسألني أي شيء عن جرحك",
+  askAIDisclaimer:
+    "ردود الذكاء الاصطناعي للإرشاد فقط. استشر طبيبك دائماً للقرارات الطبية.",
   typeMessage: "اكتب سؤالك…",
   chatChip1: "هل جرحي يتحسن؟",
   chatChip2: "ماذا يعني اللون الأخضر؟",

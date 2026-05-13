@@ -16,7 +16,6 @@ import {
   PrimaryButton,
   StatusCard,
 } from "@/components/Brand";
-import { AIAssessment, AIChatButton } from "@/components/AI";
 import { ColorAlertBanner, ColorMeaningCard } from "@/components/ColorGuide";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
@@ -142,9 +141,6 @@ export default function HomeScreen() {
         {/* 3b. Collapsed color meaning card */}
         <ColorMeaningCard />
 
-        {/* 3c. AI assessment — appears below hero when there's an active wound */}
-        {activeWound ? <AIAssessment woundId={activeWound.id} /> : null}
-
         {/* 4. One quick action */}
         <View style={{ marginTop: 8 }}>
           <PrimaryButton
@@ -170,9 +166,6 @@ export default function HomeScreen() {
           setAlertOpen(false);
         }}
       />
-
-      {/* Floating AI chat button — sits above the bottom tab bar */}
-      <AIChatButton />
     </View>
   );
 }

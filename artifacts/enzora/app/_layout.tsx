@@ -18,7 +18,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MoodModal, OfflineBanner } from "@/components/Wellness";
 import { AppProvider, useApp } from "@/contexts/AppContext";
-import { clearAllAICaches } from "@/lib/ai";
+import { clearLegacyAICaches } from "@/lib/ai";
 import "@/lib/i18n";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -100,7 +100,7 @@ export default function RootLayout() {
       try {
         const done = await AsyncStorage.getItem(AI_CACHE_WIPE_FLAG);
         if (done) return;
-        await clearAllAICaches();
+        await clearLegacyAICaches();
         await AsyncStorage.setItem(AI_CACHE_WIPE_FLAG, "1");
       } catch {
         /* ignore */
