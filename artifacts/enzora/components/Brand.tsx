@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   headerTitle: {
-    color: c.textWhite,
+    color: "#f7f8fa",
     fontSize: 22,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
