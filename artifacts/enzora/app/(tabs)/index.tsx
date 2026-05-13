@@ -1,7 +1,9 @@
 import { Feather } from "@expo/vector-icons";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  I18nManager,
   Modal,
   Pressable,
   ScrollView,
@@ -25,6 +27,12 @@ import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
+
+// Urgent red used only for the infected hero card. Intentionally NOT added to
+// the global palette so the rest of the app stays calm/medical-pastel.
+const URGENT_RED = "#EF233C";
+const URGENT_RED_BG = "#FFE5E8";
+const URGENT_RED_BORDER = "#F4B5BD";
 
 function relativeMinutes(ts: number, t: (k: string) => string): string {
   const diff = Math.max(0, Date.now() - ts);
@@ -140,9 +148,19 @@ export default function HomeScreen() {
           />
         ) : null}
 
-        {/* HERO — main status */}
+        {/* HERO — main status. Blue/infected gets a dedicated urgent card so
+            the patient instantly understands they need to act. */}
         {showPending && statusLock ? (
           <PendingConfirmationCard status={statusLock.status} />
+        ) : hasActiveSensor && sensor.status === "blue" ? (
+          <UrgentInfectionCard
+            lastCheckLabel={`${t("lastCheck")}: ${lastCheckText}`}
+            onViewDetails={
+              activeWound
+                ? () => router.push(`/wound/${activeWound.id}`)
+                : undefined
+            }
+          />
         ) : hasActiveSensor ? (
           <StatusCard
             status={sensor.status as "yellow" | "green" | "blue"}
@@ -170,75 +188,88 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Three supporting facts — large, calm, single row */}
-        <View style={styles.statRow}>
-          <FactTile
-            icon="calendar"
-            tone="violet"
-            value={daysMonitored > 0 ? `${daysMonitored}` : "—"}
-            label={t("daysMonitored")}
-          />
-          <FactTile
-            icon="clock"
-            tone="primary"
-            value={
-              hasActiveSensor && sensor.lastUpdated ? lastCheckText : "—"
-            }
-            label={t("lastCheck")}
-          />
-          <FactTile
-            icon="bell"
-            tone={newAlerts > 0 ? "yellow" : "neutral"}
-            value={`${newAlerts}`}
-            label={t("newAlerts")}
-          />
-        </View>
-
-        {/* Care tip — single calm card */}
-        <Card style={styles.tipCard}>
-          <View style={styles.tipHeader}>
-            <IconChip icon="sun" tone="yellow" size={36} />
-            <Text style={styles.tipKicker}>{t("careTipsToday")}</Text>
+        {/* Three supporting facts — calm row. Hidden when infected so the
+            urgent card and its actions dominate the screen. */}
+        {sensor.status !== "blue" ? (
+          <View style={styles.statRow}>
+            <FactTile
+              icon="calendar"
+              tone="violet"
+              value={daysMonitored > 0 ? `${daysMonitored}` : "—"}
+              label={t("daysMonitored")}
+            />
+            <FactTile
+              icon="clock"
+              tone="primary"
+              value={
+                hasActiveSensor && sensor.lastUpdated ? lastCheckText : "—"
+              }
+              label={t("lastCheck")}
+            />
+            <FactTile
+              icon="bell"
+              tone={newAlerts > 0 ? "yellow" : "neutral"}
+              value={`${newAlerts}`}
+              label={t("newAlerts")}
+            />
           </View>
-          <Text style={styles.tipBody}>{t("careTip1")}</Text>
-        </Card>
+        ) : null}
+
+        {/* Care tip — hidden when infected (secondary, can wait). */}
+        {sensor.status !== "blue" ? (
+          <Card style={styles.tipCard}>
+            <View style={styles.tipHeader}>
+              <IconChip icon="sun" tone="yellow" size={36} />
+              <Text style={styles.tipKicker}>{t("careTipsToday")}</Text>
+            </View>
+            <Text style={styles.tipBody}>{t("careTip1")}</Text>
+          </Card>
+        ) : null}
 
         {/* Primary action */}
         <PrimaryButton
           label={t("viewMyWounds")}
           icon="heart"
           onPress={() => router.push("/(tabs)/wounds")}
+          variant={sensor.status === "blue" ? "outline" : "gradient"}
         />
 
-        {/* Secondary — color guide accordion-style row */}
-        <Pressable
-          onPress={() => router.push("/color-guide")}
-          style={({ pressed }) => [
-            styles.colorRow,
-            { opacity: pressed ? 0.85 : 1 },
-          ]}
-        >
-          <View style={styles.colorDots}>
-            <View style={[styles.colorDot, { backgroundColor: c.normal }]} />
-            <View
-              style={[
-                styles.colorDot,
-                { backgroundColor: c.warning, marginLeft: -8 },
-              ]}
+        {/* Secondary — color guide accordion-style row. Hidden when infected
+            so the screen stays focused on the urgent action. */}
+        {sensor.status !== "blue" ? (
+          <Pressable
+            onPress={() => router.push("/color-guide")}
+            style={({ pressed }) => [
+              styles.colorRow,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <View style={styles.colorDots}>
+              <View style={[styles.colorDot, { backgroundColor: c.normal }]} />
+              <View
+                style={[
+                  styles.colorDot,
+                  { backgroundColor: c.warning, marginLeft: -8 },
+                ]}
+              />
+              <View
+                style={[
+                  styles.colorDot,
+                  { backgroundColor: c.alert, marginLeft: -8 },
+                ]}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.colorRowTitle}>{t("colorMeaningTitle")}</Text>
+              <Text style={styles.colorRowSub}>{t("colorGuide")}</Text>
+            </View>
+            <Feather
+              name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
+              size={22}
+              color={c.textSecondary}
             />
-            <View
-              style={[
-                styles.colorDot,
-                { backgroundColor: c.alert, marginLeft: -8 },
-              ]}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.colorRowTitle}>{t("colorMeaningTitle")}</Text>
-            <Text style={styles.colorRowSub}>{t("colorGuide")}</Text>
-          </View>
-          <Feather name="chevron-right" size={22} color={c.textSecondary} />
-        </Pressable>
+          </Pressable>
+        ) : null}
 
         {lastReading ? (
           <Text style={styles.lastReadingFoot}>
@@ -261,6 +292,220 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+// =============== Urgent Infection Hero =================
+// Rendered only when sensor.status === "blue". Visually distinct from the
+// calm StatusCard so the patient cannot miss that they need to act today.
+function UrgentInfectionCard({
+  lastCheckLabel,
+  onViewDetails,
+}: {
+  lastCheckLabel?: string;
+  onViewDetails?: () => void;
+}) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const { profile } = useApp();
+  const doctorPhone = profile?.medicalProfile?.doctorPhone?.trim();
+  const emergencyPhone = profile?.medicalProfile?.emergencyPhone?.trim();
+
+  const dial = useCallback(async (raw: string) => {
+    const phone = raw.replace(/[^+\d]/g, "");
+    if (!phone) return;
+    try {
+      await Linking.openURL(`tel:${phone}`);
+    } catch (err) {
+      console.warn("[home] tel failed", err);
+    }
+  }, []);
+
+  return (
+    <View style={[urgentStyles.card, softShadow]}>
+      <View style={urgentStyles.accent} />
+      <View style={urgentStyles.iconWrap}>
+        <Feather name="alert-octagon" size={34} color={URGENT_RED} />
+      </View>
+      <Text style={urgentStyles.title}>{t("infectionDetected")}</Text>
+      <Text style={urgentStyles.body}>{t("infectionUrgentBody")}</Text>
+      {lastCheckLabel ? (
+        <View style={urgentStyles.metaRow}>
+          <Feather name="clock" size={14} color={URGENT_RED} />
+          <Text style={urgentStyles.meta}>{lastCheckLabel}</Text>
+        </View>
+      ) : null}
+
+      {/* Primary urgent action */}
+      <Pressable
+        onPress={() =>
+          doctorPhone ? void dial(doctorPhone) : router.push("/medical-profile")
+        }
+        accessibilityRole="button"
+        accessibilityLabel={
+          doctorPhone ? t("callDoctorNow") : t("addDoctorContact")
+        }
+        style={({ pressed }) => [
+          urgentStyles.primaryBtn,
+          { opacity: pressed ? 0.85 : 1 },
+        ]}
+      >
+        <Feather
+          name={doctorPhone ? "phone-call" : "user-plus"}
+          size={20}
+          color="#FFFFFF"
+        />
+        <Text style={urgentStyles.primaryBtnText}>
+          {doctorPhone ? t("callDoctorNow") : t("addDoctorContact")}
+        </Text>
+      </Pressable>
+
+      {/* Secondary — view details */}
+      {onViewDetails ? (
+        <Pressable
+          onPress={onViewDetails}
+          accessibilityRole="button"
+          accessibilityLabel={t("viewDetails")}
+          style={({ pressed }) => [
+            urgentStyles.secondaryBtn,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <Text style={urgentStyles.secondaryBtnText}>{t("viewDetails")}</Text>
+          <Feather
+            name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
+            size={18}
+            color={URGENT_RED}
+          />
+        </Pressable>
+      ) : null}
+
+      {/* Emergency contact (only if present) */}
+      {emergencyPhone ? (
+        <Pressable
+          onPress={() => void dial(emergencyPhone)}
+          accessibilityRole="button"
+          accessibilityLabel={t("callEmergencyContactBtn")}
+          style={({ pressed }) => [
+            urgentStyles.tertiaryBtn,
+            { opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <Feather name="phone" size={16} color={c.textSecondary} />
+          <Text style={urgentStyles.tertiaryBtnText}>
+            {t("callEmergencyContactBtn")}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+const urgentStyles = StyleSheet.create({
+  card: {
+    backgroundColor: URGENT_RED_BG,
+    borderRadius: 28,
+    borderWidth: 2,
+    borderColor: URGENT_RED_BORDER,
+    padding: 24,
+    gap: 12,
+    overflow: "hidden",
+  },
+  accent: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+    backgroundColor: URGENT_RED,
+  },
+  iconWrap: {
+    alignSelf: "flex-start",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  title: {
+    fontSize: 26,
+    color: URGENT_RED,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.4,
+    lineHeight: 30,
+  },
+  body: {
+    fontSize: 16,
+    color: c.textPrimary,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 23,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 2,
+  },
+  meta: {
+    fontSize: 13,
+    color: URGENT_RED,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+  },
+  primaryBtn: {
+    marginTop: 6,
+    backgroundColor: URGENT_RED,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    minHeight: 56,
+  },
+  primaryBtnText: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
+  secondaryBtn: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: URGENT_RED_BORDER,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    minHeight: 50,
+  },
+  secondaryBtnText: {
+    color: URGENT_RED,
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+  tertiaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 10,
+  },
+  tertiaryBtnText: {
+    color: c.textSecondary,
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
+});
 
 function FactTile({
   icon,

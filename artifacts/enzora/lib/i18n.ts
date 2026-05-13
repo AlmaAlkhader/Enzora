@@ -104,12 +104,17 @@ const en = {
   woundNormal: "Wound is Normal",
   woundNormalSub:
     "Your wound shows no signs of infection. Keep it clean and dry.",
-  earlySigns: "Early Signs Detected",
+  earlySigns: "Watch Closely",
   earlySignsSub:
-    "Early signs of possible infection. Monitor closely and contact your doctor soon.",
+    "The sensor noticed a small change. Keep an eye on your wound and contact your doctor if you are worried.",
   infectionDetected: "Infection Detected",
   infectionDetectedSub:
     "Infection confirmed. Contact your doctor immediately.",
+  infectionUrgentBody:
+    "Please call your doctor today. If you feel unwell, go to the hospital.",
+  callDoctorNow: "Call Doctor Now",
+  addDoctorContact: "Add Doctor Contact",
+  callEmergencyContactBtn: "Call Emergency Contact",
   lastReading: "Last Reading",
   todaysChecks: "Today's Checks",
   monitoringSince: "Monitoring Since",
@@ -485,11 +490,16 @@ const ar: typeof en = {
   woundNormal: "الجرح طبيعي",
   woundNormalSub:
     "جرحك لا يظهر أي علامات عدوى. حافظ على نظافته وجفافه.",
-  earlySigns: "تم اكتشاف علامات مبكرة",
+  earlySigns: "راقب عن كثب",
   earlySignsSub:
-    "علامات مبكرة لعدوى محتملة. راقب عن كثب واتصل بطبيبك قريباً.",
+    "لاحظ المستشعر تغيراً بسيطاً. تابع جرحك واتصل بطبيبك إذا كنت قلقاً.",
   infectionDetected: "تم اكتشاف عدوى",
   infectionDetectedSub: "تم تأكيد وجود عدوى. اتصل بطبيبك فوراً.",
+  infectionUrgentBody:
+    "يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.",
+  callDoctorNow: "اتصل بالطبيب الآن",
+  addDoctorContact: "أضف رقم الطبيب",
+  callEmergencyContactBtn: "اتصل بجهة الطوارئ",
   lastReading: "آخر قراءة",
   todaysChecks: "فحوصات اليوم",
   monitoringSince: "المراقبة منذ",
