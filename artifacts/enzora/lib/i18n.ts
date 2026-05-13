@@ -1,0 +1,388 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+
+const en = {
+  // Common
+  appName: "Enzora",
+  continue: "Continue",
+  getStarted: "Get Started",
+  cancel: "Cancel",
+  save: "Save",
+  skip: "Skip for now",
+  loading: "Loading...",
+  somethingWrong: "Something went wrong",
+  tryAgain: "Try Again",
+  optional: "Optional",
+  gotIt: "Got it!",
+  close: "Close",
+
+  // Auth
+  login: "Login",
+  signUp: "Sign Up",
+  email: "Email Address",
+  password: "Password",
+  confirmPassword: "Confirm Password",
+  fullName: "Full Name",
+  yourFullName: "Your full name",
+  emailPlaceholder: "your@email.com",
+  passwordPlaceholder: "Min. 8 characters",
+  repeatPassword: "Repeat password",
+  forgotPassword: "Forgot Password?",
+  createAccount: "Create Account",
+  signIn: "Sign In",
+  unknownEmail:
+    "We don't recognise this email. You need to create an account first. Tap Sign Up above!",
+  invalidEmail: "Please enter a valid email address",
+  passwordTooShort: "Password must be at least 8 characters",
+  passwordsDontMatch: "Passwords don't match",
+  required: "This field is required",
+  authError: "Wrong password. Please try again.",
+
+  // Onboarding
+  onboard1Title: "Monitor Your Wound Smartly",
+  onboard1Sub:
+    "Enzora's smart patch detects infection before it becomes a problem",
+  onboard2Title: "Real-Time Color Detection",
+  onboard2Sub:
+    "Our sensor reads your bandage color and analyzes it instantly",
+  onboard3Title: "Get Alerts Before It's Too Late",
+  onboard3Sub:
+    "You and your doctor get notified the moment something changes",
+
+  // Medical profile
+  medicalProfile: "Medical Profile",
+  age: "Age",
+  agePlaceholder: "Your age",
+  gender: "Gender",
+  male: "Male",
+  female: "Female",
+  other: "Other",
+  preferNotToSay: "Prefer not to say",
+  conditions: "Do you have any medical conditions?",
+  conditionsPlaceholder: "e.g. Diabetes Type 2, Post-Surgery...",
+  doctor: "Doctor",
+  doctorName: "Doctor's name",
+  doctorPhone: "Doctor's phone",
+  emergencyContact: "Emergency Contact",
+  emergencyName: "Contact name",
+  emergencyPhone: "Contact phone",
+  saveProfile: "Save Profile",
+
+  // Tabs
+  home: "Home",
+  wounds: "Wounds",
+  history: "History",
+  alerts: "Alerts",
+  profile: "Profile",
+
+  // Home
+  hello: "Hello",
+  deviceConnected: "Device Connected",
+  deviceNotConnected: "Device Not Connected",
+  monitoring: "Monitoring",
+  tapToConnect: "Tap to connect",
+  deviceOfflineTitle: "Your Enzora device is not connected yet.",
+  deviceOfflineSub:
+    "Make sure the device is on and connected to WiFi.",
+  howToConnect: "How to Connect?",
+  woundNormal: "Wound is Normal",
+  woundNormalSub:
+    "Your wound shows no signs of infection. Keep it clean and dry.",
+  earlySigns: "Early Signs Detected",
+  earlySignsSub:
+    "Early signs of possible infection. Monitor closely and contact your doctor soon.",
+  infectionDetected: "Infection Detected",
+  infectionDetectedSub:
+    "Infection confirmed. Contact your doctor immediately.",
+  lastReading: "Last Reading",
+  todaysChecks: "Today's Checks",
+  monitoringSince: "Monitoring Since",
+  recentReadings: "Recent Readings",
+  seeAll: "See All",
+  noReadingsYet: "No readings yet",
+  waitingForDevice: "Waiting for your device to send data",
+
+  // Wounds
+  myWounds: "My Wounds",
+  activeWounds: "active wound",
+  activeWoundsPlural: "active wounds",
+  addNewWound: "Add New Wound",
+  noWoundsYet: "You haven't added any wounds yet",
+  woundName: "Wound Name",
+  woundNamePlaceholder: "My knee wound",
+  whereWound: "Where is the wound?",
+  whereWoundPlaceholder: "e.g. Left foot, right knee",
+  whenHappened: "When did this happen?",
+  howHappened: "How did it happen? (optional)",
+  notes: "Any notes? (optional)",
+  startMonitoring: "Start Monitoring This Wound",
+  selectWoundTitle: "Which wound should we monitor?",
+  newWoundOption: "This is a new wound",
+  markHealed: "Mark as Healed",
+  markHealedConfirm:
+    "Wonderful news! Are you sure this wound has fully healed? It will move to your wound history.",
+  yesHealed: "Yes, It's Healed",
+  notYet: "Not Yet",
+  addNote: "Add a Note",
+  daysToHeal: "Took {{count}} days to heal",
+  healed: "Healed",
+
+  // History
+  today: "Today",
+  sevenDays: "7 Days",
+  thirtyDays: "30 Days",
+  normal: "Normal",
+  caution: "Caution",
+  alertLabel: "Alert",
+  rgbTrend: "Color Trend",
+  readingTimeline: "Reading Timeline",
+  healedWounds: "Healed Wounds",
+  yesterday: "Yesterday",
+  earlier: "Earlier",
+  noAlerts: "No alerts yet — your wound is being monitored",
+
+  // Alert modal
+  alertTitle: "Your Wound Needs Attention",
+  alertBody:
+    "Our sensor detected a possible infection. Please don't worry — here is what to do:",
+  alertStep1: "Do NOT remove the bandage yourself",
+  alertStep2: "Check if area is red, swollen, or warm",
+  alertStep3: "Call your doctor as soon as possible",
+  alertStep4: "If unwell, go to emergency room",
+  callDoctor: "Call My Doctor Now",
+  understand: "I Understand",
+
+  // Connect help
+  setupTitle: "How to Set Up Your Device",
+  setupStep1Title: "Turn on your device",
+  setupStep1:
+    "Press the small button on its side. A light will turn on to show it is ready.",
+  setupStep2Title: "Connect to WiFi",
+  setupStep2:
+    "Make sure your Enzora device is connected to your home WiFi network. The device connects automatically when it is turned on near your WiFi.",
+  setupStep3Title: "Open the app",
+  setupStep3:
+    "Open this app and wait a few seconds. The app will connect automatically when the device is ready.",
+  troubleshooting: "If not connecting:",
+  trouble1: "Turn the device off and on again",
+  trouble2: "Make sure your WiFi is working",
+  trouble3: "Keep the device within range of your router",
+  trouble4: "Contact your doctor if problem continues",
+
+  // Profile
+  editProfile: "Edit Profile",
+  settings: "Settings",
+  language: "Language",
+  notifications: "Notifications",
+  largeText: "Large Text Mode",
+  logout: "Logout",
+  logoutConfirm: "Are you sure you want to log out?",
+  noProfile: "No medical profile yet",
+  completeProfile: "Complete your profile",
+
+  // Status long labels
+  normalLabel: "Normal – No infection signs",
+  cautionLabel: "Caution – Early infection signs",
+  alertFullLabel: "Alert – Infection confirmed",
+};
+
+const ar: typeof en = {
+  appName: "إنزورا",
+  continue: "متابعة",
+  getStarted: "ابدأ الآن",
+  cancel: "إلغاء",
+  save: "حفظ",
+  skip: "تخطي الآن",
+  loading: "جارٍ التحميل...",
+  somethingWrong: "حدث خطأ ما",
+  tryAgain: "حاول مرة أخرى",
+  optional: "اختياري",
+  gotIt: "فهمت!",
+  close: "إغلاق",
+
+  login: "تسجيل الدخول",
+  signUp: "إنشاء حساب",
+  email: "البريد الإلكتروني",
+  password: "كلمة المرور",
+  confirmPassword: "تأكيد كلمة المرور",
+  fullName: "الاسم الكامل",
+  yourFullName: "اسمك الكامل",
+  emailPlaceholder: "your@email.com",
+  passwordPlaceholder: "8 أحرف على الأقل",
+  repeatPassword: "أعد كلمة المرور",
+  forgotPassword: "نسيت كلمة المرور؟",
+  createAccount: "إنشاء الحساب",
+  signIn: "تسجيل الدخول",
+  unknownEmail:
+    "لا نعرف هذا البريد الإلكتروني. يجب إنشاء حساب أولاً. اضغط على إنشاء حساب أعلاه!",
+  invalidEmail: "يرجى إدخال بريد إلكتروني صحيح",
+  passwordTooShort: "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+  passwordsDontMatch: "كلمتا المرور غير متطابقتين",
+  required: "هذا الحقل مطلوب",
+  authError: "كلمة المرور غير صحيحة. حاول مرة أخرى.",
+
+  onboard1Title: "راقب جرحك بذكاء",
+  onboard1Sub: "لاصقة إنزورا الذكية تكتشف العدوى قبل أن تصبح مشكلة",
+  onboard2Title: "كشف الألوان في الوقت الفعلي",
+  onboard2Sub: "يقرأ مستشعرنا لون الضمادة ويحللها فوراً",
+  onboard3Title: "احصل على تنبيهات قبل فوات الأوان",
+  onboard3Sub: "ستصلك أنت وطبيبك تنبيهات لحظة حدوث أي تغيير",
+
+  medicalProfile: "الملف الطبي",
+  age: "العمر",
+  agePlaceholder: "عمرك",
+  gender: "الجنس",
+  male: "ذكر",
+  female: "أنثى",
+  other: "آخر",
+  preferNotToSay: "أفضل عدم الإفصاح",
+  conditions: "هل تعاني من حالات طبية؟",
+  conditionsPlaceholder: "مثل: السكري، ما بعد الجراحة...",
+  doctor: "الطبيب",
+  doctorName: "اسم الطبيب",
+  doctorPhone: "هاتف الطبيب",
+  emergencyContact: "جهة اتصال للطوارئ",
+  emergencyName: "اسم جهة الاتصال",
+  emergencyPhone: "هاتف جهة الاتصال",
+  saveProfile: "حفظ الملف",
+
+  home: "الرئيسية",
+  wounds: "جروحي",
+  history: "السجل",
+  alerts: "التنبيهات",
+  profile: "الملف الشخصي",
+
+  hello: "مرحباً",
+  deviceConnected: "الجهاز متصل",
+  deviceNotConnected: "الجهاز غير متصل",
+  monitoring: "يراقب",
+  tapToConnect: "اضغط للتوصيل",
+  deviceOfflineTitle: "جهاز إنزورا غير متصل بعد.",
+  deviceOfflineSub: "تأكد من تشغيل الجهاز واتصاله بالواي فاي.",
+  howToConnect: "كيفية التوصيل؟",
+  woundNormal: "الجرح طبيعي",
+  woundNormalSub:
+    "جرحك لا يظهر أي علامات عدوى. حافظ على نظافته وجفافه.",
+  earlySigns: "تم اكتشاف علامات مبكرة",
+  earlySignsSub:
+    "علامات مبكرة لعدوى محتملة. راقب عن كثب واتصل بطبيبك قريباً.",
+  infectionDetected: "تم اكتشاف عدوى",
+  infectionDetectedSub: "تم تأكيد وجود عدوى. اتصل بطبيبك فوراً.",
+  lastReading: "آخر قراءة",
+  todaysChecks: "فحوصات اليوم",
+  monitoringSince: "المراقبة منذ",
+  recentReadings: "أحدث القراءات",
+  seeAll: "عرض الكل",
+  noReadingsYet: "لا توجد قراءات بعد",
+  waitingForDevice: "في انتظار جهازك لإرسال البيانات",
+
+  myWounds: "جروحي",
+  activeWounds: "جرح نشط",
+  activeWoundsPlural: "جروح نشطة",
+  addNewWound: "إضافة جرح جديد",
+  noWoundsYet: "لم تقم بإضافة أي جروح بعد",
+  woundName: "اسم الجرح",
+  woundNamePlaceholder: "جرح ركبتي",
+  whereWound: "أين الجرح؟",
+  whereWoundPlaceholder: "مثل: القدم اليسرى، الركبة اليمنى",
+  whenHappened: "متى حدث ذلك؟",
+  howHappened: "كيف حدث؟ (اختياري)",
+  notes: "أي ملاحظات؟ (اختياري)",
+  startMonitoring: "بدء مراقبة هذا الجرح",
+  selectWoundTitle: "أي جرح يجب أن نراقب؟",
+  newWoundOption: "هذا جرح جديد",
+  markHealed: "تحديد كشُفي",
+  markHealedConfirm:
+    "أخبار رائعة! هل أنت متأكد أن هذا الجرح قد شُفي تماماً؟ سينتقل إلى سجل الجروح.",
+  yesHealed: "نعم، لقد شُفي",
+  notYet: "ليس بعد",
+  addNote: "إضافة ملاحظة",
+  daysToHeal: "استغرق {{count}} يوماً للشفاء",
+  healed: "شُفي",
+
+  today: "اليوم",
+  sevenDays: "7 أيام",
+  thirtyDays: "30 يوماً",
+  normal: "طبيعي",
+  caution: "تحذير",
+  alertLabel: "تنبيه",
+  rgbTrend: "اتجاه الألوان",
+  readingTimeline: "سجل القراءات",
+  healedWounds: "الجروح الشافية",
+  yesterday: "أمس",
+  earlier: "سابقاً",
+  noAlerts: "لا توجد تنبيهات بعد — جرحك تحت المراقبة",
+
+  alertTitle: "جرحك يحتاج إلى عناية",
+  alertBody:
+    "اكتشف مستشعرنا عدوى محتملة. لا تقلق — إليك ما يجب فعله:",
+  alertStep1: "لا تنزع الضمادة بنفسك",
+  alertStep2: "تحقق إذا كانت المنطقة حمراء أو متورمة أو دافئة",
+  alertStep3: "اتصل بطبيبك في أقرب وقت ممكن",
+  alertStep4: "إذا شعرت بتوعك، اذهب إلى الطوارئ",
+  callDoctor: "اتصل بطبيبي الآن",
+  understand: "فهمت",
+
+  setupTitle: "كيفية إعداد جهازك",
+  setupStep1Title: "شغّل الجهاز",
+  setupStep1:
+    "اضغط الزر الصغير على جانبه. سيضيء ضوء يدل على جاهزيته.",
+  setupStep2Title: "اتصل بالواي فاي",
+  setupStep2:
+    "تأكد من اتصال جهاز إنزورا بشبكة الواي فاي المنزلية. يتصل الجهاز تلقائياً عند تشغيله بالقرب من الواي فاي.",
+  setupStep3Title: "افتح التطبيق",
+  setupStep3:
+    "افتح هذا التطبيق وانتظر بضع ثوانٍ. سيتصل التطبيق تلقائياً عند جاهزية الجهاز.",
+  troubleshooting: "إذا لم يتصل:",
+  trouble1: "أطفئ الجهاز ثم أعد تشغيله",
+  trouble2: "تأكد من عمل الواي فاي",
+  trouble3: "ابقِ الجهاز ضمن نطاق الراوتر",
+  trouble4: "اتصل بطبيبك إذا استمرت المشكلة",
+
+  editProfile: "تعديل الملف",
+  settings: "الإعدادات",
+  language: "اللغة",
+  notifications: "الإشعارات",
+  largeText: "نص كبير",
+  logout: "تسجيل الخروج",
+  logoutConfirm: "هل أنت متأكد من تسجيل الخروج؟",
+  noProfile: "لا يوجد ملف طبي بعد",
+  completeProfile: "أكمل ملفك",
+
+  normalLabel: "طبيعي – لا توجد علامات عدوى",
+  cautionLabel: "تحذير – علامات عدوى مبكرة",
+  alertFullLabel: "تنبيه – تم تأكيد العدوى",
+};
+
+const STORAGE_KEY = "enzora.lang";
+
+export async function loadLanguage(): Promise<"en" | "ar"> {
+  try {
+    const v = await AsyncStorage.getItem(STORAGE_KEY);
+    return v === "ar" ? "ar" : "en";
+  } catch {
+    return "en";
+  }
+}
+
+export async function saveLanguage(lang: "en" | "ar"): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, lang);
+  } catch {
+    // ignore
+  }
+}
+
+void i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    ar: { translation: ar },
+  },
+  lng: "en",
+  fallbackLng: "en",
+  compatibilityJSON: "v4",
+  interpolation: { escapeValue: false },
+});
+
+export default i18n;

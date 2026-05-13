@@ -1,0 +1,546 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
+import React from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type TextInputProps,
+  type ViewStyle,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+
+import colors, { gradient } from "@/constants/colors";
+import { useApp } from "@/contexts/AppContext";
+
+const c = colors.light;
+
+// ---------------- Logo (text wordmark) ----------------
+export function Logo({
+  size = "sm",
+  color,
+}: {
+  size?: "sm" | "lg";
+  color?: string;
+}) {
+  const fontSize = size === "lg" ? 36 : 22;
+  return (
+    <View style={{ flexShrink: 0 }}>
+      <Text
+        style={{
+          fontSize,
+          fontWeight: "800",
+          color: color ?? c.textWhite,
+          letterSpacing: -0.5,
+          fontFamily: "Inter_700Bold",
+        }}
+      >
+        enzora
+      </Text>
+      {size === "lg" && (
+        <Text
+          style={{
+            fontSize: 11,
+            color: color ?? c.textWhite,
+            opacity: 0.85,
+            letterSpacing: 2,
+            marginTop: 2,
+            fontFamily: "Inter_500Medium",
+          }}
+        >
+          SMART HEALING
+        </Text>
+      )}
+    </View>
+  );
+}
+
+// ---------------- Language Toggle ----------------
+export function LanguageToggle({ dark = false }: { dark?: boolean }) {
+  const { language, toggleLanguage } = useApp();
+  return (
+    <Pressable
+      onPress={() => void toggleLanguage()}
+      hitSlop={8}
+      style={({ pressed }) => [
+        styles.langPill,
+        {
+          backgroundColor: dark ? "rgba(255,255,255,0.18)" : c.card,
+          borderColor: dark ? "rgba(255,255,255,0.3)" : c.border,
+          opacity: pressed ? 0.7 : 1,
+        },
+      ]}
+    >
+      <Feather name="globe" size={14} color={dark ? c.textWhite : c.primary} />
+      <Text
+        style={{
+          fontSize: 13,
+          fontWeight: "600",
+          color: dark ? c.textWhite : c.primary,
+          fontFamily: "Inter_600SemiBold",
+        }}
+      >
+        {language === "en" ? "العربية" : "English"}
+      </Text>
+    </Pressable>
+  );
+}
+
+// ---------------- Gradient Header ----------------
+export function GradientHeader({
+  title,
+  subtitle,
+  right,
+  back,
+  onBack,
+}: {
+  title?: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+  back?: boolean;
+  onBack?: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  return (
+    <LinearGradient
+      colors={gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.header, { paddingTop: insets.top + 12 }]}
+    >
+      <View style={styles.headerRow}>
+        <View style={styles.headerLeft}>
+          {back ? (
+            <Pressable
+              onPress={onBack}
+              hitSlop={10}
+              style={styles.backBtn}
+            >
+              <Feather name="chevron-left" size={24} color={c.textWhite} />
+            </Pressable>
+          ) : (
+            <Logo size="sm" />
+          )}
+        </View>
+        <View style={styles.headerRight}>
+          {right}
+          <LanguageToggle dark />
+        </View>
+      </View>
+      {title && (
+        <View style={{ marginTop: 14 }}>
+          <Text style={styles.headerTitle}>{title}</Text>
+          {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
+        </View>
+      )}
+    </LinearGradient>
+  );
+}
+
+// ---------------- Primary Button ----------------
+export function PrimaryButton({
+  label,
+  onPress,
+  loading,
+  disabled,
+  icon,
+  variant = "gradient",
+  style,
+}: {
+  label: string;
+  onPress: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  icon?: React.ComponentProps<typeof Feather>["name"];
+  variant?: "gradient" | "outline" | "white";
+  style?: ViewStyle;
+}) {
+  const inactive = disabled || loading;
+  if (variant === "outline") {
+    return (
+      <Pressable
+        onPress={onPress}
+        disabled={inactive}
+        style={({ pressed }) => [
+          styles.btn,
+          styles.btnOutline,
+          { opacity: pressed ? 0.7 : inactive ? 0.5 : 1 },
+          style,
+        ]}
+      >
+        {icon && <Feather name={icon} size={18} color={c.primary} />}
+        <Text style={[styles.btnText, { color: c.primary }]}>{label}</Text>
+      </Pressable>
+    );
+  }
+  if (variant === "white") {
+    return (
+      <Pressable
+        onPress={onPress}
+        disabled={inactive}
+        style={({ pressed }) => [
+          styles.btn,
+          { backgroundColor: c.card, borderWidth: 1, borderColor: c.border },
+          { opacity: pressed ? 0.7 : inactive ? 0.5 : 1 },
+          style,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={c.primary} />
+        ) : (
+          <>
+            {icon && <Feather name={icon} size={18} color={c.textPrimary} />}
+            <Text style={[styles.btnText, { color: c.textPrimary }]}>
+              {label}
+            </Text>
+          </>
+        )}
+      </Pressable>
+    );
+  }
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={inactive}
+      style={({ pressed }) => [
+        { opacity: pressed ? 0.85 : inactive ? 0.6 : 1, borderRadius: 14 },
+        style,
+      ]}
+    >
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.btn}
+      >
+        {loading ? (
+          <ActivityIndicator color={c.textWhite} />
+        ) : (
+          <>
+            {icon && <Feather name={icon} size={20} color={c.textWhite} />}
+            <Text style={styles.btnText}>{label}</Text>
+          </>
+        )}
+      </LinearGradient>
+    </Pressable>
+  );
+}
+
+// ---------------- Field / Input ----------------
+export function Field({
+  label,
+  error,
+  children,
+}: {
+  label?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={{ gap: 6 }}>
+      {label && <Text style={styles.label}>{label}</Text>}
+      {children}
+      {error && (
+        <View style={styles.errRow}>
+          <Feather name="alert-triangle" size={12} color={c.alert} />
+          <Text style={styles.errText}>{error}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+export function TextField({
+  value,
+  onChangeText,
+  placeholder,
+  secure,
+  ...rest
+}: {
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder?: string;
+  secure?: boolean;
+} & Omit<TextInputProps, "value" | "onChangeText" | "placeholder">) {
+  const [hidden, setHidden] = React.useState(secure);
+  return (
+    <View style={styles.inputWrap}>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={c.textSecondary}
+        secureTextEntry={!!hidden}
+        style={styles.input}
+        autoCapitalize={secure ? "none" : rest.autoCapitalize}
+        {...rest}
+      />
+      {secure && (
+        <Pressable
+          onPress={() => setHidden((h) => !h)}
+          hitSlop={10}
+          style={styles.eye}
+        >
+          <Feather
+            name={hidden ? "eye" : "eye-off"}
+            size={18}
+            color={c.textSecondary}
+          />
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+// ---------------- Card ----------------
+export function Card({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: ViewStyle;
+}) {
+  return <View style={[styles.card, style]}>{children}</View>;
+}
+
+// ---------------- Status Card ----------------
+export function StatusCard({ status }: { status: "yellow" | "green" | "blue" }) {
+  const { t } = useTranslation();
+  const config =
+    status === "yellow"
+      ? {
+          bg: c.normalBg,
+          border: c.normal,
+          icon: "check-circle" as const,
+          iconColor: c.normal,
+          title: t("woundNormal"),
+          sub: t("woundNormalSub"),
+        }
+      : status === "green"
+        ? {
+            bg: c.warningBg,
+            border: c.warning,
+            icon: "alert-triangle" as const,
+            iconColor: c.warning,
+            title: t("earlySigns"),
+            sub: t("earlySignsSub"),
+          }
+        : {
+            bg: c.alertBg,
+            border: c.alert,
+            icon: "alert-octagon" as const,
+            iconColor: c.alert,
+            title: t("infectionDetected"),
+            sub: t("infectionDetectedSub"),
+          };
+
+  return (
+    <View
+      style={[
+        styles.statusCard,
+        { backgroundColor: config.bg, borderColor: config.border },
+      ]}
+    >
+      <View
+        style={[
+          styles.statusIconWrap,
+          { backgroundColor: "rgba(255,255,255,0.7)" },
+        ]}
+      >
+        <Feather name={config.icon} size={36} color={config.iconColor} />
+      </View>
+      <Text style={[styles.statusTitle, { color: config.iconColor }]}>
+        {config.title}
+      </Text>
+      <Text style={styles.statusSub}>{config.sub}</Text>
+    </View>
+  );
+}
+
+// ---------------- Empty State ----------------
+export function EmptyState({
+  icon,
+  title,
+  subtitle,
+  action,
+}: {
+  icon: React.ComponentProps<typeof Feather>["name"];
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <View style={styles.empty}>
+      <View style={styles.emptyIcon}>
+        <Feather name={icon} size={42} color={c.primary} />
+      </View>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      {subtitle && <Text style={styles.emptySub}>{subtitle}</Text>}
+      {action && <View style={{ marginTop: 16 }}>{action}</View>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  langPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  header: {
+    paddingHorizontal: 18,
+    paddingBottom: 18,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    color: c.textWhite,
+    fontSize: 26,
+    fontWeight: "800",
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 14,
+    marginTop: 2,
+    fontFamily: "Inter_400Regular",
+  },
+  btn: {
+    height: 56,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 18,
+  },
+  btnOutline: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: c.primary,
+  },
+  btnText: {
+    color: c.textWhite,
+    fontSize: 17,
+    fontWeight: "700",
+    fontFamily: "Inter_700Bold",
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: c.textSecondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    fontFamily: "Inter_600SemiBold",
+  },
+  inputWrap: {
+    position: "relative",
+    justifyContent: "center",
+  },
+  input: {
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: c.card,
+    borderWidth: 1.5,
+    borderColor: c.border,
+    paddingHorizontal: 16,
+    paddingRight: 44,
+    fontSize: 16,
+    color: c.textPrimary,
+    fontFamily: "Inter_400Regular",
+  },
+  eye: {
+    position: "absolute",
+    right: 12,
+    height: 52,
+    justifyContent: "center",
+  },
+  errRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  errText: { fontSize: 12, color: c.alert, fontFamily: "Inter_500Medium" },
+  card: {
+    backgroundColor: c.card,
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  statusCard: {
+    borderRadius: 22,
+    borderWidth: 2,
+    padding: 22,
+    alignItems: "center",
+    gap: 12,
+  },
+  statusIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statusTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  statusSub: {
+    fontSize: 15,
+    color: c.textPrimary,
+    textAlign: "center",
+    lineHeight: 21,
+    fontFamily: "Inter_400Regular",
+  },
+  empty: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    gap: 8,
+  },
+  emptyIcon: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: "rgba(110,117,191,0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: c.textPrimary,
+    textAlign: "center",
+    fontFamily: "Inter_700Bold",
+  },
+  emptySub: {
+    fontSize: 14,
+    color: c.textSecondary,
+    textAlign: "center",
+    fontFamily: "Inter_400Regular",
+  },
+});

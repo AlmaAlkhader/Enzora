@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "ztr6D3QP7ezw8A7ibutYV"
+uri = "file://artifacts/enzora/assets/images/icon.png"
+type = "image"
+title = "enzora app icon"
