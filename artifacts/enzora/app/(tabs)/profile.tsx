@@ -22,7 +22,7 @@ import {
   PrimaryButton,
   TextField,
 } from "@/components/Brand";
-import { MoodWeekStrip, SOSButton } from "@/components/Wellness";
+import { SOSButton } from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import { isBiometricAvailable } from "@/lib/biometric";
@@ -42,7 +42,6 @@ export default function ProfileScreen() {
     setLargeText,
     notificationsEnabled,
     setNotificationsEnabled,
-    moods,
     patients,
     activePatientId,
     setActivePatient,
@@ -127,10 +126,6 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.name}>{profile?.name ?? "—"}</Text>
           <Text style={styles.email}>{user?.email}</Text>
-        </Card>
-
-        <Card>
-          <MoodWeekStrip moods={moods} />
         </Card>
 
         <Card>

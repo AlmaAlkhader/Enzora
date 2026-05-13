@@ -17,14 +17,9 @@ import { rtdb } from "@/lib/firebase";
 import i18n, { loadLanguage, saveLanguage } from "@/lib/i18n";
 import { scheduleDailyReminder } from "@/lib/notifications";
 import {
-  type Mood,
-  type MoodEntry,
   type Patient,
   readActivePatientId,
-  readMoods,
   readPatients,
-  saveMood as persistMood,
-  todayKey,
   writeActivePatientId,
   writePatients,
 } from "@/lib/wellness";
@@ -132,7 +127,6 @@ interface AppCtx {
   notificationsEnabled: boolean;
   hasSeenOnboarding: boolean;
   // Wellness extensions
-  moods: MoodEntry[];
   patients: Patient[];
   activePatientId: string | null;
   biometricEnabled: boolean;
@@ -160,13 +154,11 @@ interface AppCtx {
   markHealed: (id: string) => Promise<void>;
   addNote: (id: string, note: string) => Promise<void>;
   emailExists: (email: string) => Promise<boolean>;
-  recordMood: (mood: Mood) => Promise<void>;
   addPatient: (
     p: Omit<Patient, "id" | "createdAt">,
   ) => Promise<string>;
   setActivePatient: (id: string | null) => Promise<void>;
   removePatient: (id: string) => Promise<void>;
-  hasMoodToday: boolean;
   connectDevice: (
     deviceId: string,
   ) => Promise<{ ok: true } | { ok: false; reason: "not-found" | "no-firebase" | "error" }>;
@@ -335,7 +327,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
   const [hasSeenOnboarding, setHasSeenOnboardingState] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
-  const [moods, setMoods] = useState<MoodEntry[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [activePatientId, setActivePatientIdState] = useState<string | null>(
     null,
@@ -382,14 +373,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setProfile(accountToProfile(acc));
             const ws = await readWounds(acc.email);
             setWounds(ws);
-            const [ms, pts, apId, bio, dev] = await Promise.all([
-              readMoods(acc.email),
+            const [pts, apId, bio, dev] = await Promise.all([
               readPatients(acc.email),
               readActivePatientId(acc.email),
               AsyncStorage.getItem(biometricKey(acc.email)),
               AsyncStorage.getItem(deviceKey(acc.email)),
             ]);
-            setMoods(ms);
             setPatients(pts);
             setActivePatientIdState(apId);
             setBiometricEnabledState(bio === "1");
@@ -769,7 +758,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUser({ uid: normEmail, email: normEmail });
       setProfile(accountToProfile(acc));
       setWounds([]);
-      setMoods([]);
       setPatients([]);
       setActivePatientIdState(null);
       setBiometricEnabledState(false);
@@ -793,16 +781,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(SESSION_KEY, normEmail);
     setUser({ uid: normEmail, email: normEmail });
     setProfile(accountToProfile(acc));
-    const [ws, ms, pts, apId, bio, dev] = await Promise.all([
+    const [ws, pts, apId, bio, dev] = await Promise.all([
       readWounds(normEmail),
-      readMoods(normEmail),
       readPatients(normEmail),
       readActivePatientId(normEmail),
       AsyncStorage.getItem(biometricKey(normEmail)),
       AsyncStorage.getItem(deviceKey(normEmail)),
     ]);
     setWounds(ws);
-    setMoods(ms);
     setPatients(pts);
     setActivePatientIdState(apId);
     setBiometricEnabledState(bio === "1");
@@ -815,7 +801,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
     setWounds([]);
     setReadings([]);
-    setMoods([]);
     setPatients([]);
     setActivePatientIdState(null);
     setBiometricEnabledState(false);
@@ -974,15 +959,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [user],
   );
 
-  const recordMood = useCallback(
-    async (mood: Mood) => {
-      if (!user) return;
-      const next = await persistMood(user.email, mood);
-      setMoods(next);
-    },
-    [user],
-  );
-
   const addPatient = useCallback(
     async (p: Omit<Patient, "id" | "createdAt">) => {
       if (!user) throw new Error("not authenticated");
@@ -1025,11 +1001,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [wounds, profile?.activeWoundId],
   );
 
-  const hasMoodToday = useMemo(() => {
-    const tk = todayKey();
-    return moods.some((m) => m.date === tk);
-  }, [moods]);
-
   const value: AppCtx = {
     user,
     profile,
@@ -1043,7 +1014,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     largeText,
     notificationsEnabled,
     hasSeenOnboarding,
-    moods,
     patients,
     activePatientId,
     biometricEnabled,
@@ -1065,11 +1035,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     markHealed,
     addNote,
     emailExists,
-    recordMood,
     addPatient,
     setActivePatient,
     removePatient,
-    hasMoodToday,
     connectedDeviceId,
     connectDevice,
     disconnectDevice,

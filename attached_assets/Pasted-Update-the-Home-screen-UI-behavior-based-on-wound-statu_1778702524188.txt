@@ -1,0 +1,109 @@
+Update the Home screen UI behavior based on wound status.
+
+Important:
+The Home screen should not look the same for all statuses.
+
+Current problem:
+When the wound status is infected / blue, the Home screen still looks too calm and friendly. This is dangerous because the patient may not understand that they need to act quickly.
+
+Task:
+Make the Home screen visually change depending on the wound status.
+
+Status behavior:
+
+1. Yellow / Normal status
+The screen should feel calm and reassuring.
+Use:
+- soft yellow accent
+- friendly status icon
+- title: “Wound is Normal”
+- message: “Your wound shows no signs of infection. Keep it clean and dry.”
+- primary action: “View Details”
+
+2. Green / Watch closely status
+The screen should feel cautious but not scary.
+Use:
+- soft green or warm warning accent
+- title: “Watch Closely”
+- message: “The sensor noticed a small change. Keep an eye on your wound and contact your doctor if you are worried.”
+- primary action: “View Details”
+- secondary action: “Call Doctor” if doctor phone exists
+
+3. Blue / Infected status
+The screen should look clearly urgent.
+This is the most important change.
+
+When status is blue / infected:
+- Change the main hero status card to an urgent style.
+- Use a soft red / alert background or red-tinted card.
+- Use red accent color #EF233C for borders, icons, and key labels.
+- Add a clear urgent icon.
+- Make the title larger and stronger:
+  “Infection Detected”
+- Arabic:
+  “تم اكتشاف عدوى”
+- Use clear text:
+  “Please call your doctor today. If you feel unwell, go to the hospital.”
+- Arabic:
+  “يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.”
+
+Urgent action buttons for infected status:
+Show these buttons directly inside or below the hero card:
+
+Primary red button:
+English: “Call Doctor Now”
+Arabic: “اتصل بالطبيب الآن”
+
+If no doctor phone exists, show:
+English: “Add Doctor Contact”
+Arabic: “أضف رقم الطبيب”
+
+Secondary button:
+English: “View Details”
+Arabic: “عرض التفاصيل”
+
+If emergency contact exists, also show:
+English: “Call Emergency Contact”
+Arabic: “اتصل بجهة الطوارئ”
+
+Design requirements for infected status:
+- The infected state must be visually different from normal.
+- Do not make it overly terrifying, but it must be impossible to miss.
+- Use a red-tinted alert card, stronger border, and larger action button.
+- The patient should immediately understand: “I need to call someone.”
+- Do not hide the call action lower down the page.
+- Do not require the patient to open Wound Detail to understand the risk.
+
+Recommended infected layout:
+- Header
+- Device connected pill
+- Large urgent hero card:
+  - urgent icon
+  - “Infection Detected”
+  - short explanation
+  - last check time
+  - “Call Doctor Now” button
+  - “View Details” secondary button
+- Then show only essential supporting info.
+- Reduce less important sections when infected.
+
+When status is infected:
+Hide or move down non-essential content:
+- care tips should be secondary
+- color guide should be secondary
+- stats should be minimized
+- the urgent action card should dominate the screen
+
+Also update Alerts behavior if needed:
+- When status becomes blue, create/show an infection alert.
+- Alert should link to the infected wound detail page if possible.
+
+Do not change:
+- authentication
+- database architecture
+- Firebase sensor connection
+- ESP32 logic
+- unrelated screens
+
+Final goal:
+The Home screen should feel calm when the wound is normal, cautious when early signs appear, and clearly urgent/action-focused when infection is detected.

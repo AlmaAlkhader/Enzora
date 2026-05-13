@@ -2,55 +2,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { MedicalProfile, Reading, SensorStatus, Wound } from "@/contexts/AppContext";
 
-// ---------- Mood ----------
-export type Mood = "great" | "okay" | "notgreat" | "pain";
-
-export interface MoodEntry {
-  date: string; // YYYY-MM-DD
-  mood: Mood;
-  timestamp: number;
-}
-
-const moodKey = (email: string) => `enzora_moods_${email.toLowerCase()}`;
-
-export function todayKey(d: Date = new Date()): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-export async function readMoods(email: string): Promise<MoodEntry[]> {
-  try {
-    const raw = await AsyncStorage.getItem(moodKey(email));
-    return raw ? (JSON.parse(raw) as MoodEntry[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export async function saveMood(email: string, mood: Mood): Promise<MoodEntry[]> {
-  const list = await readMoods(email);
-  const today = todayKey();
-  const entry: MoodEntry = { date: today, mood, timestamp: Date.now() };
-  const filtered = list.filter((m) => m.date !== today);
-  const next = [entry, ...filtered].slice(0, 60);
-  await AsyncStorage.setItem(moodKey(email), JSON.stringify(next));
-  return next;
-}
-
-export function lastNMoodDays(moods: MoodEntry[], n = 7): (MoodEntry | null)[] {
-  const out: (MoodEntry | null)[] = [];
-  const today = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const key = todayKey(d);
-    out.push(moods.find((m) => m.date === key) ?? null);
-  }
-  return out;
-}
-
 // ---------- Patients ----------
 export interface Patient {
   id: string;

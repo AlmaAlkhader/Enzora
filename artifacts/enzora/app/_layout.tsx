@@ -6,18 +6,18 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, usePathname } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { MoodModal, OfflineBanner } from "@/components/Wellness";
-import { AppProvider, useApp } from "@/contexts/AppContext";
+import { OfflineBanner } from "@/components/Wellness";
+import { AppProvider } from "@/contexts/AppContext";
 import { clearLegacyAICaches } from "@/lib/ai";
 import "@/lib/i18n";
 
@@ -52,31 +52,7 @@ function RootLayoutNav() {
 }
 
 function GlobalLayer() {
-  const { user, profile, hasMoodToday } = useApp();
-  const pathname = usePathname();
-  const [moodOpen, setMoodOpen] = useState(false);
-
-  // Trigger mood check-in once per day, after the user is signed in with a
-  // medical profile, while they're inside the main app tabs (not during
-  // auth, onboarding, medical profile, or wound flows).
-  useEffect(() => {
-    if (!user || !profile?.medicalProfile) return;
-    if (hasMoodToday) return;
-    const p = pathname ?? "";
-    const inMainApp =
-      p === "/" ||
-      /^\/(home|wounds|history|alerts|profile)\/?$/.test(p);
-    if (!inMainApp) return;
-    const id = setTimeout(() => setMoodOpen(true), 1500);
-    return () => clearTimeout(id);
-  }, [user, profile?.medicalProfile, hasMoodToday, pathname]);
-
-  return (
-    <>
-      <OfflineBanner />
-      <MoodModal visible={moodOpen} onClose={() => setMoodOpen(false)} />
-    </>
-  );
+  return <OfflineBanner />;
 }
 
 export default function RootLayout() {

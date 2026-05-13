@@ -240,8 +240,6 @@ const en = {
   spouse: "Spouse",
   child: "Child",
   theirConditions: "Their medical conditions",
-  yourWellnessWeek: "Your wellness this week",
-  noMoodsYet: "No mood check-ins yet — your week shows here",
 
   // Status long labels
   normalLabel: "Normal – No infection signs",
@@ -337,18 +335,6 @@ const en = {
   dailyReminderTitle: "Good morning from Enzora 💙",
   dailyReminderBody:
     "Your device is monitoring your wound. Stay hydrated and rest well today.",
-
-  // Mood check-in
-  moodTitle: "How are you feeling today?",
-  moodGreat: "Great",
-  moodOkay: "Okay",
-  moodNotGreat: "Not great",
-  moodPain: "In pain",
-  moodResponseGreat: "That's wonderful! Keep it up 🌟",
-  moodResponseOkay: "Take it easy today. You're doing great.",
-  moodResponseNotGreat: "We're here for you. Rest well today 💙",
-  moodResponsePain:
-    "Please rest and contact your doctor if the pain is related to your wound.",
 
   // Doctor report
   doctorReport: "Generate Doctor Report 📋",
@@ -626,8 +612,6 @@ const ar: typeof en = {
   spouse: "الزوج/الزوجة",
   child: "الطفل",
   theirConditions: "حالاتهم الطبية",
-  yourWellnessWeek: "صحتك هذا الأسبوع",
-  noMoodsYet: "لا توجد فحوصات مزاج بعد — يظهر أسبوعك هنا",
 
   normalLabel: "طبيعي – لا توجد علامات عدوى",
   cautionLabel: "تحذير – علامات عدوى مبكرة",
@@ -718,17 +702,6 @@ const ar: typeof en = {
   dailyReminderTitle: "صباح الخير من إنزورا 💙",
   dailyReminderBody:
     "جهازك يراقب جرحك. اشرب الماء واسترح جيداً اليوم.",
-
-  moodTitle: "كيف تشعر اليوم؟",
-  moodGreat: "رائع",
-  moodOkay: "جيد",
-  moodNotGreat: "لست بخير",
-  moodPain: "أتألم",
-  moodResponseGreat: "هذا رائع! واصل التقدم 🌟",
-  moodResponseOkay: "خذ راحتك اليوم. أنت بخير.",
-  moodResponseNotGreat: "نحن هنا لأجلك. استرح جيداً اليوم 💙",
-  moodResponsePain:
-    "يرجى الراحة والاتصال بطبيبك إذا كان الألم متعلقاً بجرحك.",
 
   doctorReport: "إنشاء تقرير للطبيب 📋",
   doctorReportTitle: "تقرير حالة الجرح",
