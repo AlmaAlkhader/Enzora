@@ -75,13 +75,19 @@ export function EnzoraLogo({
     );
   }
   if (variant === "brandTile") {
-    // Premium logo tile for the Home hero header. Large, intentional,
-    // sits on a soft lavender square so the mark feels like the brand.
-    const tile = 88;
-    const imageH = Math.round(tile * 0.62);
+    // Premium WHITE CIRCULAR logo medallion for the Home hero header.
+    // Large, intentional, with a soft lavender ring + drop shadow so the
+    // mark reads as the primary brand element on the screen.
+    const tile = 96;
+    const imageH = Math.round(tile * 0.6);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
-      <View style={[styles.brandTile, { width: tile, height: tile, borderRadius: 22 }]}>
+      <View
+        style={[
+          styles.brandCircle,
+          { width: tile, height: tile, borderRadius: tile / 2 },
+        ]}
+      >
         <Image
           source={LOGO_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
@@ -91,13 +97,18 @@ export function EnzoraLogo({
     );
   }
   if (variant === "compactTile") {
-    // Same lavender tile, scaled down — used in every inner screen header
-    // so all sections clearly belong to one branded family.
-    const tile = 44;
-    const imageH = Math.round(tile * 0.6);
+    // Same white circular medallion, scaled down — used in every inner
+    // screen header so all sections clearly belong to one branded family.
+    const tile = 52;
+    const imageH = Math.round(tile * 0.58);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
-      <View style={[styles.brandTile, { width: tile, height: tile, borderRadius: 12 }]}>
+      <View
+        style={[
+          styles.brandCircle,
+          { width: tile, height: tile, borderRadius: tile / 2 },
+        ]}
+      >
         <Image
           source={LOGO_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
@@ -1116,6 +1127,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: c.border,
+  },
+  brandCircle: {
+    backgroundColor: c.card,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#EDEBFF",
+    shadowColor: "#1B2A6B",
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   brandWordmark: {
     fontSize: 36,
