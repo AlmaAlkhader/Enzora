@@ -1,0 +1,711 @@
+Build a full mobile application called Enzora — 
+a smart medical app for a Smart Wound Patch startup. 
+The app connects to a hardware device (ESP32 mini + 
+TCS3200 color sensor) through Firebase Realtime 
+Database. The ESP32 reads the bandage color via WiFi 
+and writes the result to Firebase. The app listens 
+to Firebase in real time and alerts the patient.
+
+---
+
+## 🔌 HOW THE SYSTEM WORKS
+
+ESP32 connects to WiFi and writes to Firebase 
+Realtime Database at this path:
+
+/sensor
+  ├── red: [number]
+  ├── green: [number]
+  ├── blue: [number]
+  └── status: "yellow" | "green" | "blue"
+
+Status meanings:
+"yellow" → Wound is safe/normal
+"green"  → Early signs of infection
+"blue"   → Infection confirmed
+
+The app listens to /sensor/status in real time 
+using Firebase onValue listener.
+When status changes, the app updates the UI 
+and sends alerts immediately.
+
+No Bluetooth. No IP address input. No BLE library.
+The only connection between hardware and app 
+is Firebase Realtime Database.
+
+---
+
+## 👥 TARGET USERS
+Elderly patients, diabetics, and post-surgery 
+patients. Everything must be simple, clear, 
+and easy to use. No technical language anywhere.
+
+---
+
+## 🎨 BRAND & COLOR SYSTEM
+
+Define as global CSS variables used everywhere:
+
+--color-primary:        #6E75BF
+--color-primary-dark:   #8879B8
+--color-gradient: linear-gradient(135deg, #6E75BF, #8879B8)
+--color-bg:             #F8F9FF
+--color-card:           #FFFFFF
+--color-input:          #F4F4FB
+--color-text-primary:   #1B2A6B
+--color-text-secondary: #6B7FA3
+--color-text-white:     #FFFFFF
+--color-normal:         #FFB703 (yellow – safe)
+--color-normal-bg:      #FFF3CD
+--color-warning:        #FF6B6B (green signal – early)
+--color-warning-bg:     #FFF0F0
+--color-alert:          #EF233C (blue signal – infected)
+--color-alert-bg:       #FDEDF0
+--color-border:         #E2E8F0
+--color-nav-active:     #6E75BF
+--color-nav-inactive:   #A0AEC0
+
+All screen headers: linear-gradient(135deg, #6E75BF, #8879B8)
+All headers same height: 120px
+All primary buttons: gradient, 56px height, 
+  border-radius 14px, 17px bold white text
+All inputs: #F4F4FB bg, 52px height, 
+  border-radius 12px, 16px font
+All screen backgrounds: #F8F9FF
+No hardcoded colors in components.
+Create src/theme/colors.js with all variables.
+
+---
+
+## 🖼️ LOGO
+
+File: enzora-logo-transparent.png
+Save to: /public/assets/enzora-logo.png
+
+Usage:
+- Splash: height 180px, width auto, centered
+- Login/Sign Up header: 
+    container: height 100px, overflow hidden
+    image: height 170px, object-position top center
+- All screen headers: height 34px, width auto,
+  top-left, flex-shrink 0
+
+All logo containers:
+- overflow: visible (except auth crop container)
+- background: transparent
+- No fixed width smaller than logo
+- No clip or clip-path
+
+---
+
+## 🌐 LANGUAGE SYSTEM
+
+Install: npm install i18next react-i18next
+
+Create src/i18n/index.js, en.json, ar.json
+Initialize with saved language from localStorage.
+
+Language toggle on EVERY screen:
+- Top right corner, always visible
+- Shows "العربية" when English / "English" when Arabic
+- Globe icon 🌐, pill shape, white bg, #E2E8F0 border
+- On tap: switch i18n language + set document.dir
+- Save preference to localStorage
+
+When Arabic:
+- All text in Arabic
+- Layout RTL: document.dir = 'rtl'
+
+Key translations:
+"Login" → "تسجيل الدخول"
+"Sign Up" → "إنشاء حساب"
+"Email" → "البريد الإلكتروني"
+"Password" → "كلمة المرور"
+"Full Name" → "الاسم الكامل"
+"Wounds" → "جروحي"
+"Add New Wound" → "إضافة جرح جديد"
+"Wound is Normal" → "الجرح طبيعي"
+"Early Signs Detected" → "تم اكتشاف علامات مبكرة"
+"Infection Detected" → "تم اكتشاف عدوى"
+"Device Connected" → "الجهاز متصل"
+"Device Not Connected" → "الجهاز غير متصل"
+"Settings" → "الإعدادات"
+"Logout" → "تسجيل الخروج"
+"History" → "السجل"
+"Alerts" → "التنبيهات"
+"Profile" → "الملف الشخصي"
+"Connect My Device" → "توصيل جهازي"
+
+---
+
+## 🔐 AUTHENTICATION – Firebase
+
+Install: npm install firebase
+Use environment variables for ALL Firebase config.
+Never hardcode API keys — store in Replit Secrets.
+
+Enable Email/Password authentication.
+Use Firestore for user data.
+Use Realtime Database for sensor data.
+
+### Sign Up Screen Layout:
+
+TOP SECTION (25% screen height):
+- Background: linear-gradient(160deg, #6E75BF, #8879B8)
+- Logo centered (cropped to hide tagline):
+    container: height 100px, overflow hidden
+    image: height 170px, object-position top center
+
+BOTTOM SECTION (75% screen height):
+- Background: #F8F9FF
+- Border-radius: 28px 28px 0 0
+- margin-top: -20px (overlaps top section)
+- Padding: 24px 20px
+- No scrolling — everything fits on screen
+
+TAB SWITCHER (Sign Up / Log In):
+- Container: #EBEBF5, border-radius 14px, 
+  padding 4px, height 40px
+- Active: white bg, #1B2A6B, bold, shadow
+- Inactive: transparent, #6B7FA3
+- This is the ONLY way to switch tabs
+- NO bottom links
+- NO second login button
+
+SIGN UP FIELDS:
+Labels: 13px, 600 weight, #6B7FA3, uppercase,
+        letter-spacing 0.8px
+Inputs: white bg, 1.5px #E2E8F0 border, 
+        14px radius, 48px height, 16px font
+        Focus: #6E75BF border + soft glow
+Gap between fields: 12px
+
+Fields:
+1. FULL NAME — placeholder "Your full name"
+2. EMAIL ADDRESS — placeholder "your@email.com"
+3. PASSWORD — "Min. 8 characters" + eye toggle
+4. CONFIRM PASSWORD — "Repeat password" + eye toggle
+
+Validations:
+- Valid email format
+- Password min 8 chars
+- Passwords match
+- All fields required
+- Inline error: 12px, #EF233C, ⚠️ prefix
+
+On submit:
+1. createUserWithEmailAndPassword
+2. Save to Firestore /users/{uid}:
+   { name, email, createdAt, medicalProfile: null }
+3. Navigate to Medical Profile Setup
+4. Show spinner on button while loading
+
+LOGIN FIELDS:
+1. EMAIL ADDRESS
+2. PASSWORD + eye toggle
+3. "Forgot Password?" right-aligned below password
+
+Before login attempt:
+- fetchSignInMethodsForEmail(email)
+- If empty → show:
+  "We don't recognise this email.
+   You need to create an account first.
+   Tap Sign Up above! 😊"
+- Only proceed if email exists
+
+AUTH FLOW (onAuthStateChanged):
+- Logged in + medicalProfile → Home
+- Logged in + no medicalProfile → Medical Profile
+- Not logged in → Login
+
+No screen accessible without login.
+
+---
+
+## 🏥 MEDICAL PROFILE SCREEN
+
+Header: gradient, "Medical Profile" title
+
+Fields:
+- Age: 56px height input, 18px font
+- Gender: pill buttons (Male/Female/Other/
+  Prefer not to say)
+- Medical Conditions: open text box
+  Label: "Do you have any medical conditions?"
+  Placeholder: "e.g. Diabetes Type 2, Post-Surgery..."
+- Doctor (Optional):
+  Small "Optional" gray text below section title
+  Doctor name + phone
+- Emergency Contact:
+  Contact name + phone (used for SMS alerts)
+- "Save Profile" button (gradient, full width)
+- "Skip for now" text link below
+
+Save to Firestore /users/{uid}/medicalProfile
+
+---
+
+## 📱 NAVIGATION
+
+Bottom tab bar (5 tabs):
+1. 🏠 Home
+2. 🩹 Wounds
+3. 📊 History
+4. 🔔 Alerts
+5. 👤 Profile
+
+Active: #6E75BF | Inactive: #A0AEC0
+Nav bg: white, border-top: 1px solid #E2E8F0
+
+---
+
+## 🏠 HOME SCREEN
+
+Header (gradient, 120px):
+- Enzora logo top-left (34px height)
+- "Hello, [Full Name]" from Firestore
+- Notification bell top-right with badge
+
+Device status pill below header:
+- 🟢 "Device Connected – Monitoring [Wound Name]"
+- 🔴 "Device Not Connected – Tap to connect"
+
+Device connection check:
+Listen to /sensor/status in Firebase Realtime DB.
+If data exists and is recent (updated within 
+last 5 minutes) → device is considered connected.
+If no data or stale → device not connected.
+
+IF NOT connected:
+- Hide status card
+- Show card:
+  No-wifi illustration
+  "Your Enzora device is not connected yet."
+  "Make sure the device is on and connected 
+   to WiFi."
+  Button: "How to Connect? 📡"
+  Arabic: "كيفية التوصيل؟ 📡"
+  Tapping opens help instructions modal
+
+IF connected — show HERO STATUS CARD (40% height):
+
+"yellow" status:
+- Background: #FFF3CD, border: 2px solid #FFB703
+- Icon: ✅
+- Title: "Wound is Normal"
+- Subtitle: "Your wound shows no signs of infection.
+  Keep it clean and dry."
+- Arabic: "جرحك لا يظهر أي علامات عدوى"
+
+"green" status:
+- Background: #FFF0F0, border: 2px solid #FF6B6B
+- Icon: ⚠️
+- Title: "Early Signs Detected"
+- Subtitle: "Early signs of possible infection.
+  Monitor closely and contact your doctor soon."
+- Arabic: "علامات مبكرة لعدوى محتملة"
+- Send local push notification
+- Soft pulse animation on card
+
+"blue" status:
+- Background: #FDEDF0, border: 2px solid #EF233C
+- Icon: 🚨
+- Title: "Infection Detected"
+- Subtitle: "Infection confirmed. Contact your 
+  doctor immediately."
+- Arabic: "تم تأكيد وجود عدوى"
+- Trigger full-screen infection alert modal
+- Send SMS to emergency contact via Twilio
+- Infinite pulse animation on card
+
+Below hero card:
+Quick stats row (3 cards):
+Last Reading | Today's Checks | Monitoring Since
+
+Recent Readings section:
+Timeline feed with colored left borders
+"See All" link → History screen
+
+---
+
+## 📡 DEVICE CONNECTION
+
+The ESP32 connects to WiFi automatically 
+and writes to Firebase — the user does NOT 
+need to enter an IP address.
+
+The only thing the user needs to do is:
+1. Make sure the device is powered on
+2. Make sure it is on the same WiFi network
+
+### How to Connect Help Modal
+
+Shown when user taps "How to Connect?" button.
+Opens as a scrollable modal popup.
+
+Title: "How to Set Up Your Device"
+Arabic: "كيفية إعداد جهازك"
+
+Steps (large icons + text):
+
+Step 1 – power icon:
+"Turn on your Enzora device by pressing 
+ the small button on its side.
+ A light will turn on to show it is ready. 💡"
+
+Step 2 – wifi icon:
+"Make sure your Enzora device is connected 
+ to your home WiFi network.
+ The device connects automatically when 
+ it is turned on near your WiFi. 📶"
+
+Step 3 – phone icon:
+"Open this app and wait a few seconds.
+ The app will connect automatically 
+ when the device is ready."
+
+If not connecting troubleshooting:
+"1. Turn the device off and on again
+ 2. Make sure your WiFi is working
+ 3. Keep the device within range of your router
+ 4. Contact your doctor if problem continues"
+
+Close button: "Got it! ✓"
+Arabic: "فهمت! ✓"
+
+### Wound Selection (first time connecting)
+
+When app detects Firebase data for first time 
+and no wound is linked yet, prompt user:
+
+Title: "Which wound should we monitor? 🩹"
+
+IF wounds exist in Firestore:
+Show selectable wound cards +
+"➕ This is a new wound" option at bottom
+
+IF no wounds yet:
+Show inline new wound form directly
+
+New Wound Form:
+- "What would you like to call this wound?"
+  Placeholder: "My knee wound" / "جرح ركبتي"
+- "Where is the wound?" open text input
+  Placeholder: "e.g. Left foot, right knee"
+- "When did this happen?" date picker
+- "How did it happen?" text area (optional)
+- "Any notes?" text area (optional)
+
+Button: "Start Monitoring This Wound"
+Arabic: "بدء مراقبة هذا الجرح"
+
+On save: store wound in Firestore + link to 
+/sensor path in Realtime Database.
+
+---
+
+## 🔬 COLOR STATUS LOGIC
+
+Listen to Firebase Realtime Database:
+const statusRef = ref(db, 'sensor/status')
+onValue(statusRef, (snapshot) => {
+  const status = snapshot.val()
+  // "yellow" | "green" | "blue"
+  updateAppStatus(status)
+})
+
+Also read RGB values for history:
+const sensorRef = ref(db, 'sensor')
+onValue(sensorRef, (snapshot) => {
+  const data = snapshot.val()
+  // { red, green, blue, status }
+  saveReading(data)
+})
+
+Save every reading to Firestore:
+/users/{uid}/wounds/{woundId}/readings/{id}
+{ status, red, green, blue, timestamp }
+
+Delete all old threshold/deviation/calibration logic.
+
+---
+
+## 🩹 WOUNDS SCREEN
+
+Header: gradient, logo top-left,
+"My Wounds" title, "[N] active wounds" subtitle
+
+Active Wounds list:
+Each card:
+- Wound name (bold 18px)
+- Location
+- Date added
+- Status badge (yellow/orange/red colored)
+- Arrow → to detail
+
+"+ Add New Wound" button:
+- Full width, 56px height, gradient
+- 18px bold, text fully visible (no cutoff)
+
+Empty state:
+Heart illustration + "You haven't added 
+any wounds yet" + Add button
+
+Bottom nav label: "Wounds"
+
+---
+
+## 🔍 WOUND DETAIL SCREEN
+
+Header: gradient + back arrow + logo + wound name
+
+Content:
+- "Monitoring: [Wound Name]" above status card
+- Hero status card (same design as home)
+- Last reading timestamp
+- Mini 7-day RGB trend chart
+- Wound description and notes
+- Full timeline of readings and status changes
+
+"Mark as Healed" button:
+- Only show when current status is "yellow"
+- Confirmation:
+  "Wonderful news! 🎉
+   Are you sure this wound has fully healed?
+   It will move to your wound history."
+  Buttons: "Yes, It's Healed! ✅" / "Not Yet"
+- On confirm: status = "healed", save healedAt
+
+"Add a Note" button:
+Opens text input → saves with timestamp
+
+---
+
+## 📊 HISTORY SCREEN
+
+Header: gradient, same height as all screens,
+logo top-left, "History" title
+
+Filter: Today / 7 Days / 30 Days
+
+Stats row:
+Normal count (yellow) | Caution (orange) | 
+Alert (red) — color coded cards
+
+RGB Trend chart (line chart):
+R line (red), G line (green), B line (blue)
+
+Reading Timeline:
+Each entry:
+- Colored dot
+- Status label
+- RGB values
+- Timestamp
+
+Labels:
+yellow → "Normal – No infection signs"
+green  → "Caution – Early infection signs"
+blue   → "Alert – Infection confirmed"
+
+Healed Wounds section:
+Each: name + "Healed ✅" + date range + 
+"Took X days to heal"
+
+---
+
+## 🔔 ALERTS SCREEN
+
+Header: gradient, same height as all screens
+
+Each alert card:
+- Colored left border matching status
+- Icon + title + timestamp + description
+- Grouped: Today / Yesterday / Earlier
+
+Swipe left to dismiss
+
+Empty state:
+"No alerts yet – your wound is being 
+monitored 🌿"
+
+---
+
+## 🚨 INFECTION ALERT MODAL (blue status)
+
+Triggers automatically when Firebase 
+status = "blue"
+
+Full screen modal:
+
+Title: "⚠️ Your Wound Needs Attention"
+Arabic: "جرحك يحتاج إلى عناية"
+
+Body (min 18px):
+"Our sensor detected a possible infection.
+ Please don't worry – here is what to do:"
+
+Steps:
+1. 🧼 "Do NOT remove the bandage yourself"
+2. 👁️ "Check if area is red, swollen, or warm"
+3. 📞 "Call your doctor as soon as possible"
+4. 🚨 "If unwell, go to emergency room"
+
+Buttons:
+- "Call My Doctor Now 📞" → phone call to 
+  saved doctor number
+- "I Understand" → dismisses modal
+
+Also send SMS via Twilio to emergency contact:
+"[Name]'s Enzora device detected a confirmed 
+infection in their wound '[Wound Name]'. 
+Please check on them immediately.
+– Enzora Smart Wound Patch"
+
+Store Twilio credentials in Replit Secrets.
+
+---
+
+## 👤 PROFILE SCREEN
+
+Header: gradient, logo top-left
+
+Shows all medical profile info pulled from 
+Firestore. Edit Profile button.
+
+Settings:
+- Language toggle 🌐 (English / Arabic)
+- Notifications toggle
+- Large Text Mode (+20% all font sizes)
+
+Logout:
+- Confirmation dialog first
+- Firebase signOut()
+- Redirect to Login
+
+---
+
+## ♿ ACCESSIBILITY & UX RULES
+
+- Min font size: 16px body, 20px headings,
+  22px status labels
+- All buttons min height: 56px, full width
+- All inputs min height: 52px
+- All touch targets min: 48x48px
+- Single column layouts only
+- Every destructive action needs confirmation
+- Loading: spinner + text always
+- Empty states: illustration + text + button
+- No technical language:
+  "WiFi" → "Wireless Connection" where needed
+  "Firebase" → never mention to user
+  "RGB" → "Color Reading"
+  "Error 404" → "Something went wrong"
+  "Sync" → "Update"
+
+---
+
+## 🎬 ONBOARDING (3 slides)
+
+No logo on slides. No Skip button.
+"Continue" on slides 1–2. "Get Started →" on 3.
+Progress dots at bottom. Horizontal swipe.
+
+Slide 1: "Monitor Your Wound Smartly"
+Background: #EEF2FF → #F8F9FF
+Illustration: hand with bandage + device on top
+Subtitle: "Enzora's smart patch detects infection
+before it becomes a problem"
+
+Slide 2: "Real-Time Color Detection"  
+Background: #F0FDF4 → #F8F9FF
+Illustration: bandage color scale
+Yellow (Normal) → Orange (Caution) → Red (Alert)
+Subtitle: "Our sensor reads your bandage color
+and analyzes it instantly"
+
+Slide 3: "Get Alerts Before It's Too Late"
+Background: #FFF7ED → #F8F9FF
+Illustration: phone notification + doctor card
+Subtitle: "You and your doctor get notified
+the moment something changes"
+
+---
+
+## 🔔 PUSH NOTIFICATIONS
+
+green status:
+Title: "⚠️ Enzora Alert"
+Body: "Early signs of infection detected.
+Please check your wound and contact your doctor."
+
+blue status:
+Title: "🚨 Infection Alert – Enzora"
+Body: "Infection confirmed. Contact your 
+doctor immediately."
+
+Tapping notification → opens Home Screen.
+
+---
+
+## 🗄️ FIREBASE STRUCTURE
+
+Realtime Database (sensor data from ESP32):
+/sensor
+  ├── red: number
+  ├── green: number
+  ├── blue: number
+  └── status: "yellow" | "green" | "blue"
+
+Firestore (user data):
+/users/{uid}
+  - name, email, createdAt
+  - medicalProfile: {
+      age, gender, conditions,
+      doctorName, doctorPhone,
+      emergencyContact, emergencyPhone
+    }
+
+/users/{uid}/wounds/{woundId}
+  - name, location, dateAdded, description,
+    notes, status, healedAt
+
+/users/{uid}/wounds/{woundId}/readings/{id}
+  - status, red, green, blue, timestamp
+
+---
+
+## 🛠️ TECH STACK
+
+React Native with Expo
+expo-router or react-navigation
+Firebase Auth + Firestore + Realtime Database
+expo-notifications for push notifications
+i18next + react-i18next for Arabic/English
+react-native-chart-kit for charts
+Twilio for SMS (credentials in Replit Secrets)
+
+---
+
+## ✅ MVP CHECKLIST
+
+- Splash screen with logo animation
+- 3-slide onboarding (shown only first time)
+- Sign Up with Firebase Auth
+- Login (blocks if no account exists)
+- Medical Profile setup
+- Home dashboard
+- Firebase Realtime Database listener for status
+- Status card hidden until Firebase data received
+- Wound selection/creation flow
+- Add new wound form
+- Wound detail screen
+- Mark wound as healed
+- History screen with RGB chart
+- Alerts screen
+- Profile + settings screen
+- Arabic/English on all screens
+- Yellow/Green/Blue status logic from Firebase
+- Infection alert modal on blue status
+- SMS on blue status via Twilio
+- Push notifications on green and blue
+- Consistent colors, headers, logo everywhere
