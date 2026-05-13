@@ -31,7 +31,11 @@ const LOGO_ASPECT = 787 / 1024;
 // or "Smart Wound Patch" tagline. The full logo is reserved for the auth
 // screen (the user's first branded entry point).
 const MARK_SOURCE = require("@/assets/images/enzora-mark.png");
-const MARK_ASPECT = 872 / 916;
+// The mark asset is intentionally a transparent SQUARE (with the icon glyph
+// optically centered inside). Keeping aspect 1:1 here means the rendered
+// image is itself a square, which centers cleanly inside the circular
+// medallion regardless of size.
+const MARK_ASPECT = 1;
 
 const webCursor =
   Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
