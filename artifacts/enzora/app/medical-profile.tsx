@@ -21,7 +21,8 @@ export default function MedicalProfileScreen() {
   const { saveMedicalProfile } = useApp();
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
-  const [conditions, setConditions] = useState("");
+  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
+  const [otherCondition, setOtherCondition] = useState("");
   const [docName, setDocName] = useState("");
   const [docPhone, setDocPhone] = useState("");
   const [emName, setEmName] = useState("");
@@ -35,13 +36,50 @@ export default function MedicalProfileScreen() {
     { v: "prefer", l: t("preferNotToSay") },
   ];
 
+  // Each option carries:
+  //   v  — stable internal id (used in selection state)
+  //   l  — translated label rendered in the chip (EN or AR)
+  //   en — canonical English label that we PERSIST into
+  //        `medicalProfile.conditions`. Downstream readers (AI prompts in
+  //        components/AI.tsx, doctor reports, and the regex-based care-tip
+  //        logic in lib/wellness.ts that matches /diab/, /surg|post/, …)
+  //        all assume English text, so we always store English regardless
+  //        of the current UI language.
+  const conditionOptions = [
+    { v: "diabetes_type_1", l: t("conditionDiabetes1"), en: "Diabetes Type 1" },
+    { v: "diabetes_type_2", l: t("conditionDiabetes2"), en: "Diabetes Type 2" },
+    { v: "post_surgery", l: t("conditionPostSurgery"), en: "Post-surgery wound" },
+    { v: "chronic_wound", l: t("conditionChronic"), en: "Chronic wound" },
+    { v: "bed_sore", l: t("conditionBedSore"), en: "Bed sore" },
+    { v: "diabetic_foot", l: t("conditionDiabeticFoot"), en: "Diabetic foot" },
+    { v: "other", l: t("conditionOther"), en: "Other" },
+  ];
+
+  const toggleCondition = (v: string) => {
+    setSelectedConditions((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+    );
+  };
+
+  const buildConditionsString = () => {
+    const parts = selectedConditions
+      .filter((v) => v !== "other")
+      .map((v) => conditionOptions.find((o) => o.v === v)?.en ?? v);
+    if (selectedConditions.includes("other")) {
+      // Append the user-typed specification when provided; otherwise still
+      // record that they picked "Other" so the selection isn't silently lost.
+      parts.push(otherCondition.trim() || "Other");
+    }
+    return parts.join(", ");
+  };
+
   const submit = async () => {
     setSaving(true);
     try {
       await saveMedicalProfile({
         age,
         gender,
-        conditions,
+        conditions: buildConditionsString(),
         doctorName: docName,
         doctorPhone: docPhone,
         emergencyContact: emName,
@@ -107,27 +145,38 @@ export default function MedicalProfileScreen() {
         </Field>
 
         <Field label={t("conditions")}>
-          <TextField
-            value={conditions}
-            onChangeText={setConditions}
-            placeholder={t("conditionsPlaceholder")}
-            multiline
-            numberOfLines={3}
-            style={{
-              height: undefined,
-              minHeight: 80,
-              backgroundColor: "#FFFFFF",
-              borderColor: "#E2E8F0",
-              borderWidth: 1.5,
-              borderRadius: 12,
-              paddingTop: 12,
-              paddingBottom: 12,
-              paddingHorizontal: 16,
-              fontSize: 15,
-              color: "#1B2A6B",
-              textAlignVertical: "top",
-            }}
-          />
+          <View style={styles.chipRow}>
+            {conditionOptions.map((opt) => {
+              const active = selectedConditions.includes(opt.v);
+              return (
+                <Pressable
+                  key={opt.v}
+                  onPress={() => toggleCondition(opt.v)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: active }}
+                  style={[styles.chip, active && styles.chipActive]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      active && styles.chipTextActive,
+                    ]}
+                  >
+                    {opt.l}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {selectedConditions.includes("other") && (
+            <View style={{ marginTop: 10 }}>
+              <TextField
+                value={otherCondition}
+                onChangeText={setOtherCondition}
+                placeholder={t("pleaseSpecify")}
+              />
+            </View>
+          )}
         </Field>
 
         <View style={{ gap: 6 }}>
@@ -180,6 +229,30 @@ export default function MedicalProfileScreen() {
 const styles = StyleSheet.create({
   content: { paddingHorizontal: 16, paddingTop: 16, gap: 16, paddingBottom: 32 },
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  chip: {
+    paddingHorizontal: 18,
+    minHeight: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1.5,
+    borderColor: c.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chipActive: {
+    backgroundColor: c.primary,
+    borderColor: c.primary,
+  },
+  chipText: {
+    fontSize: 15,
+    color: c.textPrimary,
+    fontFamily: "Inter_500Medium",
+  },
+  chipTextActive: {
+    color: c.textWhite,
+    fontFamily: "Inter_600SemiBold",
+  },
   pill: {
     paddingHorizontal: 16,
     height: 44,
