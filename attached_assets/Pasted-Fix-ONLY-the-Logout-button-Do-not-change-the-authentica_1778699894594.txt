@@ -1,0 +1,55 @@
+Fix ONLY the Logout button.
+
+Do not change the authentication architecture.
+Do not change the database.
+Do not change Firebase.
+Do not redesign any UI.
+Do not refactor the whole auth system.
+
+The app already uses the correct authentication setup:
+- Sign in / sign up use the existing Replit/default backend database system.
+- Firebase is only used for ESP32 sensor data.
+- Keep that exactly as it is.
+
+Problem:
+The Logout button is not working correctly.
+
+Task:
+Find the existing logout/session-clearing logic and connect the Logout button to it properly.
+
+Expected behavior:
+- When I press Logout, the current user should be logged out.
+- The app should clear the current logged-in user/session/token using the existing auth system.
+- The app should immediately return to the Login screen.
+- The bottom navigation should disappear after logout.
+- The user should not stay on Profile or Home.
+- After refreshing/restarting the preview, the app should still show the Login screen.
+- Logging in again should still work normally.
+
+Important:
+Do not replace the current login system.
+Do not add Firebase Auth.
+Do not modify Firebase sensor connection.
+Do not modify ESP32/Firebase realtime database logic.
+Do not make unrelated UI changes.
+
+Check specifically:
+- The Logout button on the Profile screen has a real onPress/onClick handler.
+- The handler calls the existing logout function or clears the same storage/session values used by login.
+- Any auth context/state is updated so the app switches back to the auth screens.
+- Any stored token/user data is removed from AsyncStorage/localStorage/SecureStore, depending on what the app currently uses.
+
+Testing:
+After fixing, test this exact flow:
+1. Log in.
+2. Go to Profile.
+3. Press Logout.
+4. Confirm the app goes to Login.
+5. Confirm the bottom nav disappears.
+6. Refresh the preview.
+7. Confirm it still shows Login.
+8. Log in again.
+9. Confirm Home opens normally.
+
+Deliver:
+Tell me exactly what file(s) you changed and what was wrong with the Logout button.

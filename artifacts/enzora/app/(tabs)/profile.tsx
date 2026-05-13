@@ -68,14 +68,27 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = () => {
+    const doLogout = async () => {
+      await signOutUser();
+      router.replace("/auth");
+    };
+    // react-native-web's Alert.alert maps to window.alert (no buttons), so the
+    // destructive button's onPress never fires. Use window.confirm on web and
+    // the real Alert dialog on native.
+    if (Platform.OS === "web") {
+      const ok =
+        typeof window !== "undefined" &&
+        window.confirm(t("logoutConfirm"));
+      if (ok) void doLogout();
+      return;
+    }
     Alert.alert(t("logout"), t("logoutConfirm"), [
       { text: t("cancel"), style: "cancel" },
       {
         text: t("logout"),
         style: "destructive",
-        onPress: async () => {
-          await signOutUser();
-          router.replace("/auth");
+        onPress: () => {
+          void doLogout();
         },
       },
     ]);
