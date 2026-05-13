@@ -104,15 +104,14 @@ export default function AuthScreen() {
         end={{ x: 1, y: 1 }}
         style={[
           styles.top,
-          { paddingTop: insets.top + 8, height: height * 0.28 },
+          { paddingTop: insets.top + 12, minHeight: Math.max(180, height * 0.24) },
         ]}
       >
-        <View style={styles.topBar}>
-          <View />
-          <LanguageToggle dark />
-        </View>
         <View style={styles.logoWrap}>
           <Logo size="lg" />
+        </View>
+        <View style={[styles.langAbsolute, { top: insets.top + 12 }]}>
+          <LanguageToggle dark />
         </View>
       </LinearGradient>
 
@@ -217,11 +216,10 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  top: { paddingHorizontal: 18 },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  top: { paddingHorizontal: 16, position: "relative" },
+  langAbsolute: {
+    position: "absolute",
+    right: 16,
   },
   logoWrap: {
     flex: 1,

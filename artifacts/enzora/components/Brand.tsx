@@ -31,7 +31,7 @@ export function Logo({
   size?: "sm" | "lg";
   color?: string;
 }) {
-  const fontSize = size === "lg" ? 36 : 22;
+  const fontSize = size === "lg" ? 30 : 18;
   return (
     <View style={{ flexShrink: 0 }}>
       <Text
@@ -48,7 +48,7 @@ export function Logo({
       {size === "lg" && (
         <Text
           style={{
-            fontSize: 11,
+            fontSize: 10,
             color: color ?? c.textWhite,
             opacity: 0.85,
             letterSpacing: 2,
@@ -414,49 +414,50 @@ const styles = StyleSheet.create({
   langPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
   },
   header: {
-    paddingHorizontal: 18,
-    paddingBottom: 18,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
   },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    minHeight: 36,
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
   headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     color: c.textWhite,
-    fontSize: 26,
-    fontWeight: "800",
+    fontSize: 20,
+    fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   headerSubtitle: {
     color: "rgba(255,255,255,0.85)",
-    fontSize: 14,
+    fontSize: 12,
     marginTop: 2,
     fontFamily: "Inter_400Regular",
   },
   btn: {
-    height: 56,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
@@ -470,12 +471,12 @@ const styles = StyleSheet.create({
   },
   btnText: {
     color: c.textWhite,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: c.textSecondary,
     textTransform: "uppercase",
@@ -487,21 +488,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   input: {
-    height: 52,
-    borderRadius: 12,
+    height: 48,
+    borderRadius: 10,
     backgroundColor: c.card,
     borderWidth: 1.5,
     borderColor: c.border,
-    paddingHorizontal: 16,
-    paddingRight: 44,
-    fontSize: 16,
+    paddingHorizontal: 14,
+    paddingRight: 40,
+    fontSize: 15,
     color: c.textPrimary,
     fontFamily: "Inter_400Regular",
   },
   eye: {
     position: "absolute",
-    right: 12,
-    height: 52,
+    right: 10,
+    height: 48,
     justifyContent: "center",
   },
   errRow: { flexDirection: "row", alignItems: "center", gap: 4 },
@@ -528,13 +529,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   statusTitle: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: "800",
     fontFamily: "Inter_700Bold",
     textAlign: "center",
   },
   statusSub: {
-    fontSize: 15,
+    fontSize: 13,
     color: c.textPrimary,
     textAlign: "center",
     lineHeight: 21,
@@ -556,14 +557,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: c.textPrimary,
     textAlign: "center",
     fontFamily: "Inter_700Bold",
   },
   emptySub: {
-    fontSize: 14,
+    fontSize: 12,
     color: c.textSecondary,
     textAlign: "center",
     fontFamily: "Inter_400Regular",

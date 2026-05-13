@@ -1,0 +1,101 @@
+## UI Fixes – Sizing, Layout & Medical Profile Screen
+
+---
+
+### 1. Arabic language button position
+Move the "العربية" language toggle button:
+- Remove it from the very top of the screen
+- Place it INSIDE the header bar, aligned to 
+  the right side, vertically centered
+- It should sit at the same height as the 
+  header content, not above it
+- Apply this to ALL screens consistently
+
+---
+
+### 2. Overall app sizing is wrong
+The app appears to be rendering as if the 
+screen is larger than it actually is.
+Everything looks too big and overflows.
+
+Fix:
+- Set the root container max-width to 100%
+- Make sure the viewport meta tag is correct:
+  <meta name="viewport" content="width=device-width, 
+  initial-scale=1.0, maximum-scale=1.0">
+- All font sizes should be relative to screen 
+  width, not fixed large values
+- Reduce all font sizes by 15% across the app
+- Make sure no container has a fixed width 
+  larger than the screen width
+- Use percentage widths or flex instead of 
+  fixed pixel widths on containers
+- Check that the preview is rendering at 
+  mobile size (375px width) not desktop size
+
+---
+
+### 3. Medical Profile screen sizing fixes
+
+- Screen padding: 16px on left and right
+- All input fields: 
+  height 48px (not 56px or larger)
+  font-size 15px
+  border-radius 10px
+- Section labels (AGE, GENDER etc):
+  font-size 12px
+  letter-spacing 0.8px
+  color #6B7FA3
+- Gap between sections: 16px (not larger)
+- "Save Profile" button:
+  height 52px
+  font-size 16px
+  margin-bottom 24px
+
+---
+
+### 4. Medical Conditions text box – make it white
+
+The "Do you have any medical conditions?" 
+text area is currently not white.
+
+Fix:
+- background: #FFFFFF
+- border: 1.5px solid #E2E8F0
+- border-radius: 12px
+- padding: 12px 16px
+- min-height: 80px
+- font-size: 15px
+- color: #1B2A6B
+- placeholder color: #A0AEC0
+- On focus: border-color: #6E75BF
+
+---
+
+### 5. Logo – placeholder until file is uploaded
+
+Since the Enzora logo file has not been 
+uploaded yet, use this as a temporary 
+placeholder everywhere the logo appears:
+
+Show a simple text-based logo:
+- Text: "enzora"
+- Font: bold, 20px
+- Color: white (on gradient headers)
+- Color: #1B2A6B (on white backgrounds)
+- No image tag, no broken image icon
+
+When the real logo file is uploaded later, 
+it will replace this text placeholder.
+
+---
+
+### 6. Header sizing consistency
+
+Every screen header must be exactly the same:
+- Height: 100px total including status bar
+- Content area: 60px
+- Background: linear-gradient(135deg, #6E75BF, #8879B8)
+- Title font size: 20px bold white
+- No header should be taller or shorter than others
+- Padding: 0 16px

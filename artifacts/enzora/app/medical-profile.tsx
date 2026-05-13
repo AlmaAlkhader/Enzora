@@ -113,7 +113,20 @@ export default function MedicalProfileScreen() {
             placeholder={t("conditionsPlaceholder")}
             multiline
             numberOfLines={3}
-            style={{ height: 90, textAlignVertical: "top", paddingTop: 14 }}
+            style={{
+              height: undefined,
+              minHeight: 80,
+              backgroundColor: "#FFFFFF",
+              borderColor: "#E2E8F0",
+              borderWidth: 1.5,
+              borderRadius: 12,
+              paddingTop: 12,
+              paddingBottom: 12,
+              paddingHorizontal: 16,
+              fontSize: 15,
+              color: "#1B2A6B",
+              textAlignVertical: "top",
+            }}
           />
         </Field>
 
@@ -154,7 +167,7 @@ export default function MedicalProfileScreen() {
           label={t("saveProfile")}
           onPress={submit}
           loading={saving}
-          style={{ marginTop: 12 }}
+          style={{ marginTop: 12, marginBottom: 24 }}
         />
         <Pressable onPress={skip} style={{ alignSelf: "center", padding: 12 }}>
           <Text style={styles.skip}>{t("skip")}</Text>
@@ -165,7 +178,7 @@ export default function MedicalProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 20, gap: 16, paddingBottom: 40 },
+  content: { paddingHorizontal: 16, paddingTop: 16, gap: 16, paddingBottom: 32 },
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pill: {
     paddingHorizontal: 16,
