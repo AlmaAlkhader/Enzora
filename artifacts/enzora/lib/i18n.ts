@@ -271,6 +271,18 @@ const en = {
     "Missing EAS projectId. Add expo.extra.eas.projectId in app.json.",
   pushBlockerTokenError: "Expo could not generate a push token.",
   pushTestSaveNotAttempted: "(not attempted)",
+  pushLocalTitle: "Quick local test (works in Expo Go)",
+  pushLocalTest: "Test Local Notification",
+  pushLocalAlert: "Simulate Wound Change Alert",
+  pushLocalTestScheduled:
+    "Scheduled — you should see a notification in 3 seconds.",
+  pushLocalAlertShown: "Local alert shown.",
+  pushLocalTestFailed: "Failed — permission may be denied.",
+  pushExpoGoNote:
+    "Remote closed-app push notifications require a development build. Expo Go can only be used for local notification testing.",
+  pushDevBuildNote:
+    "For the final real version, install a development build to receive notifications when the app is fully closed.",
+  pushBackendRequiresDevBuild: "Backend push (requires development build)",
   pushTestSend: "Send Test Notification",
   pushTestSending: "Sending…",
   pushTestNoWound: "No active wound — create one first.",
@@ -734,6 +746,17 @@ const ar: typeof en = {
     "معرّف مشروع EAS مفقود. أضف expo.extra.eas.projectId في app.json.",
   pushBlockerTokenError: "تعذّر على Expo إنشاء رمز الإشعار.",
   pushTestSaveNotAttempted: "(لم يُحاول)",
+  pushLocalTitle: "اختبار محلي سريع (يعمل في Expo Go)",
+  pushLocalTest: "اختبار تنبيه محلي",
+  pushLocalAlert: "محاكاة تنبيه تغير الجرح",
+  pushLocalTestScheduled: "تمت الجدولة — سيظهر التنبيه خلال 3 ثوان.",
+  pushLocalAlertShown: "تم عرض التنبيه المحلي.",
+  pushLocalTestFailed: "فشل — قد يكون الإذن مرفوضاً.",
+  pushExpoGoNote:
+    "تتطلب الإشعارات البعيدة عند إغلاق التطبيق نسخة تطوير. يمكن استخدام Expo Go فقط لاختبار الإشعارات المحلية.",
+  pushDevBuildNote:
+    "للإصدار الحقيقي النهائي، ثبّت نسخة تطوير لاستقبال الإشعارات عندما يكون التطبيق مغلقاً تماماً.",
+  pushBackendRequiresDevBuild: "إشعار الخادم (يتطلب نسخة تطوير)",
   pushTestSend: "إرسال إشعار تجريبي",
   pushTestSending: "جارٍ الإرسال…",
   pushTestNoWound: "لا يوجد جرح نشط — أنشئ واحداً أولاً.",

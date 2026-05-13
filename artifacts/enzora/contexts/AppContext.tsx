@@ -15,7 +15,10 @@ import { useTranslation } from "react-i18next";
 
 import { rtdb } from "@/lib/firebase";
 import i18n, { loadLanguage, saveLanguage } from "@/lib/i18n";
-import { scheduleDailyReminder } from "@/lib/notifications";
+import {
+  presentLocalTransition,
+  scheduleDailyReminder,
+} from "@/lib/notifications";
 import { clearPushSubscription, syncPushSubscription } from "@/lib/push";
 import {
   type Patient,
@@ -520,6 +523,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const cur = sensor.status;
     const prev = prevSensorStatus.current.get(refKey) ?? null;
     prevSensorStatus.current.set(refKey, cur);
+
+    // Expo Go fallback: mirror status transitions as local notifications.
+    // Remote push from the backend poller still runs (and will work once a
+    // development build exists), but Expo Go drops those silently. Firing a
+    // local notification here means the user actually sees the change while
+    // the app is open or recently backgrounded.
+    if (notificationsEnabled && prev && prev !== cur) {
+      void presentLocalTransition({
+        previousStatus: prev,
+        newStatus: cur,
+        language,
+      });
+    }
 
     void runSerialized(email, woundId, async () => {
       const existing = await readStatusLock(email, woundId);

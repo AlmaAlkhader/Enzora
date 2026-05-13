@@ -20,6 +20,10 @@ import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import { isBiometricAvailable } from "@/lib/biometric";
 import {
+  scheduleLocalTestNotification,
+  showLocalInfectionAlert,
+} from "@/lib/notifications";
+import {
   getCachedExpoPushToken,
   registerForPushNotificationsAsync,
   sendBackendTestPush,
@@ -118,6 +122,35 @@ export default function ProfileScreen() {
       }
     } finally {
       setRegisterBusy(false);
+    }
+  };
+
+  const [localBusy, setLocalBusy] = useState(false);
+  const [localResult, setLocalResult] = useState<string | null>(null);
+
+  const onLocalTest = async () => {
+    setLocalBusy(true);
+    setLocalResult(null);
+    try {
+      const ok = await scheduleLocalTestNotification();
+      setLocalResult(
+        ok ? t("pushLocalTestScheduled") : t("pushLocalTestFailed"),
+      );
+    } finally {
+      setLocalBusy(false);
+    }
+  };
+
+  const onLocalInfectionAlert = async () => {
+    setLocalBusy(true);
+    setLocalResult(null);
+    try {
+      const ok = await showLocalInfectionAlert(language);
+      setLocalResult(
+        ok ? t("pushLocalAlertShown") : t("pushLocalTestFailed"),
+      );
+    } finally {
+      setLocalBusy(false);
     }
   };
 
@@ -431,6 +464,73 @@ export default function ProfileScreen() {
                       : `${t("pushTestSaveFail")}: ${saveResult.error ?? "?"}`}
                 </Text>
               </View>
+              {/* Expo Go fallback section — works without a dev build. */}
+              <Text
+                style={[
+                  styles.pushDevTitle,
+                  { marginTop: 16, marginBottom: 4 },
+                ]}
+              >
+                {t("pushLocalTitle")}
+              </Text>
+              <Text
+                style={[styles.muted, { marginBottom: 8 }]}
+                selectable
+              >
+                {t("pushExpoGoNote")}
+              </Text>
+              <Pressable
+                onPress={() => void onLocalTest()}
+                disabled={localBusy}
+                style={[
+                  styles.pushDevBtn,
+                  { backgroundColor: localBusy ? c.border : c.normal },
+                ]}
+              >
+                <Feather name="bell" size={14} color="#fff" />
+                <Text style={styles.pushDevBtnText}>
+                  {t("pushLocalTest")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void onLocalInfectionAlert()}
+                disabled={localBusy}
+                style={[
+                  styles.pushDevBtn,
+                  { backgroundColor: localBusy ? c.border : c.alert },
+                ]}
+              >
+                <Feather name="alert-triangle" size={14} color="#fff" />
+                <Text style={styles.pushDevBtnText}>
+                  {t("pushLocalAlert")}
+                </Text>
+              </Pressable>
+              {localResult && (
+                <Text
+                  style={[styles.pushDevValue, { marginTop: 8 }]}
+                  selectable
+                >
+                  {localResult}
+                </Text>
+              )}
+
+              {/* Backend / remote push section — requires a dev build to
+                  actually deliver to a closed app. Kept here so we can keep
+                  testing the wiring as soon as the dev build is ready. */}
+              <Text
+                style={[
+                  styles.pushDevTitle,
+                  { marginTop: 16, marginBottom: 4 },
+                ]}
+              >
+                {t("pushBackendRequiresDevBuild")}
+              </Text>
+              <Text
+                style={[styles.muted, { marginBottom: 8 }]}
+                selectable
+              >
+                {t("pushDevBuildNote")}
+              </Text>
               <Pressable
                 onPress={() => void onRegister()}
                 disabled={registerBusy}
@@ -438,7 +538,6 @@ export default function ProfileScreen() {
                   styles.pushDevBtn,
                   {
                     backgroundColor: registerBusy ? c.border : c.primary,
-                    marginTop: 12,
                   },
                 ]}
               >
