@@ -15,19 +15,24 @@ export function ReadingRow({ reading }: { reading: Reading }) {
       : reading.status === "green"
         ? c.warning
         : c.alert;
-  const label =
+  const title =
     reading.status === "yellow"
-      ? t("normalLabel")
+      ? t("statusNormalTitle")
       : reading.status === "green"
-        ? t("cautionLabel")
-        : t("alertFullLabel");
+        ? t("statusWatchTitle")
+        : t("statusAlertTitle");
+  const sub =
+    reading.status === "yellow"
+      ? t("statusNormalSub")
+      : reading.status === "green"
+        ? t("statusWatchSub")
+        : t("statusAlertSub");
   return (
     <View style={[styles.row, { borderLeftColor: color }]}>
+      <View style={[styles.dot, { backgroundColor: color }]} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.meta}>
-          R {reading.red} · G {reading.green} · B {reading.blue}
-        </Text>
+        <Text style={styles.label}>{title}</Text>
+        <Text style={styles.meta}>{sub}</Text>
       </View>
       <Text style={styles.time}>
         {new Date(reading.timestamp).toLocaleTimeString([], {
@@ -47,16 +52,21 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     borderLeftWidth: 4,
-    gap: 10,
+    gap: 12,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     color: c.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_700Bold",
     fontWeight: "700",
   },
   meta: {
-    fontSize: 12,
+    fontSize: 13,
     color: c.textSecondary,
     fontFamily: "Inter_400Regular",
     marginTop: 2,

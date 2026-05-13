@@ -251,6 +251,18 @@ const en = {
   cautionLabel: "Caution – Early infection signs",
   alertFullLabel: "Alert – Infection confirmed",
 
+  // Patient-friendly status (timeline + trend)
+  statusNormalTitle: "Normal",
+  statusWatchTitle: "Watch closely",
+  statusAlertTitle: "Alert",
+  statusNormalSub: "No infection signs",
+  statusWatchSub: "Small change detected",
+  statusAlertSub: "Infection confirmed",
+  trendSummaryNormal: "Your wound readings were mostly normal.",
+  trendSummaryWatch: "Some small changes were detected. Keep watching your wound.",
+  trendSummaryAlert: "Alert readings appeared recently. Please contact your doctor.",
+  trendSummaryEmpty: "No readings available yet.",
+
   // Healing journey
   healingJourney: "Healing Journey",
   dayOfMonitoring: "Day {{day}} of monitoring",
@@ -626,6 +638,17 @@ const ar: typeof en = {
   normalLabel: "طبيعي – لا توجد علامات عدوى",
   cautionLabel: "تحذير – علامات عدوى مبكرة",
   alertFullLabel: "تنبيه – تم تأكيد العدوى",
+
+  statusNormalTitle: "طبيعي",
+  statusWatchTitle: "راقب الجرح",
+  statusAlertTitle: "تنبيه",
+  statusNormalSub: "لا توجد علامات عدوى",
+  statusWatchSub: "تم اكتشاف تغير بسيط",
+  statusAlertSub: "تم تأكيد وجود عدوى",
+  trendSummaryNormal: "كانت قراءات الجرح طبيعية في الغالب.",
+  trendSummaryWatch: "تم اكتشاف بعض التغيرات البسيطة. يرجى متابعة الجرح.",
+  trendSummaryAlert: "ظهرت قراءات تنبيه مؤخراً. يرجى التواصل مع طبيبك.",
+  trendSummaryEmpty: "لا توجد قراءات بعد.",
 
   healingJourney: "رحلة الشفاء",
   dayOfMonitoring: "اليوم {{day}} من المراقبة",

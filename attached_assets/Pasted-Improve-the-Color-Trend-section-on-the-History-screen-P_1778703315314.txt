@@ -1,0 +1,113 @@
+Improve the Color Trend section on the History screen.
+
+Problem:
+The Color Trend card is currently empty, and the Reading Timeline still shows raw RGB values like:
+R 0 - G 0 - B 0
+
+This is not useful for elderly patients.
+
+Goal:
+Make the Color Trend section show a simple patient-friendly visual summary of wound color status over time.
+
+Do not show raw RGB values anywhere in the patient-facing History screen.
+
+Color Trend should contain:
+
+1. Simple trend visualization
+Show the selected period readings as a horizontal row or simple mini chart:
+- Yellow = Normal
+- Green = Watch closely / caution
+- Blue = Alert / infection
+
+Use one of these simple options:
+Option A:
+A row of colored dots, one dot per reading/day.
+
+Option B:
+A simple horizontal segmented bar showing the proportion of yellow/green/blue readings.
+
+Option C:
+A minimal line/timeline with colored points.
+
+Choose the cleanest option that fits the current design.
+
+2. Summary text
+Below the visualization, show one short patient-friendly sentence based on readings.
+
+Examples:
+- If mostly yellow:
+  “Your wound readings were mostly normal.”
+- If green appears:
+  “Some small changes were detected. Keep watching your wound.”
+- If blue appears:
+  “Alert readings appeared recently. Please contact your doctor.”
+- If no readings:
+  “No readings available yet.”
+
+Arabic:
+- “كانت قراءات الجرح طبيعية في الغالب.”
+- “تم اكتشاف بعض التغيرات البسيطة. يرجى متابعة الجرح.”
+- “ظهرت قراءات تنبيه مؤخراً. يرجى التواصل مع طبيبك.”
+- “لا توجد قراءات بعد.”
+
+3. Small count row
+Show a simple count row inside the Color Trend card:
+- Normal: [number]
+- Watch: [number]
+- Alert: [number]
+
+Use the same colors:
+- Normal/yellow
+- Watch/green
+- Alert/blue or red-tinted alert styling
+
+4. Reading Timeline cleanup
+In the Reading Timeline cards:
+- Remove raw RGB values completely.
+- Each timeline item should show:
+  - Status title
+  - Patient-friendly meaning
+  - Time/date
+  - small colored status indicator
+
+Examples:
+Yellow:
+Title: “Normal”
+Text: “No infection signs”
+Green:
+Title: “Watch closely”
+Text: “Small change detected”
+Blue:
+Title: “Alert”
+Text: “Infection confirmed”
+
+Arabic:
+Yellow:
+“طبيعي”
+“لا توجد علامات عدوى”
+Green:
+“راقب الجرح”
+“تم اكتشاف تغير بسيط”
+Blue:
+“تنبيه”
+“تم تأكيد وجود عدوى”
+
+5. Design
+Keep the current Enzora visual style:
+- rounded white card
+- soft background
+- large readable text
+- no technical terms
+- no raw numbers unless they are simple counts
+- elderly-friendly layout
+
+Do not change:
+- authentication
+- Firebase sensor connection
+- ESP32 logic
+- unrelated screens
+
+Final result:
+The History screen should clearly answer:
+“Were my wound readings normal, changing, or dangerous over time?”
+without showing technical RGB data.

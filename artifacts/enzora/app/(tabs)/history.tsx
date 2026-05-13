@@ -96,7 +96,7 @@ export default function HistoryScreen() {
 
         <Card>
           <Text style={styles.sectionTitle}>{t("rgbTrend")}</Text>
-          <RGBChart readings={filtered.slice(0, 30)} />
+          <ColorTrend readings={filtered} counts={counts} />
         </Card>
 
         <View style={{ gap: 10 }}>
@@ -161,60 +161,141 @@ function StatCard({
   );
 }
 
-function RGBChart({
+function ColorTrend({
   readings,
+  counts,
 }: {
-  readings: { red: number; green: number; blue: number; timestamp: number }[];
+  readings: { status: "yellow" | "green" | "blue"; timestamp: number }[];
+  counts: { yellow: number; green: number; blue: number };
 }) {
+  const { t } = useTranslation();
+
   if (readings.length === 0) {
     return (
-      <Text
-        style={{
-          fontSize: 13,
-          color: c.textSecondary,
-          textAlign: "center",
-          paddingVertical: 24,
-          fontFamily: "Inter_400Regular",
-        }}
-      >
-        —
-      </Text>
+      <Text style={trendStyles.emptyText}>{t("trendSummaryEmpty")}</Text>
     );
   }
-  const data = [...readings].reverse();
+
+  // Oldest -> newest, cap at 30 dots so the row stays readable.
+  const dots = [...readings].reverse().slice(-30);
+
+  const summaryKey =
+    counts.blue > 0
+      ? "trendSummaryAlert"
+      : counts.green > 0
+        ? "trendSummaryWatch"
+        : "trendSummaryNormal";
+
+  const colorOf = (s: "yellow" | "green" | "blue") =>
+    s === "yellow" ? c.normal : s === "green" ? c.warning : c.alert;
+
   return (
-    <View style={{ flexDirection: "row", height: 120, alignItems: "flex-end", gap: 4, marginTop: 12 }}>
-      {data.map((d, i) => (
-        <View key={i} style={{ flex: 1, gap: 1, justifyContent: "flex-end" }}>
+    <View style={{ marginTop: 12, gap: 14 }}>
+      <View style={trendStyles.dotRow}>
+        {dots.map((r, i) => (
           <View
-            style={{
-              height: (d.red / 255) * 120,
-              backgroundColor: c.normal,
-              borderRadius: 3,
-              opacity: 0.9,
-            }}
+            key={i}
+            style={[trendStyles.trendDot, { backgroundColor: colorOf(r.status) }]}
           />
-          <View
-            style={{
-              height: (d.green / 255) * 120,
-              backgroundColor: c.warning,
-              borderRadius: 3,
-              opacity: 0.9,
-            }}
-          />
-          <View
-            style={{
-              height: (d.blue / 255) * 120,
-              backgroundColor: c.alert,
-              borderRadius: 3,
-              opacity: 0.9,
-            }}
-          />
-        </View>
-      ))}
+        ))}
+      </View>
+
+      <View style={trendStyles.countRow}>
+        <CountChip
+          color={c.normal}
+          label={t("statusNormalTitle")}
+          value={counts.yellow}
+        />
+        <CountChip
+          color={c.warning}
+          label={t("statusWatchTitle")}
+          value={counts.green}
+        />
+        <CountChip
+          color={c.alert}
+          label={t("statusAlertTitle")}
+          value={counts.blue}
+        />
+      </View>
+
+      <Text style={trendStyles.summary}>{t(summaryKey)}</Text>
     </View>
   );
 }
+
+function CountChip({
+  color,
+  label,
+  value,
+}: {
+  color: string;
+  label: string;
+  value: number;
+}) {
+  return (
+    <View style={trendStyles.chip}>
+      <View style={[trendStyles.chipDot, { backgroundColor: color }]} />
+      <Text style={trendStyles.chipLabel}>{label}</Text>
+      <Text style={[trendStyles.chipValue, { color }]}>{value}</Text>
+    </View>
+  );
+}
+
+const trendStyles = StyleSheet.create({
+  dotRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  trendDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  countRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  chip: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    backgroundColor: c.bg,
+  },
+  chipDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  chipLabel: {
+    fontSize: 13,
+    color: c.textPrimary,
+    fontFamily: "Inter_500Medium",
+  },
+  chipValue: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+  summary: {
+    fontSize: 14,
+    color: c.textPrimary,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 20,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: c.textSecondary,
+    textAlign: "center",
+    paddingVertical: 18,
+    fontFamily: "Inter_400Regular",
+  },
+});
 
 const styles = StyleSheet.create({
   filterRow: { flexDirection: "row", gap: 8 },
