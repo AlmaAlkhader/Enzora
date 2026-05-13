@@ -72,29 +72,45 @@ export function EnzoraLogo({
   }
 
   if (variant === "headerLg") {
-    const containerH = 110;
-    const imageH = Math.round(containerH / 0.78);
+    // Crop the PNG to show ONLY the swoosh icon (no wordmark, no tagline),
+    // then render "Enzora" below as white text so it reads cleanly on the
+    // purple gradient header. Icon occupies ~top 60% of the source image.
+    const iconH = 78;
+    const imageH = Math.round(iconH / 0.6);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
-      <View
-        style={{
-          height: containerH,
-          width: imageW,
-          overflow: "hidden",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          backgroundColor: "transparent",
-        }}
-      >
-        <Image
-          source={LOGO_SOURCE}
+      <View style={{ alignItems: "center", marginTop: 12 }}>
+        <View
           style={{
+            height: iconH,
             width: imageW,
-            height: imageH,
+            overflow: "hidden",
+            alignItems: "center",
+            justifyContent: "flex-start",
             backgroundColor: "transparent",
           }}
-          contentFit="contain"
-        />
+        >
+          <Image
+            source={LOGO_SOURCE}
+            style={{
+              width: imageW,
+              height: imageH,
+              backgroundColor: "transparent",
+            }}
+            contentFit="contain"
+          />
+        </View>
+        <Text
+          style={{
+            color: c.textWhite,
+            fontSize: 22,
+            fontWeight: "800",
+            letterSpacing: 0.5,
+            marginTop: 2,
+          }}
+        >
+          Enzora
+        </Text>
       </View>
     );
   }
