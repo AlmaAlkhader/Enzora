@@ -102,9 +102,9 @@ export function EnzoraLogo({
         </View>
         <Text
           style={{
-            color: c.textWhite,
-            fontSize: 22,
-            fontWeight: "800",
+            color: "#ffffff",
+            fontSize: 20,
+            fontWeight: "100",
             letterSpacing: 0.5,
             marginTop: 2,
           }}
