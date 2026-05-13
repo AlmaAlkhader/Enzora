@@ -27,6 +27,8 @@ import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import {
   callClaude,
+  clearAssessmentCache,
+  clearTrendCache,
   readAssessmentCache,
   readChatHistory,
   readTrendCache,
@@ -127,18 +129,21 @@ export function AIAssessment({ woundId }: { woundId: string }) {
     lastTrigger.current = triggerKey;
 
     let cancelled = false;
+    const bypassCache = retryNonce > 0;
     void (async () => {
-      const cached = await readAssessmentCache(woundId);
-      if (
-        cached &&
-        cached.status === status &&
-        cached.language === language
-      ) {
-        if (!cancelled) {
-          setText(cached.text);
-          setError(false);
+      if (!bypassCache) {
+        const cached = await readAssessmentCache(woundId);
+        if (
+          cached &&
+          cached.status === status &&
+          cached.language === language
+        ) {
+          if (!cancelled) {
+            setText(cached.text);
+            setError(false);
+          }
+          return;
         }
-        return;
       }
       if (!cancelled) {
         setLoading(true);
@@ -193,6 +198,8 @@ Rules:
   const retry = () => {
     setError(false);
     setText(null);
+    // Drop any cached entry for this wound so the next fetch is forced fresh.
+    void clearAssessmentCache(woundId);
     setRetryNonce((n) => n + 1);
   };
 
@@ -263,6 +270,9 @@ export function AITrend({ woundId }: { woundId: string }) {
   async function runPrediction() {
     if (!wound) return;
     if (readingsCount < 3) return;
+    // Manual / forced refresh always discards the cached entry first so the
+    // next render can't fall back to stale data.
+    await clearTrendCache(woundId);
     setLoading(true);
     setError(false);
     const last10 = readings

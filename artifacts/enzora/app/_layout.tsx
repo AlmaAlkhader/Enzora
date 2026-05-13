@@ -18,7 +18,12 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MoodModal, OfflineBanner } from "@/components/Wellness";
 import { AppProvider, useApp } from "@/contexts/AppContext";
+import { clearAllAICaches } from "@/lib/ai";
 import "@/lib/i18n";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const AI_CACHE_WIPE_FLAG = "enzora_ai_cache_wiped_v1";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -87,6 +92,21 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  // One-time wipe of stale AI cache entries left over from earlier API
+  // outages. Runs once per install (gated by an AsyncStorage flag).
+  useEffect(() => {
+    void (async () => {
+      try {
+        const done = await AsyncStorage.getItem(AI_CACHE_WIPE_FLAG);
+        if (done) return;
+        await clearAllAICaches();
+        await AsyncStorage.setItem(AI_CACHE_WIPE_FLAG, "1");
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 

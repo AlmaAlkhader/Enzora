@@ -69,6 +69,36 @@ export async function writeAssessmentCache(
   }
 }
 
+export async function clearAssessmentCache(woundId: string): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(ASSESS_PREFIX + woundId);
+  } catch {
+    /* ignore */
+  }
+}
+
+export async function clearTrendCache(woundId: string): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(TREND_PREFIX + woundId);
+  } catch {
+    /* ignore */
+  }
+}
+
+// One-time wipe of every cached AI result (assessments + trends), used on
+// app startup to recover from any stale entries left over from API outages.
+export async function clearAllAICaches(): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const stale = keys.filter(
+      (k) => k.startsWith(ASSESS_PREFIX) || k.startsWith(TREND_PREFIX),
+    );
+    if (stale.length) await AsyncStorage.multiRemove(stale);
+  } catch {
+    /* ignore */
+  }
+}
+
 export type CachedTrend = {
   trend: "improving" | "stable" | "worsening";
   explanation: string;
