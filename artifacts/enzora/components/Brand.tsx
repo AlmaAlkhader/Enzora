@@ -71,8 +71,35 @@ export function EnzoraLogo({
     );
   }
 
-  const height =
-    variant === "splash" ? 160 : variant === "headerLg" ? 140 : 36;
+  if (variant === "headerLg") {
+    const containerH = 110;
+    const imageH = Math.round(containerH / 0.78);
+    const imageW = Math.round(imageH * LOGO_ASPECT);
+    return (
+      <View
+        style={{
+          height: containerH,
+          width: imageW,
+          overflow: "hidden",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          backgroundColor: "transparent",
+        }}
+      >
+        <Image
+          source={LOGO_SOURCE}
+          style={{
+            width: imageW,
+            height: imageH,
+            backgroundColor: "transparent",
+          }}
+          contentFit="contain"
+        />
+      </View>
+    );
+  }
+
+  const height = variant === "splash" ? 160 : 36;
   const width = Math.round(height * LOGO_ASPECT);
   return (
     <Image
@@ -155,7 +182,7 @@ export function GradientHeader({
   const isSplit = layout === "split";
   const topPad = Math.max(insets.top, 0) + (isSplit ? 16 : 60);
   const bottomReserve = isSplit ? 8 : 0;
-  const minHeight = topPad + (logoSize === "lg" ? 140 : 80) + bottomReserve;
+  const minHeight = topPad + (logoSize === "lg" ? 110 : 80) + bottomReserve;
   return (
     <LinearGradient
       colors={gradient}
@@ -198,7 +225,7 @@ export function GradientHeader({
         {!isSplit && right}
         <LanguageToggle dark />
       </View>
-      <View style={[styles.headerCenter, isSplit && { alignItems: "flex-start", marginLeft: -4 }]}>
+      <View style={styles.headerCenter}>
         <EnzoraLogo variant={logoSize === "lg" ? "headerLg" : "header"} />
         {!isSplit && title && (
           <Text
