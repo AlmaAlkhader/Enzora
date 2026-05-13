@@ -3,6 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import React from "react";
 import {
   ActivityIndicator,
+  I18nManager,
   Platform,
   Pressable,
   StyleSheet,
@@ -143,7 +144,7 @@ export function GradientHeader({
   onBack?: () => void;
 }) {
   const insets = useSafeAreaInsets();
-  const topPad = Math.max(insets.top, 40);
+  const topPad = Math.max(insets.top, 0) + 60;
   return (
     <LinearGradient
       colors={gradient}
@@ -153,38 +154,58 @@ export function GradientHeader({
         styles.header,
         {
           paddingTop: topPad,
-          minHeight: 120 + Math.max(0, insets.top - 40),
+          minHeight: topPad + 80,
         },
       ]}
     >
-      <View style={styles.headerTopLeft}>
-        {back ? (
-          <Pressable
-            onPress={onBack}
-            hitSlop={16}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            style={({ pressed }) => [
-              styles.backBtn,
-              webCursor,
-              { opacity: pressed ? 0.7 : 1 },
-            ]}
-          >
-            <Feather name="chevron-left" size={22} color={c.textWhite} />
-          </Pressable>
-        ) : (
-          <EnzoraLogo variant="header" />
-        )}
+      {back && (
+        <Pressable
+          onPress={onBack}
+          hitSlop={16}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={({ pressed }) => [
+            styles.backBtnAbs,
+            webCursor,
+            { top: Math.max(insets.top, 0) + 44, opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <Feather
+            name={I18nManager.isRTL ? "chevron-right" : "chevron-left"}
+            size={22}
+            color={c.textWhite}
+          />
+        </Pressable>
+      )}
+      <View
+        style={[
+          styles.headerLangAbs,
+          { top: Math.max(insets.top, 0) + 44 },
+        ]}
+      >
+        {right}
+        <LanguageToggle dark />
       </View>
-      <View style={styles.headerBottomRow}>
-        <View style={{ flex: 1, paddingRight: 12 }}>
-          {title && <Text style={styles.headerTitle}>{title}</Text>}
-          {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
-        </View>
-        <View style={styles.headerRight}>
-          {right}
-          <LanguageToggle dark />
-        </View>
+      <View style={styles.headerCenter}>
+        <EnzoraLogo variant="header" />
+        {title && (
+          <Text
+            style={styles.headerTitle}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {title}
+          </Text>
+        )}
+        {subtitle && (
+          <Text
+            style={styles.headerSubtitle}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {subtitle}
+          </Text>
+        )}
       </View>
     </LinearGradient>
   );
@@ -457,30 +478,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 96,
+    paddingBottom: 20,
     borderBottomLeftRadius: 22,
     borderBottomRightRadius: 22,
-    justifyContent: "flex-end",
   },
-  headerTopLeft: {
+  headerCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerLangAbs: {
     position: "absolute",
-    top: 12,
-    left: 16,
-  },
-  headerBottomRow: {
+    right: 16,
     flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+    maxWidth: 140,
+    zIndex: 2,
   },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  backBtn: {
+  backBtnAbs: {
+    position: "absolute",
+    left: 16,
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 2,
   },
   headerTitle: {
     color: c.textWhite,
@@ -488,12 +513,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.3,
+    marginTop: 6,
+    textAlign: "center",
   },
   headerSubtitle: {
     color: "rgba(255,255,255,0.75)",
     fontSize: 13,
     marginTop: 2,
     fontFamily: "Inter_400Regular",
+    textAlign: "center",
   },
   btn: {
     height: 52,
