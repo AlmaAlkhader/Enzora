@@ -280,6 +280,27 @@ const en = {
   onboardColorBlue: "Blue = Call your doctor",
   onboardColorBlueDesc: "Possible infection — contact your doctor.",
 
+  // Status lock (safety feature)
+  pendingGreenTitle: "Please Check Your Wound",
+  pendingGreenBody:
+    "Earlier, the sensor detected early signs of inflammation. Even though the latest reading looks normal, please confirm you have checked on your wound before we mark it as safe.",
+  pendingBlueTitle: "Please Confirm You Saw a Doctor",
+  pendingBlueBody:
+    "The sensor previously detected a sign of inflammation. Please confirm you have seen a doctor or checked on your wound before we mark it as safe again.",
+  confirmCheckedSelf: "I checked my wound, all is well ✓",
+  confirmCheckedDoctor: "I saw a doctor, all is clear ✓",
+  stillConcerned: "Still concerned — keep monitoring",
+  addOptionalNote: "Would you like to add a note? (optional)",
+  addOptionalNotePlaceholder: "e.g. Doctor said it looks fine",
+  backToNormal: "Your wound is back to normal ✅",
+  woundActivity: "Wound Activity",
+  eventLockGreen: "⚠️ Early inflammation signs detected",
+  eventLockBlue: "🚨 Inflammation confirmed by sensor",
+  eventAwaitingConfirmation:
+    "↩️ Reading returned to normal — awaiting patient confirmation",
+  eventConfirmedSelf: "✓ Patient confirmed wound checked",
+  eventConfirmedDoctor: "✓ Patient confirmed doctor visit",
+
   // AI chat
   retry: "Retry",
   aiUnavailable:
@@ -604,6 +625,27 @@ const ar: typeof en = {
   onboardColorGreenDesc: "علامة مبكرة — راقب الجرح.",
   onboardColorBlue: "أزرق = اتصل بطبيبك",
   onboardColorBlueDesc: "عدوى محتملة — تواصل مع طبيبك.",
+
+  // Status lock (safety feature)
+  pendingGreenTitle: "يرجى فحص جرحك",
+  pendingGreenBody:
+    "في وقت سابق، اكتشف الجهاز علامات مبكرة للالتهاب. على الرغم من أن آخر قراءة تبدو طبيعية، يرجى تأكيد أنك فحصت جرحك قبل أن نعتبره آمناً.",
+  pendingBlueTitle: "يرجى تأكيد أنك زرت الطبيب",
+  pendingBlueBody:
+    "اكتشف الجهاز سابقاً علامة التهاب. يرجى تأكيد أنك زرت الطبيب أو فحصت جرحك قبل أن نعتبره آمناً مجدداً.",
+  confirmCheckedSelf: "فحصت جرحي، كل شيء بخير ✓",
+  confirmCheckedDoctor: "زرت الطبيب، كل شيء على ما يرام ✓",
+  stillConcerned: "لا أزال قلقاً — واصل المراقبة",
+  addOptionalNote: "هل تريد إضافة ملاحظة؟ (اختياري)",
+  addOptionalNotePlaceholder: "مثال: قال الطبيب أنه يبدو بخير",
+  backToNormal: "جرحك عاد إلى الوضع الطبيعي ✅",
+  woundActivity: "سجل الجرح",
+  eventLockGreen: "⚠️ تم اكتشاف علامات التهاب مبكرة",
+  eventLockBlue: "🚨 تأكد الالتهاب من الجهاز",
+  eventAwaitingConfirmation:
+    "↩️ عادت القراءة إلى الوضع الطبيعي — بانتظار تأكيد المريض",
+  eventConfirmedSelf: "✓ أكد المريض فحص الجرح",
+  eventConfirmedDoctor: "✓ أكد المريض زيارة الطبيب",
 
   // AI chat
   retry: "إعادة المحاولة",

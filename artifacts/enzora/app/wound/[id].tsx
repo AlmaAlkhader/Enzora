@@ -54,6 +54,7 @@ export default function WoundDetail() {
     markHealed,
     addNote,
     setActiveWound,
+    woundEvents,
   } = useApp();
   const wound = wounds.find((w) => w.id === id);
   const isActive = activeWound?.id === wound?.id;
@@ -182,6 +183,40 @@ export default function WoundDetail() {
             {t("monitoringSince")}: {startedOn}
           </Text>
         </View>
+
+        {/* Wound activity timeline (lock incidents + confirmations) */}
+        {isActive && woundEvents.length > 0 ? (
+          <View style={{ gap: 8 }}>
+            <Text style={styles.timelineHeader}>{t("woundActivity")}</Text>
+            <Card style={{ padding: 14, gap: 10 }}>
+              {woundEvents.slice(0, 8).map((ev) => {
+                const labelKey =
+                  ev.type === "lock_green"
+                    ? "eventLockGreen"
+                    : ev.type === "lock_blue"
+                      ? "eventLockBlue"
+                      : ev.type === "awaiting_confirmation"
+                        ? "eventAwaitingConfirmation"
+                        : ev.by === "doctor"
+                          ? "eventConfirmedDoctor"
+                          : "eventConfirmedSelf";
+                return (
+                  <View key={ev.id} style={{ gap: 2 }}>
+                    <Text style={styles.timelineLabel}>{t(labelKey)}</Text>
+                    {ev.note ? (
+                      <Text style={styles.timelineNote}>“{ev.note}”</Text>
+                    ) : null}
+                    <Text style={styles.timelineTime}>
+                      {new Date(ev.at).toLocaleString(
+                        i18n.language === "ar" ? "ar" : "en-US",
+                      )}
+                    </Text>
+                  </View>
+                );
+              })}
+            </Card>
+          </View>
+        ) : null}
 
         {/* Actions */}
         <View style={{ gap: 10, marginTop: 4 }}>
@@ -328,5 +363,30 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
     gap: 16,
+  },
+  timelineHeader: {
+    fontSize: 15,
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+  timelineLabel: {
+    fontSize: 14,
+    color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    lineHeight: 20,
+  },
+  timelineNote: {
+    fontSize: 13,
+    color: c.textPrimary,
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic",
+    lineHeight: 18,
+  },
+  timelineTime: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_400Regular",
   },
 });

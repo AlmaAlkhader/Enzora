@@ -1,0 +1,188 @@
+## Important Safety Feature – Status Lock
+
+When the sensor detects green or blue status,
+even if it later goes back to yellow, the app
+must NOT show "Wound is Normal" again until 
+the patient manually confirms they have 
+checked on their wound.
+
+This is a critical safety feature — a brief
+color change could indicate a real problem
+and should never be silently ignored.
+
+---
+
+### How it works
+
+Add a new state variable:
+statusLocked (boolean, default: false)
+lockedStatus (string: 'green' | 'blue')
+lockedAt (timestamp)
+
+When Firebase sends green or blue:
+1. Set statusLocked = true
+2. Set lockedStatus = the detected color
+3. Save both to localStorage so it 
+   persists even if app is closed:
+   localStorage.setItem('enzora_status_locked', 'true')
+   localStorage.setItem('enzora_locked_status', status)
+   localStorage.setItem('enzora_locked_at', Date.now())
+
+When Firebase later sends yellow:
+- If statusLocked === true:
+  DO NOT update the status card to yellow
+  DO NOT show "Wound is Normal"
+  Instead keep showing the locked status 
+  with a special "Pending Confirmation" UI
+
+---
+
+### Pending Confirmation Screen
+
+When status is locked (was green or blue,
+now receiving yellow), show this on the 
+Home screen instead of the normal status card:
+
+If was GREEN (early signs):
+Card background: soft orange #FFF0F0
+Icon: ⚠️
+Title: "Please Check Your Wound"
+Arabic: "يرجى فحص جرحك"
+Body:
+"Earlier, the sensor detected early signs
+ of inflammation. Even though the latest
+ reading looks normal, please confirm 
+ you have checked on your wound before
+ we mark it as safe."
+Arabic:
+"في وقت سابق، اكتشف الجهاز علامات مبكرة
+ للالتهاب. على الرغم من أن آخر قراءة 
+ تبدو طبيعية، يرجى تأكيد أنك فحصت 
+ جرحك قبل أن نعتبره آمناً."
+
+If was BLUE (confirmed):
+Card background: soft red #FDEDF0
+Icon: 🚨
+Title: "Please Confirm You Saw a Doctor"
+Arabic: "يرجى تأكيد أنك زرت الطبيب"
+Body:
+"The sensor previously detected a sign 
+ of inflammation. Please confirm you have
+ seen a doctor or checked on your wound
+ before we mark it as safe again."
+Arabic:
+"اكتشف الجهاز سابقاً علامة التهاب.
+ يرجى تأكيد أنك زرت الطبيب أو فحصت
+ جرحك قبل أن نعتبره آمناً مجدداً."
+
+---
+
+### Confirmation Options
+
+Show two large buttons below the message:
+
+Button 1 (primary — gradient):
+"I checked my wound, all is well ✓"
+Arabic: "فحصت جرحي، كل شيء بخير ✓"
+
+Button 2 (secondary — outline):
+"I saw a doctor, all is clear ✓"  
+Arabic: "زرت الطبيب، كل شيء على ما يرام ✓"
+
+Button 3 (text link, smaller):
+"Still concerned — keep monitoring"
+Arabic: "لا أزال قلقاً — واصل المراقبة"
+
+---
+
+### On Confirmation
+
+When patient taps button 1 or 2:
+1. Show a brief text input (optional):
+   "Would you like to add a note? (optional)"
+   Arabic: "هل تريد إضافة ملاحظة؟ (اختياري)"
+   Placeholder: "e.g. Doctor said it looks fine"
+   Arabic: "مثال: قال الطبيب أنه يبدو بخير"
+
+2. Save confirmation to localStorage:
+   {
+     confirmedAt: timestamp,
+     confirmedBy: 'self' | 'doctor',
+     note: string (optional),
+     previousStatus: 'green' | 'blue'
+   }
+
+3. Save confirmation to wound history 
+   as a timeline event:
+   "✓ Patient confirmed wound checked 
+    after [green/blue] reading"
+
+4. Set statusLocked = false
+5. Clear localStorage lock values
+6. NOW show the yellow normal status card:
+   "Your wound is back to normal ✅"
+   Arabic: "جرحك عاد إلى الوضع الطبيعي ✅"
+
+---
+
+### When patient taps "Still concerned"
+1. Keep statusLocked = true
+2. Keep showing the pending confirmation card
+3. Set a reminder notification for 2 hours:
+   "Don't forget to check on your wound 
+    and confirm your status in Enzora."
+   Arabic: "لا تنسَ فحص جرحك وتأكيد 
+   حالتك في تطبيق إنزورا."
+
+---
+
+### Wound History Timeline
+
+Add these events to the wound timeline:
+
+When green detected:
+"⚠️ Early inflammation signs detected"
+Timestamp of when it happened
+
+When blue detected:  
+"🚨 Inflammation confirmed by sensor"
+Timestamp
+
+When yellow returns but locked:
+"↩️ Reading returned to normal — 
+ awaiting patient confirmation"
+
+When patient confirms:
+"✓ Patient confirmed wound checked"
+With the note if they added one
+With which confirmation button they pressed
+
+---
+
+### Lock persists across app restarts
+
+On every app load, check localStorage:
+const locked = localStorage.getItem(
+  'enzora_status_locked')
+const lockedStatus = localStorage.getItem(
+  'enzora_locked_status')
+
+If locked === 'true':
+Show the pending confirmation card 
+immediately on the home screen
+Do not wait for a new Firebase reading
+
+---
+
+### Multiple status changes
+
+If status goes green then blue:
+Lock to blue (more serious takes priority)
+
+If status goes blue then green:
+Keep locked to blue (still serious)
+Only unlock after patient confirmation
+
+If status changes green → yellow → green:
+Each green resets the lock timer
+Patient must confirm after each incident

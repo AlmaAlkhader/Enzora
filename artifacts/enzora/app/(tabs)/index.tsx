@@ -17,6 +17,7 @@ import {
   StatusCard,
 } from "@/components/Brand";
 import { ColorAlertBanner, ColorMeaningCard } from "@/components/ColorGuide";
+import { PendingConfirmationCard } from "@/components/PendingConfirmation";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
@@ -25,7 +26,7 @@ const c = colors.light;
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { profile, sensor, activeWound, readings } = useApp();
+  const { profile, sensor, activeWound, readings, statusLock } = useApp();
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
   // Track which STATUS the user has dismissed the friendly banner for, so it
@@ -42,6 +43,9 @@ export default function HomeScreen() {
       sensor.lastUpdated &&
       sensor.lastUpdated !== lastDismissed
     ) {
+      // The infection modal is the urgent escalation; it should fire on every
+      // genuinely new blue reading regardless of the lock state. The lock card
+      // covers the *follow-up* flow once the sensor returns to yellow.
       setAlertOpen(true);
     }
   }, [sensor.status, sensor.connected, sensor.lastUpdated, lastDismissed]);
@@ -54,8 +58,17 @@ export default function HomeScreen() {
     }
   }, [sensor.status, bannerDismissedFor]);
 
+  // While a lock is awaiting confirmation, suppress the normal status card
+  // and replace it with a Pending Confirmation card. The lock applies when
+  // either there is no current sensor reading (e.g. just opened the app) or
+  // the latest reading is back to yellow.
+  const showPending =
+    !!statusLock &&
+    (!sensor.status || sensor.status === "yellow");
+
   const showBanner =
     sensor.connected &&
+    !showPending &&
     (sensor.status === "green" || sensor.status === "blue") &&
     sensor.status !== bannerDismissedFor;
 
@@ -114,7 +127,9 @@ export default function HomeScreen() {
         ) : null}
 
         {/* 2. Hero status card — the focus of the screen */}
-        {sensor.connected && sensor.status ? (
+        {showPending && statusLock ? (
+          <PendingConfirmationCard status={statusLock.status} />
+        ) : sensor.connected && sensor.status ? (
           <StatusCard status={sensor.status} />
         ) : (
           <View style={styles.calmCard}>

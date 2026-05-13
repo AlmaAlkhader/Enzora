@@ -93,6 +93,31 @@ interface SensorData {
   connected: boolean;
 }
 
+export interface StatusLock {
+  status: "green" | "blue";
+  at: number;
+}
+
+export type WoundEventType =
+  | "lock_green"
+  | "lock_blue"
+  | "awaiting_confirmation"
+  | "confirmed";
+
+export interface WoundEvent {
+  id: string;
+  type: WoundEventType;
+  at: number;
+  by?: "self" | "doctor";
+  note?: string;
+  previousStatus?: "green" | "blue";
+}
+
+export interface StatusConfirmation {
+  by: "self" | "doctor";
+  note?: string;
+}
+
 interface AppCtx {
   user: LocalUser | null;
   profile: UserProfile | null;
@@ -114,6 +139,10 @@ interface AppCtx {
   dailyReminderEnabled: boolean;
   isOnline: boolean;
   connectedDeviceId: string | null;
+  // Status lock (safety feature)
+  statusLock: StatusLock | null;
+  woundEvents: WoundEvent[];
+  confirmStatusCheck: (c: StatusConfirmation) => Promise<void>;
   // Setters
   setHasSeenOnboarding: (v: boolean) => Promise<void>;
   setLanguage: (lang: "en" | "ar") => Promise<void>;
@@ -159,6 +188,55 @@ const readingsKey = (email: string, woundId: string) =>
 const biometricKey = (email: string) =>
   `enzora.biometric.${email.toLowerCase()}`;
 const deviceKey = (email: string) => `enzora.device.${email.toLowerCase()}`;
+const statusLockKey = (email: string, woundId: string) =>
+  `enzora_status_lock_${email.toLowerCase()}_${woundId}`;
+const woundEventsKey = (email: string, woundId: string) =>
+  `enzora_events_${email.toLowerCase()}_${woundId}`;
+
+async function readStatusLock(
+  email: string,
+  woundId: string,
+): Promise<StatusLock | null> {
+  try {
+    const raw = await AsyncStorage.getItem(statusLockKey(email, woundId));
+    return raw ? (JSON.parse(raw) as StatusLock) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeStatusLock(
+  email: string,
+  woundId: string,
+  lock: StatusLock | null,
+): Promise<void> {
+  const k = statusLockKey(email, woundId);
+  if (lock) await AsyncStorage.setItem(k, JSON.stringify(lock));
+  else await AsyncStorage.removeItem(k);
+}
+
+async function readWoundEvents(
+  email: string,
+  woundId: string,
+): Promise<WoundEvent[]> {
+  try {
+    const raw = await AsyncStorage.getItem(woundEventsKey(email, woundId));
+    return raw ? (JSON.parse(raw) as WoundEvent[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function writeWoundEvents(
+  email: string,
+  woundId: string,
+  list: WoundEvent[],
+): Promise<void> {
+  await AsyncStorage.setItem(
+    woundEventsKey(email, woundId),
+    JSON.stringify(list.slice(0, 200)),
+  );
+}
 
 export function normaliseDeviceId(input: string): string {
   return input.trim().toUpperCase().replace(/\s+/g, "");
@@ -268,6 +346,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [connectedDeviceId, setConnectedDeviceIdState] = useState<string | null>(
     null,
   );
+  const [statusLock, setStatusLock] = useState<StatusLock | null>(null);
+  const [woundEvents, setWoundEvents] = useState<WoundEvent[]>([]);
 
 
   // Load preferences + restore session
@@ -343,6 +423,158 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     void readReadings(user.email, profile.activeWoundId).then(setReadings);
   }, [user, profile?.activeWoundId]);
+
+  // Load status lock + events when active wound changes
+  useEffect(() => {
+    if (!user || !profile?.activeWoundId) {
+      setStatusLock(null);
+      setWoundEvents([]);
+      return;
+    }
+    const email = user.email;
+    const wid = profile.activeWoundId;
+    void Promise.all([
+      readStatusLock(email, wid),
+      readWoundEvents(email, wid),
+    ]).then(([l, e]) => {
+      setStatusLock(l);
+      setWoundEvents(e);
+    });
+  }, [user, profile?.activeWoundId]);
+
+  // Per-wound serialization queue. All read-modify-write transitions on a
+  // wound's lock + event log run through this queue so a burst of sensor
+  // readings (or a confirmation racing with a reading) cannot interleave and
+  // overwrite each other. Keyed by `${email}::${woundId}`.
+  const lockQueues = useRef<Map<string, Promise<unknown>>>(new Map());
+  const runSerialized = useCallback(
+    <T,>(email: string, woundId: string, fn: () => Promise<T>): Promise<T> => {
+      const key = `${email}::${woundId}`;
+      const prev = lockQueues.current.get(key) ?? Promise.resolve();
+      const next = prev.then(fn, fn);
+      lockQueues.current.set(
+        key,
+        next.catch(() => undefined),
+      );
+      return next;
+    },
+    [],
+  );
+
+  // Status lock evaluator — runs once per new sensor reading. Refs are scoped
+  // by `${email}::${woundId}` so switching wounds doesn't carry over the prior
+  // wound's "previous status" into the new wound's incident detection.
+  const lockProcessedTs = useRef<Map<string, number>>(new Map());
+  const prevSensorStatus = useRef<Map<string, SensorStatus>>(new Map());
+  useEffect(() => {
+    if (
+      !user ||
+      !profile?.activeWoundId ||
+      !sensor.status ||
+      !sensor.lastUpdated
+    )
+      return;
+    const email = user.email;
+    const woundId = profile.activeWoundId;
+    const refKey = `${email}::${woundId}`;
+    if (lockProcessedTs.current.get(refKey) === sensor.lastUpdated) return;
+    lockProcessedTs.current.set(refKey, sensor.lastUpdated);
+    const cur = sensor.status;
+    const prev = prevSensorStatus.current.get(refKey) ?? null;
+    prevSensorStatus.current.set(refKey, cur);
+
+    void runSerialized(email, woundId, async () => {
+      const existing = await readStatusLock(email, woundId);
+      const events = await readWoundEvents(email, woundId);
+
+      const appendEventInline = async (ev: Omit<WoundEvent, "id" | "at">) => {
+        const fresh = await readWoundEvents(email, woundId);
+        const next: WoundEvent[] = [
+          {
+            id: Date.now().toString() + Math.random().toString(36).slice(2, 9),
+            at: Date.now(),
+            ...ev,
+          },
+          ...fresh,
+        ];
+        await writeWoundEvents(email, woundId, next);
+        setWoundEvents(next);
+      };
+
+      if (cur === "green" || cur === "blue") {
+        // Determine if this is a new incident worth recording.
+        // Rules:
+        //   - No lock yet -> new lock + event
+        //   - green-lock + new blue reading -> upgrade to blue + event
+        //   - same color but previous reading was yellow -> new incident
+        //     (e.g. green -> yellow -> green resets the lock timer)
+        //   - blue-lock + new green reading -> keep blue (more serious wins)
+        const isNewIncident =
+          !existing ||
+          (existing.status === "green" && cur === "blue") ||
+          (existing.status === cur && prev === "yellow");
+        if (isNewIncident) {
+          const nextLock: StatusLock = {
+            status:
+              existing?.status === "blue" || cur === "blue" ? "blue" : "green",
+            at: Date.now(),
+          };
+          await writeStatusLock(email, woundId, nextLock);
+          setStatusLock(nextLock);
+          await appendEventInline({
+            type: nextLock.status === "blue" ? "lock_blue" : "lock_green",
+          });
+        }
+      } else if (cur === "yellow" && existing) {
+        // Yellow returned while a lock is still in place — log "awaiting
+        // confirmation" once per incident (skip if last event already is one
+        // newer than the current lock).
+        const last = events[0];
+        const alreadyLogged =
+          last &&
+          last.type === "awaiting_confirmation" &&
+          last.at > existing.at;
+        if (!alreadyLogged && prev !== "yellow") {
+          await appendEventInline({ type: "awaiting_confirmation" });
+        }
+      }
+    });
+  }, [
+    user,
+    profile?.activeWoundId,
+    sensor.status,
+    sensor.lastUpdated,
+    runSerialized,
+  ]);
+
+  const confirmStatusCheck = useCallback(
+    async (c: StatusConfirmation) => {
+      if (!user || !profile?.activeWoundId) return;
+      const email = user.email;
+      const woundId = profile.activeWoundId;
+      await runSerialized(email, woundId, async () => {
+        const existing = await readStatusLock(email, woundId);
+        const previousStatus = existing?.status;
+        await writeStatusLock(email, woundId, null);
+        setStatusLock(null);
+        const fresh = await readWoundEvents(email, woundId);
+        const next: WoundEvent[] = [
+          {
+            id: Date.now().toString() + Math.random().toString(36).slice(2, 9),
+            type: "confirmed",
+            at: Date.now(),
+            by: c.by,
+            note: c.note?.trim() || undefined,
+            previousStatus,
+          },
+          ...fresh,
+        ];
+        await writeWoundEvents(email, woundId, next);
+        setWoundEvents(next);
+      });
+    },
+    [user, profile?.activeWoundId, runSerialized],
+  );
 
   // Resolve which device path to read from. Priority:
   //   1. The active wound's linked deviceId
@@ -841,6 +1073,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     connectedDeviceId,
     connectDevice,
     disconnectDevice,
+    statusLock,
+    woundEvents,
+    confirmStatusCheck,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
