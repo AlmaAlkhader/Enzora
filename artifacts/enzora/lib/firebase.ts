@@ -6,6 +6,23 @@ import { getFirestore, type Firestore } from "firebase/firestore";
 import { getDatabase, type Database } from "firebase/database";
 import { Platform } from "react-native";
 
+const missing: string[] = [];
+for (const k of [
+  "EXPO_PUBLIC_FIREBASE_API_KEY",
+  "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  "EXPO_PUBLIC_FIREBASE_PROJECT_ID",
+  "EXPO_PUBLIC_FIREBASE_APP_ID",
+] as const) {
+  if (!process.env[k]) missing.push(k);
+}
+if (missing.length > 0) {
+  console.error(
+    "[firebase] Missing required config:",
+    missing.join(", "),
+    "— sign up / login will not work until these are set.",
+  );
+}
+
 const rawDbUrl = process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL;
 const validDbUrl =
   rawDbUrl &&

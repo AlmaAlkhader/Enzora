@@ -37,7 +37,12 @@ const en = {
   passwordTooShort: "Password must be at least 8 characters",
   passwordsDontMatch: "Passwords don't match",
   required: "This field is required",
-  authError: "Wrong password. Please try again.",
+  authError: "Wrong email or password. Please try again.",
+  emailInUse: "This email is already registered. Try logging in instead.",
+  networkError:
+    "Couldn't reach the server. Please check your internet connection and try again.",
+  authNotEnabled:
+    "Email sign-in isn't enabled for this app yet. Please contact support.",
 
   // Onboarding
   onboard1Title: "Monitor Your Wound Smartly",
@@ -220,7 +225,12 @@ const ar: typeof en = {
   passwordTooShort: "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
   passwordsDontMatch: "كلمتا المرور غير متطابقتين",
   required: "هذا الحقل مطلوب",
-  authError: "كلمة المرور غير صحيحة. حاول مرة أخرى.",
+  authError: "البريد الإلكتروني أو كلمة المرور غير صحيحة. حاول مرة أخرى.",
+  emailInUse: "هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول.",
+  networkError:
+    "تعذر الوصول إلى الخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+  authNotEnabled:
+    "تسجيل الدخول بالبريد الإلكتروني غير مفعّل في هذا التطبيق بعد. يرجى التواصل مع الدعم.",
 
   onboard1Title: "راقب جرحك بذكاء",
   onboard1Sub: "لاصقة إنزورا الذكية تكتشف العدوى قبل أن تصبح مشكلة",

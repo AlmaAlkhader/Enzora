@@ -114,6 +114,22 @@ interface AppCtx {
 
 const Ctx = createContext<AppCtx | null>(null);
 
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(label)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
+}
+
 const ONBOARD_KEY = "enzora.onboarded";
 const LARGE_TEXT_KEY = "enzora.largeText";
 const NOTIF_KEY = "enzora.notif";
@@ -361,16 +377,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const emailExists = useCallback(async (email: string) => {
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
+      const methods = await withTimeout(
+        fetchSignInMethodsForEmail(auth, email),
+        8000,
+        "email-check-timeout",
+      );
       return methods.length > 0;
     } catch {
+      // If Firebase blocks email enumeration or the call times out,
+      // assume the email exists so the login flow proceeds and surfaces
+      // the real error from signInWithEmailAndPassword.
       return true;
     }
   }, []);
 
   const signUp = useCallback(
     async (name: string, email: string, password: string) => {
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("[signUp] starting", { email });
+      const cred = await withTimeout(
+        createUserWithEmailAndPassword(auth, email, password),
+        15000,
+        "auth-timeout",
+      );
+      console.log("[signUp] auth ok", cred.user.uid);
       const userDoc: UserProfile = {
         name,
         email,
@@ -378,13 +407,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         medicalProfile: null,
         activeWoundId: null,
       };
-      await setDoc(doc(db, "users", cred.user.uid), userDoc);
+      try {
+        await withTimeout(
+          setDoc(doc(db, "users", cred.user.uid), userDoc),
+          10000,
+          "firestore-timeout",
+        );
+        console.log("[signUp] profile saved");
+      } catch (err) {
+        // Don't block the signup flow if Firestore write fails — the
+        // auth account was already created. We'll let the user proceed
+        // and the profile will be created on next successful write.
+        console.warn("[signUp] failed to write profile", err);
+      }
     },
     [],
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    await withTimeout(
+      signInWithEmailAndPassword(auth, email, password),
+      15000,
+      "auth-timeout",
+    );
   }, []);
 
   const signOutUser = useCallback(async () => {

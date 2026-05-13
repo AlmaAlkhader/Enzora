@@ -68,10 +68,29 @@ export default function AuthScreen() {
         router.replace("/");
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("somethingWrong");
-      setErrors({
-        password: msg.includes("password") ? t("authError") : msg,
-      });
+      console.error("[auth] failed", err);
+      const code =
+        typeof err === "object" && err && "code" in err
+          ? String((err as { code?: string }).code)
+          : "";
+      const raw = err instanceof Error ? err.message : "";
+      let friendly = t("somethingWrong");
+      if (code === "auth/email-already-in-use") friendly = t("emailInUse");
+      else if (code === "auth/invalid-email") friendly = t("invalidEmail");
+      else if (code === "auth/weak-password") friendly = t("passwordTooShort");
+      else if (
+        code === "auth/wrong-password" ||
+        code === "auth/invalid-credential" ||
+        code === "auth/user-not-found"
+      )
+        friendly = t("authError");
+      else if (code === "auth/network-request-failed" || raw === "auth-timeout")
+        friendly = t("networkError");
+      else if (code === "auth/operation-not-allowed")
+        friendly = t("authNotEnabled");
+      else if (raw === "firestore-timeout") friendly = t("networkError");
+      else if (raw) friendly = raw;
+      setErrors({ form: friendly });
     } finally {
       setSubmitting(false);
     }
@@ -179,7 +198,12 @@ export default function AuthScreen() {
             )}
           </View>
 
-          <View style={{ marginTop: 24 }}>
+          {errors.form && (
+            <View style={styles.formError}>
+              <Text style={styles.formErrorText}>{errors.form}</Text>
+            </View>
+          )}
+          <View style={{ marginTop: 16 }}>
             <PrimaryButton
               label={tab === "signup" ? t("createAccount") : t("signIn")}
               onPress={handleSubmit}
@@ -251,5 +275,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     marginTop: 4,
+  },
+  formError: {
+    marginTop: 16,
+    backgroundColor: c.alertBg,
+    borderColor: c.alert,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+  },
+  formErrorText: {
+    color: c.alert,
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
   },
 });
