@@ -331,21 +331,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Sensor listener (Firebase RTDB — only for ESP32 sensor data).
   // Connection state is driven *solely* by the presence of /sensor/status.
   useEffect(() => {
-    if (!rtdb) return;
+    console.log("[sensor] effect mount — rtdb:", !!rtdb);
+    if (!rtdb) {
+      console.warn("[sensor] rtdb is null — listener NOT attached");
+      return;
+    }
     const sensorRef = ref(rtdb, "sensor");
+    console.log("[sensor] attaching listener at path 'sensor'", {
+      refKey: sensorRef.key,
+      refToString: sensorRef.toString(),
+    });
     const unsub = onValue(
       sensorRef,
       (snap) => {
-        const v = snap.val() as
-          | {
-              status?: SensorStatus;
-              red?: number;
-              green?: number;
-              blue?: number;
-              timestamp?: number;
-            }
-          | null;
-        if (v && v.status) {
+        const v = snap.val();
+        console.log("[sensor] Firebase listener triggered");
+        console.log("[sensor] Snapshot value:", v);
+        console.log("[sensor] Status:", v?.status);
+        const isConnected = !!(v && v.status);
+        console.log("[sensor] Connected state ->", isConnected);
+        if (isConnected) {
           setSensor({
             status: v.status as SensorStatus,
             red: typeof v.red === "number" ? v.red : 0,
@@ -360,11 +365,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       },
       (err) => {
-        console.warn("[firebase] sensor listener error", err);
+        console.warn("[sensor] listener ERROR", err);
         setSensor((s) => ({ ...s, connected: false }));
       },
     );
-    return unsub;
+    return () => {
+      console.log("[sensor] detaching listener");
+      unsub();
+    };
   }, []);
 
   // Save reading locally on sensor change
