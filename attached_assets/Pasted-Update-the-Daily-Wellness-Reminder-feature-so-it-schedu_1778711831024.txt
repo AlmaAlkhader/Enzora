@@ -1,0 +1,207 @@
+Update the Daily Wellness Reminder feature so it schedules a daily personalized Enzora care message.
+
+Important:
+Do not change authentication.
+Do not change Firebase ESP32 sensor logic.
+Do not change WhatsApp automation.
+Do not add paid WhatsApp API.
+Do not redesign unrelated screens.
+
+Current situation:
+There is already a button/toggle in the Profile section for Daily Wellness Reminder.
+
+Task:
+Make this feature schedule a daily local notification that reminds the user to read their personalized AI wound-care tip.
+
+The reminder should be based on:
+- current wound status: yellow / green / blue
+- days of monitoring
+- previous wound history / recent statuses
+- medical conditions
+- active wound name
+- patient name
+- app language
+- whether the user is monitoring themself or someone else
+
+Because local notifications are scheduled ahead of time, do it like this:
+
+1. Daily notification schedule
+When the user enables Daily Wellness Reminder:
+- request notification permission if needed
+- schedule a repeating local notification every day
+- default time: 9:00 AM
+- save the setting in the user profile/backend:
+  dailyWellnessReminderEnabled: true
+  dailyWellnessReminderTime: "09:00"
+
+When the user disables it:
+- cancel the scheduled daily notification
+- update backend/profile setting:
+  dailyWellnessReminderEnabled: false
+
+2. Notification text
+The notification itself should be short and warm.
+
+English title:
+“Your Enzora care tip is ready”
+
+English body:
+“Open Enzora for today’s wound-care advice.”
+
+Arabic title:
+“نصيحة إنزورا جاهزة”
+
+Arabic body:
+“افتح إنزورا لقراءة نصيحة العناية اليوم.”
+
+Do not put the full AI message directly inside the scheduled notification unless the app can reliably refresh it daily before scheduling.
+
+3. AI daily tip card
+On Home screen, add or update a card called:
+
+English:
+“Today’s Care Tip”
+
+Arabic:
+“نصيحة اليوم”
+
+When the app opens each day:
+- generate or load today’s personalized AI care tip
+- cache it so AI is not called repeatedly
+- show it inside the card
+
+The AI tip should be generated from the current wound context:
+Patient name: [name]
+Monitoring person: [name/relationship]
+Medical conditions: [conditions]
+Current wound: [wound name]
+Current status: [yellow/green/blue]
+Days monitored: [number]
+Recent history: [last 5-10 statuses]
+Notes: [notes if any]
+Language: [English/Arabic]
+
+4. AI message style
+The daily care tip should be:
+- motivational
+- considerate
+- warm
+- practical
+- elderly-friendly
+- not scary
+- not a diagnosis
+- maximum 4 short sentences
+- includes one practical care tip
+- includes one clear action for today
+
+System prompt:
+“You are Enzora Care Assistant. You write warm, safe, elderly-friendly wound care messages. You do not diagnose. You do not scare the patient. You give simple practical advice and encouragement. If the wound status is urgent, you clearly advise contacting a doctor. Keep the message short enough for a patient or caregiver.”
+
+Rules:
+- If yellow: reassuring, continue care.
+- If green: advise watching closely and contacting doctor if worried.
+- If blue: clearly advise calling doctor today and going to hospital if unwell.
+- Do not use raw RGB values.
+- Do not say “diagnosis”.
+- If Arabic language is active, respond in Arabic.
+
+5. Example messages
+
+Yellow:
+“Good morning, Sarah. Your wound readings look normal today, which is a good sign. Keep the area clean and dry, and continue monitoring as usual. You’re doing a great job taking care of your health.”
+
+Green:
+“Good morning, Sarah. Enzora noticed a small change, so please watch your wound closely today. Keep the area clean and dry, and call your doctor if pain, swelling, or redness increases. You are doing the right thing by checking early.”
+
+Blue:
+“Good morning, Sarah. Enzora detected an alert reading, so please call your doctor today. If you feel unwell, have a fever, or the wound pain increases, go to the hospital. Getting help early is the safest step.”
+
+Arabic messages should follow the same meaning and tone.
+
+6. Cache daily tip
+To avoid wasting AI credits:
+- generate one tip per user per day
+- store it in backend/database or local storage if backend model is not available
+- fields:
+  - userId
+  - woundId
+  - date
+  - statusAtGeneration
+  - language
+  - message
+  - createdAt
+
+If the user opens the app again on the same day:
+- show the cached tip
+- do not call AI again
+
+Add a small button:
+English: “Refresh Tip”
+Arabic: “تحديث النصيحة”
+
+Only call AI again when user taps Refresh Tip.
+
+7. WhatsApp free share flow
+Inside the Today’s Care Tip card, add:
+
+English:
+“Send on WhatsApp”
+
+Arabic:
+“إرسال عبر واتساب”
+
+When tapped:
+- open WhatsApp using a wa.me link
+- prefill the generated AI tip
+- if a caregiver/monitoring phone number exists, open chat with that number
+- otherwise open WhatsApp share with the message only
+- user manually presses Send
+
+Do not use WhatsApp Business API.
+Do not use Twilio.
+Do not send WhatsApp automatically.
+
+8. Status change notifications
+Keep wound status-change notifications separate from the daily wellness reminder.
+
+When status changes while app is open:
+- update UI
+- show in-app banner
+- if local notification fallback exists, use it carefully
+
+For real closed-app push notifications:
+- keep the existing “requires development build” explanation
+- do not break the future backend push setup
+
+9. Profile UI behavior
+The Daily Wellness Reminder toggle/button should show whether it is ON or OFF.
+
+When ON:
+- show “Daily reminder: 9:00 AM”
+- show option to disable
+
+When OFF:
+- show option to enable
+
+Arabic:
+- “التذكير اليومي: ٩:٠٠ صباحاً”
+- “تفعيل التذكير”
+- “إيقاف التذكير”
+
+10. Testing checklist
+Test:
+1. Go to Profile.
+2. Enable Daily Wellness Reminder.
+3. Allow notification permission if asked.
+4. Confirm the setting is saved.
+5. Confirm a daily notification is scheduled for 9:00 AM.
+6. For testing only, add a temporary internal test option or use a short delay to confirm scheduling works, but do not leave ugly test buttons in final UI.
+7. Open Home.
+8. Confirm Today’s Care Tip appears.
+9. Confirm the tip changes based on wound status and medical conditions.
+10. Tap Refresh Tip and confirm a new AI tip is generated.
+11. Tap Send on WhatsApp and confirm WhatsApp opens with the message pre-filled.
+12. Disable Daily Wellness Reminder and confirm the notification schedule is cancelled.
+
+Final result:
+The Profile Daily Wellness Reminder should schedule a daily notification, and the Home screen should show a personalized AI care tip that the user can read and optionally send on WhatsApp manually.

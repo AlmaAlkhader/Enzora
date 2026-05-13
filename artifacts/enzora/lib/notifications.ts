@@ -17,11 +17,10 @@ const DAILY_ID = "enzora-daily-reminder";
 // Local notification helpers
 //
 // These work in Expo Go (unlike remote push, which requires a development
-// build for SDK 53+). We use them for:
-//   1. The "Test Local Notification" / "Simulate Wound Change Alert" buttons
-//      in the Profile diagnostics card.
-//   2. A foreground/backgrounded mirror of real Firebase status changes so
-//      the user sees something while we wait for a development build.
+// build for SDK 53+). Currently used internally to mirror real Firebase
+// status changes as a local notification while the app is open or recently
+// backgrounded — until the production dev build is ready and the backend
+// push transport can deliver to a closed app.
 // ---------------------------------------------------------------------------
 
 async function ensurePermission(): Promise<boolean> {
@@ -33,28 +32,6 @@ async function ensurePermission(): Promise<boolean> {
     const requested = await Notifications.requestPermissionsAsync();
     return requested.granted;
   } catch {
-    return false;
-  }
-}
-
-export async function scheduleLocalTestNotification(): Promise<boolean> {
-  if (!Notifications) return false;
-  if (!(await ensurePermission())) return false;
-  try {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Enzora test",
-        body: "Local notifications are working on this phone.",
-        data: { type: "local_test" },
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 3,
-      },
-    });
-    return true;
-  } catch (err) {
-    console.warn("[notifications] local test schedule failed", err);
     return false;
   }
 }
@@ -106,31 +83,6 @@ function transitionCopy(
         };
   }
   return null;
-}
-
-// Fire an immediate local notification for the infected (blue) state. Used by
-// the "Simulate Wound Change Alert" button in the diagnostics card.
-export async function showLocalInfectionAlert(
-  language: "en" | "ar",
-): Promise<boolean> {
-  if (!Notifications) return false;
-  if (!(await ensurePermission())) return false;
-  const { title, body } = infectionCopy(language);
-  try {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data: { type: "wound_status_change", status: "blue", local: true },
-      },
-      // null trigger = present immediately.
-      trigger: null,
-    });
-    return true;
-  } catch (err) {
-    console.warn("[notifications] infection alert failed", err);
-    return false;
-  }
 }
 
 // Called from AppContext when the Firebase sensor status transitions while
