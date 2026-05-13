@@ -204,6 +204,7 @@ const en = {
   connectToStart: "Connect your device to start monitoring",
   viewMyWounds: "View My Wounds",
   at: "at",
+  back: "Back",
   whatsappPrefill: "Hi, I need help setting up my Enzora device",
 
   // Profile
@@ -481,6 +482,7 @@ const ar: typeof en = {
   connectToStart: "وصّل جهازك لبدء المراقبة",
   viewMyWounds: "عرض جروحي",
   at: "في",
+  back: "رجوع",
   whatsappPrefill: "مرحباً، أحتاج مساعدة في إعداد جهاز إنزورا",
 
   editProfile: "تعديل الملف",

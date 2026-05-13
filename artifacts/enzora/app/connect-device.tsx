@@ -56,15 +56,22 @@ export default function ConnectDevice() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader
-        title={t("connectDeviceTitle")}
-        back
-        onBack={() => router.back()}
-      />
+      <GradientHeader layout="split" logoSize="lg" />
       <KeyboardAwareScrollViewCompat
         bottomOffset={20}
         contentContainerStyle={styles.content}
       >
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.backRow}
+          accessibilityRole="button"
+          accessibilityLabel={t("back") ?? "Back"}
+        >
+          <Feather name="chevron-left" size={22} color={c.primary} />
+          <Text style={styles.backText}>{t("back")}</Text>
+        </Pressable>
+
         <View style={styles.illustration}>
           <View style={styles.deviceShape}>
             <View style={styles.sticker}>
@@ -127,6 +134,19 @@ export default function ConnectDevice() {
 
 const styles = StyleSheet.create({
   content: { padding: 22, gap: 16, paddingBottom: 60 },
+  backRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    marginBottom: 4,
+  },
+  backText: {
+    color: c.primary,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+    fontSize: 15,
+  },
   illustration: { alignItems: "center", paddingVertical: 12 },
   deviceShape: {
     width: 130,
