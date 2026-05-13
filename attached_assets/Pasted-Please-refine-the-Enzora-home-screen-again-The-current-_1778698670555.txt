@@ -1,0 +1,196 @@
+Please refine the Enzora home screen again.
+
+The current screen is improved, but it still needs another UI/UX pass.
+
+Main issues to fix:
+1. Enzora brand colors are not integrated strongly enough.
+2. The top area needs more breathing room / more padding from the top.
+3. The Enzora logo needs to look much better and more intentional.
+4. I do NOT want a wound-healed percentage on the home screen.
+5. The RGB boxes are not useful for elderly users — replace them with more meaningful content.
+6. The home screen still feels too overwhelming for elderly patients.
+
+Overall goal:
+Make the home screen feel simpler, calmer, and more elderly-friendly.
+It should feel like a reassuring medical companion, not a technical dashboard.
+
+DESIGN DIRECTION
+
+Use Enzora colors in a more polished, branded way:
+- primary navy: #1B2A6B
+- primary indigo: #6E75BF
+- soft violet: #8879B8
+- pale lavender: #EDEBFF
+- pale blue background: #F4F8FF
+- white cards: #FFFFFF
+- muted text: #6B7FA3
+- soft border: #E2E8F0
+
+Status colors:
+- yellow / normal: #FFB703
+- green / watch closely: #7BC47F
+- blue / call doctor: #4A90E2
+
+Use these colors intentionally:
+- header and accents should feel clearly “Enzora”
+- avoid random colors unless they serve status meaning
+- keep the screen soft and cohesive
+
+HOME SCREEN REFINEMENT REQUIREMENTS
+
+1. BETTER TOP SPACING
+- Add significantly more top padding / safe area breathing room.
+- The top should not feel cramped.
+- Increase vertical spacing above the greeting/header content.
+- The greeting, logo, and language toggle should sit comfortably with enough empty space.
+
+2. BETTER ENZORA LOGO TREATMENT
+- Make the Enzora logo feel more premium and visually important.
+- Use a cleaner logo placement.
+- Center it more elegantly in the header.
+- Give it enough space around it.
+- Do not let it feel tiny, squeezed, or like an afterthought.
+- If needed, show the icon + wordmark in a more balanced way.
+- Make the header feel like a branded Enzora experience.
+
+3. REMOVE WOUND HEALING PERCENTAGE FROM HOME
+- Remove the circular percentage indicator like “91%”.
+- I do not want a “percent healed” concept on the home screen.
+- It may be misleading and unnecessary.
+
+Replace it with something simpler and more reassuring, such as:
+- a status badge
+- a simple icon
+- or a friendly label like:
+  “Healing well”
+  “Keep monitoring”
+  “Please check with your doctor”
+
+4. REPLACE RGB BOXES
+The current RGB-related boxes are too technical and not useful for elderly users.
+
+Remove those boxes and replace them with more meaningful patient-friendly cards.
+
+Suggested replacements:
+- Days monitored
+- Last reading
+- Next check / next reminder
+- Current wound being monitored
+- Care tip of the day
+- Alerts count
+- Call doctor / get help shortcut
+- View my wounds shortcut
+
+Only keep information that helps the patient understand what to do.
+
+Do NOT show raw technical values unless they are medically meaningful and easy to understand.
+
+5. MAKE HOME SCREEN MUCH LESS OVERWHELMING
+Right now the home screen shows too many sections and numbers.
+Simplify it.
+
+The home screen should only focus on 3 main things:
+A. Current status
+B. What the patient should do next
+C. Quick access to the most important actions
+
+Reduce clutter.
+Reduce the number of cards.
+Reduce the number of small data blocks.
+Use larger cards and clearer hierarchy.
+
+6. IMPROVE CONTENT HIERARCHY
+The ideal home screen order should be:
+
+- Header with better spacing and improved logo treatment
+- Greeting
+- Device connected pill
+- Main status card (the most important card)
+- One short supporting information section
+- One care tips / helpful guidance card
+- One primary action button
+- Bottom navigation
+
+The screen should not feel like many competing boxes.
+
+7. MAIN STATUS CARD REDESIGN
+Make the main wound status card the hero of the screen.
+
+It should include:
+- clear status title (example: “Wound is Normal”)
+- short patient-friendly explanation
+- last check time
+- maybe one simple status icon or badge
+- primary action button like “View Details”
+
+The card should feel:
+- large
+- calm
+- easy to read
+- visually reassuring
+
+If status is normal:
+use warm yellow accents softly.
+If status is green/watch:
+use green softly.
+If status is blue/call doctor:
+use blue or alert styling clearly but elegantly.
+
+Do not make it harsh unless urgent.
+
+8. BETTER SUPPORTING CARDS
+Instead of multiple tiny stat cards, use fewer, larger, more meaningful cards.
+
+For example:
+Option A:
+- Days monitored
+- Next check
+- New alerts
+
+Option B:
+- Current wound
+- Last reading
+- Care tip
+
+Do not overload the page.
+Choose only the most useful items.
+
+9. ELDERLY-FRIENDLY UX
+Design for elderly users:
+- larger text
+- clearer spacing
+- fewer small labels
+- fewer tiny numbers
+- larger tap targets
+- simple wording
+- no technical jargon
+- obvious buttons
+- calm visual flow
+
+10. KEEP IMPORTANT FEATURES
+Keep these features, but make them cleaner:
+- greeting
+- language toggle
+- device connected pill
+- main wound status card
+- “What the colors mean” accordion/card
+- care tips
+- button to view wounds or details
+- bottom navigation
+
+11. VISUAL STYLE
+Keep the new refined visual direction from the updated home screen, but make it:
+- more branded
+- more spacious
+- less cluttered
+- more elegant
+- more elderly-friendly
+- more premium
+
+Do NOT revert to the old design.
+Do NOT add more technical dashboard elements.
+Do NOT show healing percentage.
+Do NOT show RGB boxes.
+
+Final goal:
+Redesign the home screen so it feels calm, branded, and simple for elderly users — with stronger Enzora identity, better spacing, a better logo/header, no healing percentage, no RGB boxes, and much less overwhelm.

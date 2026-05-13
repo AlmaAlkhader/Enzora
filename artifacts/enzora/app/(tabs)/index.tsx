@@ -12,12 +12,10 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
+  BrandedHeader,
   Card,
-  GradientHeader,
   IconChip,
   PrimaryButton,
-  SectionTitle,
-  StatTile,
   StatusCard,
   softShadow,
 } from "@/components/Brand";
@@ -42,7 +40,7 @@ function relativeMinutes(ts: number, t: (k: string) => string): string {
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { profile, sensor, activeWound, readings, statusLock, wounds } = useApp();
+  const { profile, sensor, activeWound, readings, statusLock } = useApp();
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
   const [bannerDismissedFor, setBannerDismissedFor] = useState<
@@ -78,7 +76,7 @@ export default function HomeScreen() {
   const firstName = (profile?.name ?? "").split(" ")[0] ?? "";
   const lastReading = readings[0];
 
-  // Derived stats for the supporting tiles.
+  // Three calm supporting facts: days monitored, last check, alert count.
   const daysMonitored = useMemo(() => {
     if (!activeWound) return 0;
     return Math.max(
@@ -92,32 +90,18 @@ export default function HomeScreen() {
     [readings],
   );
 
-  const recentRgb = useMemo(() => {
-    const r = readings[0];
-    return {
-      red: r?.red ?? 0,
-      green: r?.green ?? 0,
-      blue: r?.blue ?? 0,
-    };
-  }, [readings]);
-
-  // Healing percent — naive heuristic: fewer non-yellow readings in last 7d
-  // means better healing. Capped 0..100. Used for the hero ring.
-  const healingPercent = useMemo(() => {
-    if (!activeWound) return 0;
-    const span = 7 * 24 * 60 * 60 * 1000;
-    const recent = readings.filter((r) => Date.now() - r.timestamp < span);
-    if (recent.length === 0) return Math.min(100, daysMonitored * 5);
-    const yellow = recent.filter((r) => r.status === "yellow").length;
-    const score = Math.round((yellow / recent.length) * 100);
-    return Math.max(5, Math.min(100, score));
-  }, [activeWound, readings, daysMonitored]);
+  const lastCheckText = sensor.lastUpdated
+    ? relativeMinutes(sensor.lastUpdated, t)
+    : "—";
 
   const hasActiveSensor = sensor.connected && sensor.status;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader greeting={t("greetingHello")} title={firstName || "—"} />
+      <BrandedHeader
+        greeting={t("greetingHello")}
+        name={firstName || t("welcomeBack")}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -146,7 +130,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Friendly explanation banner — appears above hero on green/blue */}
+        {/* Friendly explanation banner */}
         {showBanner && sensor.status ? (
           <ColorAlertBanner
             status={sensor.status as "green" | "blue"}
@@ -156,18 +140,13 @@ export default function HomeScreen() {
           />
         ) : null}
 
-        {/* Hero status card */}
+        {/* HERO — main status */}
         {showPending && statusLock ? (
           <PendingConfirmationCard status={statusLock.status} />
         ) : hasActiveSensor ? (
           <StatusCard
             status={sensor.status as "yellow" | "green" | "blue"}
-            percent={healingPercent}
-            lastCheckLabel={
-              sensor.lastUpdated
-                ? `${t("lastCheck")}: ${relativeMinutes(sensor.lastUpdated, t)}`
-                : undefined
-            }
+            lastCheckLabel={`${t("lastCheck")}: ${lastCheckText}`}
             onPress={
               activeWound
                 ? () => router.push(`/wound/${activeWound.id}`)
@@ -176,109 +155,93 @@ export default function HomeScreen() {
             ctaLabel={t("viewDetails")}
           />
         ) : (
-          <Card style={styles.calmCard}>
-            <View style={styles.calmIconWrap}>
+          <View style={[styles.connectCard, softShadow]}>
+            <View style={styles.connectIconWrap}>
               <Feather name="link" size={36} color={c.primary} />
             </View>
-            <Text style={styles.calmTitle}>{t("connectToStart")}</Text>
+            <Text style={styles.connectTitle}>{t("connectToStart")}</Text>
+            <Text style={styles.connectSub}>{t("connectToStartSub")}</Text>
             <PrimaryButton
               label={t("howToConnect")}
               icon="radio"
               onPress={() => router.push("/connect-device")}
               style={{ alignSelf: "stretch", marginTop: 6 }}
             />
-          </Card>
+          </View>
         )}
 
-        {/* Current readings grid */}
-        <View style={{ gap: 12 }}>
-          <SectionTitle>{t("currentReadings")}</SectionTitle>
-          <View style={styles.statRow}>
-            <StatTile
-              icon="droplet"
-              tone="blue"
-              value={recentRgb.red}
-              caption={t("redChannel")}
-            />
-            <StatTile
-              icon="activity"
-              tone="green"
-              value={recentRgb.green}
-              caption={t("greenChannel")}
-            />
-            <StatTile
-              icon="circle"
-              tone="violet"
-              value={recentRgb.blue}
-              caption={t("blueChannel")}
-            />
-          </View>
-          <View style={styles.statRow}>
-            <StatTile
-              icon="calendar"
-              tone="green"
-              value={daysMonitored}
-              unit={t("daysShort")}
-              caption={t("daysMonitored")}
-            />
-            <StatTile
-              icon="clock"
-              tone="primary"
-              value={hasActiveSensor ? "•" : "—"}
-              caption={t("nextCheckLabel")}
-            />
-            <StatTile
-              icon="alert-circle"
-              tone={newAlerts > 0 ? "yellow" : "neutral"}
-              value={newAlerts}
-              caption={t("newAlerts")}
-            />
-          </View>
+        {/* Three supporting facts — large, calm, single row */}
+        <View style={styles.statRow}>
+          <FactTile
+            icon="calendar"
+            tone="violet"
+            value={daysMonitored > 0 ? `${daysMonitored}` : "—"}
+            label={t("daysMonitored")}
+          />
+          <FactTile
+            icon="clock"
+            tone="primary"
+            value={
+              hasActiveSensor && sensor.lastUpdated ? lastCheckText : "—"
+            }
+            label={t("lastCheck")}
+          />
+          <FactTile
+            icon="bell"
+            tone={newAlerts > 0 ? "yellow" : "neutral"}
+            value={`${newAlerts}`}
+            label={t("newAlerts")}
+          />
         </View>
 
-        {/* Care tips */}
-        <Card>
-          <View style={styles.cardHeaderRow}>
-            <IconChip icon="check-circle" tone="primary" size={32} />
-            <Text style={styles.cardHeaderTitle}>{t("careTipsToday")}</Text>
+        {/* Care tip — single calm card */}
+        <Card style={styles.tipCard}>
+          <View style={styles.tipHeader}>
+            <IconChip icon="sun" tone="yellow" size={36} />
+            <Text style={styles.tipKicker}>{t("careTipsToday")}</Text>
           </View>
-          <View style={{ gap: 10, marginTop: 12 }}>
-            <Tip text={t("careTip1")} />
-            <View style={styles.tipDivider} />
-            <Tip text={t("careTip2")} />
-          </View>
+          <Text style={styles.tipBody}>{t("careTip1")}</Text>
         </Card>
 
-        {/* Status colors guide */}
-        <Card>
-          <View style={styles.cardHeaderRow}>
-            <IconChip icon="info" tone="neutral" size={32} />
-            <Text style={styles.cardHeaderTitle}>{t("statusGuide")}</Text>
-          </View>
-          <View style={{ gap: 10, marginTop: 12 }}>
-            <GuideRow color={c.warning} title={t("colorGreenTitle")} body={t("colorGreenBodyShort")} />
-            <GuideRow color={c.normal} title={t("colorYellowTitle")} body={t("colorYellowBodyShort")} />
-            <GuideRow color={c.alert} title={t("colorBlueTitle")} body={t("colorBlueBodyShort")} />
-          </View>
-        </Card>
-
-        {/* Quick action */}
+        {/* Primary action */}
         <PrimaryButton
-          label={
-            activeWound || wounds.length > 0
-              ? `${t("viewMyWounds")}  →`
-              : `${t("addNewWound")}  →`
-          }
-          variant="soft"
-          onPress={() =>
-            activeWound || wounds.length > 0
-              ? router.push("/(tabs)/wounds")
-              : router.push("/wound/new")
-          }
+          label={t("viewMyWounds")}
+          icon="heart"
+          onPress={() => router.push("/(tabs)/wounds")}
         />
 
+        {/* Secondary — color guide accordion-style row */}
+        <Pressable
+          onPress={() => router.push("/color-guide")}
+          style={({ pressed }) => [
+            styles.colorRow,
+            { opacity: pressed ? 0.85 : 1 },
+          ]}
+        >
+          <View style={styles.colorDots}>
+            <View style={[styles.colorDot, { backgroundColor: c.normal }]} />
+            <View
+              style={[
+                styles.colorDot,
+                { backgroundColor: c.warning, marginLeft: -8 },
+              ]}
+            />
+            <View
+              style={[
+                styles.colorDot,
+                { backgroundColor: c.alert, marginLeft: -8 },
+              ]}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.colorRowTitle}>{t("colorMeaningTitle")}</Text>
+            <Text style={styles.colorRowSub}>{t("colorGuide")}</Text>
+          </View>
+          <Feather name="chevron-right" size={22} color={c.textSecondary} />
+        </Pressable>
+
         {lastReading ? (
-          <Text style={styles.lastReading}>
+          <Text style={styles.lastReadingFoot}>
             {t("lastReading")}:{" "}
             {new Date(lastReading.timestamp).toLocaleTimeString([], {
               hour: "2-digit",
@@ -299,33 +262,26 @@ export default function HomeScreen() {
   );
 }
 
-function Tip({ text }: { text: string }) {
-  return (
-    <View style={styles.tipRow}>
-      <View style={styles.tipDot} />
-      <Text style={styles.tipText}>{text}</Text>
-    </View>
-  );
-}
-
-function GuideRow({
-  color,
-  title,
-  body,
+function FactTile({
+  icon,
+  tone,
+  value,
+  label,
 }: {
-  color: string;
-  title: string;
-  body: string;
+  icon: React.ComponentProps<typeof Feather>["name"];
+  tone: React.ComponentProps<typeof IconChip>["tone"];
+  value: string;
+  label: string;
 }) {
   return (
-    <View style={styles.guideRow}>
-      <View style={[styles.guideSwatch, { backgroundColor: color + "33" }]}>
-        <View style={[styles.guideDot, { backgroundColor: color }]} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.guideTitle}>{title}</Text>
-        <Text style={styles.guideBody}>{body}</Text>
-      </View>
+    <View style={[styles.factTile, softShadow]}>
+      <IconChip icon={icon} tone={tone} size={36} />
+      <Text style={styles.factValue} numberOfLines={1} adjustsFontSizeToFit>
+        {value}
+      </Text>
+      <Text style={styles.factLabel} numberOfLines={2}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -404,18 +360,20 @@ function Step({ n, text }: { n: string; text: string }) {
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingHorizontal: 18,
-    paddingTop: 4,
-    paddingBottom: 56,
-    gap: 18,
+    paddingHorizontal: 22,
+    paddingTop: 8,
+    paddingBottom: 64,
+    gap: 20,
   },
+
+  // Connection
   connPill: {
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingVertical: 7,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 999,
   },
   connPillOn: { backgroundColor: c.warningBg },
@@ -425,91 +383,139 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
   },
-  calmCard: {
+
+  // Connect-to-start hero (replaces StatusCard when no sensor)
+  connectCard: {
+    backgroundColor: c.card,
+    borderRadius: 28,
+    padding: 28,
     alignItems: "center",
     gap: 12,
-    padding: 26,
+    borderWidth: 1,
+    borderColor: c.border,
   },
-  calmIconWrap: {
-    width: 78,
-    height: 78,
-    borderRadius: 39,
-    backgroundColor: "rgba(110,117,191,0.10)",
+  connectIconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: "#EDEBFF",
     alignItems: "center",
     justifyContent: "center",
   },
-  calmTitle: {
-    fontSize: 18,
-    color: c.textPrimary,
+  connectTitle: {
+    fontSize: 22,
+    color: c.navy,
     fontFamily: "Inter_700Bold",
-    fontWeight: "700",
+    fontWeight: "800",
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: 28,
+    letterSpacing: -0.4,
   },
+  connectSub: {
+    fontSize: 15,
+    color: c.textSecondary,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    lineHeight: 21,
+  },
+
+  // Fact tile row
   statRow: { flexDirection: "row", gap: 12 },
-  cardHeaderRow: {
+  factTile: {
+    flex: 1,
+    backgroundColor: c.card,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: c.border,
+    padding: 16,
+    alignItems: "center",
+    gap: 10,
+    minHeight: 130,
+  },
+  factValue: {
+    fontSize: 22,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.4,
+  },
+  factLabel: {
+    fontSize: 12,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+
+  // Care tip card
+  tipCard: {
+    backgroundColor: "#EDEBFF",
+    borderColor: "rgba(110,117,191,0.18)",
+    padding: 20,
+    gap: 12,
+  },
+  tipHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
-  cardHeaderTitle: {
+  tipKicker: {
+    fontSize: 15,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  tipBody: {
     fontSize: 16,
     color: c.textPrimary,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-  },
-  tipRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
-  tipDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: c.primary,
-    marginTop: 8,
-  },
-  tipText: {
-    flex: 1,
-    fontSize: 14,
-    color: c.textSecondary,
     fontFamily: "Inter_400Regular",
-    lineHeight: 20,
+    lineHeight: 24,
   },
-  tipDivider: { height: 1, backgroundColor: c.border, opacity: 0.5 },
-  guideRow: {
+
+  // Color guide row
+  colorRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    backgroundColor: c.bg,
-    borderRadius: 14,
-    padding: 12,
+    gap: 14,
+    backgroundColor: c.card,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: c.border,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
   },
-  guideSwatch: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
+  colorDots: { flexDirection: "row", alignItems: "center" },
+  colorDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: c.card,
   },
-  guideDot: { width: 12, height: 12, borderRadius: 6 },
-  guideTitle: {
-    fontSize: 14,
+  colorRowTitle: {
+    fontSize: 15,
     color: c.textPrimary,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
   },
-  guideBody: {
+  colorRowSub: {
     fontSize: 12,
     color: c.textSecondary,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
   },
-  lastReading: {
+
+  lastReadingFoot: {
     fontSize: 12,
-    color: c.textSecondary,
+    color: c.textMuted,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
+    marginTop: 4,
   },
 });
 

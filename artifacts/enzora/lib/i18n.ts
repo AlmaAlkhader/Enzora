@@ -202,6 +202,8 @@ const en = {
 
   // Simplified home additions
   connectToStart: "Connect your device to start monitoring",
+  connectToStartSub: "Pair your Enzora patch to begin gentle, continuous monitoring.",
+  welcomeBack: "Welcome back",
   viewMyWounds: "View My Wounds",
   at: "at",
   back: "Back",
@@ -579,6 +581,8 @@ const ar: typeof en = {
   disconnectDevice: "فصل هذا الجهاز",
 
   connectToStart: "وصّل جهازك لبدء المراقبة",
+  connectToStartSub: "اربط لاصقة إنزورا لبدء مراقبة لطيفة ومستمرة.",
+  welcomeBack: "مرحباً بعودتك",
   viewMyWounds: "عرض جروحي",
   at: "في",
   back: "رجوع",

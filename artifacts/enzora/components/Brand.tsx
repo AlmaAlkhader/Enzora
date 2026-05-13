@@ -49,16 +49,32 @@ export const softShadow = Platform.select<ViewStyle>({
 export function EnzoraLogo({
   variant = "header",
 }: {
-  variant?: "header" | "headerLg" | "splash" | "auth" | "round";
+  variant?: "header" | "headerLg" | "splash" | "auth" | "round" | "brandTile";
   color?: string;
 }) {
   if (variant === "round") {
-    // Small white circle with logo inside — used in the new pastel header.
+    // Small white circle with logo inside — used in the compact header.
     const containerH = 40;
     const imageH = Math.round(containerH * 0.55);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
       <View style={styles.logoCircle}>
+        <Image
+          source={LOGO_SOURCE}
+          style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
+          contentFit="contain"
+        />
+      </View>
+    );
+  }
+  if (variant === "brandTile") {
+    // Premium logo tile used in the branded home header — large, centered,
+    // sits on a soft lavender square so the mark feels intentional.
+    const tile = 64;
+    const imageH = Math.round(tile * 0.62);
+    const imageW = Math.round(imageH * LOGO_ASPECT);
+    return (
+      <View style={[styles.brandTile, { width: tile, height: tile }]}>
         <Image
           source={LOGO_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
@@ -217,6 +233,44 @@ export function GradientHeader({
 
 // Alias for clarity in new code; identical behaviour.
 export const AppHeader = GradientHeader;
+
+// ---------------- Branded Header (home screen) ----------------
+// Premium two-row header used by the Home screen. Top row centers the
+// Enzora mark + wordmark with the language toggle floating top-right.
+// Bottom row hosts a large, calm greeting. Generous top breathing room.
+export function BrandedHeader({
+  greeting,
+  name,
+}: {
+  greeting: string;
+  name: string;
+}) {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      style={[
+        styles.brandHeader,
+        { paddingTop: Math.max(insets.top, 12) + 24 },
+      ]}
+    >
+      <View style={styles.brandTopRow}>
+        <View style={styles.brandLockup}>
+          <EnzoraLogo variant="brandTile" />
+          <Text style={styles.brandWordmark}>Enzora</Text>
+        </View>
+        <View style={styles.brandLangAbsolute}>
+          <LanguageToggle />
+        </View>
+      </View>
+      <View style={{ marginTop: 22, paddingHorizontal: 4 }}>
+        <Text style={styles.brandGreeting}>{greeting}</Text>
+        <Text style={styles.brandName} numberOfLines={1}>
+          {name}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 // ---------------- Primary Button ----------------
 export function PrimaryButton({
@@ -606,16 +660,17 @@ export function StatTile({
 }
 
 // ---------------- Status Card (hero) ----------------
-// White card with a top accent strip, status pill on the left, and a small
-// circular progress ring on the right. Mirrors the DashboardGrid mockup.
+// Calm, elderly-friendly hero card. No percent, no ring — just a clear
+// status badge, a friendly title, supporting body, last-check time, and a
+// big "View Details" action.
 export function StatusCard({
   status,
-  percent,
   lastCheckLabel,
   onPress,
   ctaLabel,
 }: {
   status: "yellow" | "green" | "blue";
+  /** Deprecated — kept for back-compat, ignored. */
   percent?: number;
   lastCheckLabel?: string;
   onPress?: () => void;
@@ -623,48 +678,63 @@ export function StatusCard({
 }) {
   const { t } = useTranslation();
   const cfg = {
-    yellow: { color: c.normal, title: t("woundNormal"), sub: t("woundNormalSub") },
-    green: { color: c.warning, title: t("earlySigns"), sub: t("earlySignsSub") },
-    blue: { color: c.alert, title: t("infectionDetected"), sub: t("infectionDetectedSub") },
+    yellow: {
+      color: c.normal,
+      bg: c.normalBg,
+      icon: "check-circle" as const,
+      title: t("woundNormal"),
+      sub: t("woundNormalSub"),
+      pillFg: "#B97A06",
+      pillLabel: t("statusYellow"),
+    },
+    green: {
+      color: c.warning,
+      bg: c.warningBg,
+      icon: "eye" as const,
+      title: t("earlySigns"),
+      sub: t("earlySignsSub"),
+      pillFg: "#3F8F4F",
+      pillLabel: t("statusGreen"),
+    },
+    blue: {
+      color: c.alert,
+      bg: c.alertBg,
+      icon: "phone-call" as const,
+      title: t("infectionDetected"),
+      sub: t("infectionDetectedSub"),
+      pillFg: "#1F60B0",
+      pillLabel: t("statusBlue"),
+    },
   }[status];
   return (
     <View style={[styles.statusCard, softShadow]}>
       <View style={[styles.statusAccent, { backgroundColor: cfg.color }]} />
-      <View style={styles.statusRow}>
-        <View style={{ flex: 1, paddingRight: 12 }}>
-          <View style={styles.statusPillRow}>
-            <View style={[styles.pillDot, { backgroundColor: cfg.color }]} />
-            <Text
-              style={[
-                styles.statusKicker,
-                { color: cfg.color },
-              ]}
-              numberOfLines={1}
-            >
-              {cfg.title}
-            </Text>
-          </View>
-          {lastCheckLabel ? (
-            <Text style={styles.statusMeta}>{lastCheckLabel}</Text>
-          ) : null}
-          <Text style={styles.statusSub}>{cfg.sub}</Text>
+      <View style={styles.statusBadgeRow}>
+        <View style={[styles.statusIconWrap, { backgroundColor: cfg.bg }]}>
+          <Feather name={cfg.icon} size={28} color={cfg.color} />
         </View>
-        <CircularProgress
-          size={72}
-          stroke={6}
-          value={typeof percent === "number" ? percent : status === "yellow" ? 50 : status === "green" ? 30 : 90}
-          color={cfg.color}
-          trackColor={c.bg}
-          centerText={typeof percent === "number" ? `${percent}%` : undefined}
-        />
+        <View style={[styles.pill, { backgroundColor: cfg.bg }]}>
+          <View style={[styles.pillDot, { backgroundColor: cfg.color }]} />
+          <Text style={[styles.pillText, { color: cfg.pillFg }]}>
+            {cfg.pillLabel}
+          </Text>
+        </View>
       </View>
+      <Text style={styles.statusTitle}>{cfg.title}</Text>
+      <Text style={styles.statusSub}>{cfg.sub}</Text>
+      {lastCheckLabel ? (
+        <View style={styles.statusMetaRow}>
+          <Feather name="clock" size={14} color={c.textSecondary} />
+          <Text style={styles.statusMeta}>{lastCheckLabel}</Text>
+        </View>
+      ) : null}
       {onPress ? (
         <Pressable
           onPress={onPress}
           style={({ pressed }) => [
             styles.statusCta,
             webCursor,
-            { opacity: pressed ? 0.7 : 1 },
+            { opacity: pressed ? 0.85 : 1 },
           ]}
           accessibilityRole="button"
           accessibilityLabel={ctaLabel ?? t("viewDetails")}
@@ -674,8 +744,8 @@ export function StatusCard({
           </Text>
           <Feather
             name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
-            size={16}
-            color={c.primary}
+            size={18}
+            color={c.textWhite}
           />
         </Pressable>
       ) : null}
@@ -913,13 +983,14 @@ const styles = StyleSheet.create({
   // Status card (hero)
   statusCard: {
     backgroundColor: c.card,
-    borderRadius: 24,
-    paddingTop: 22,
-    paddingBottom: 18,
-    paddingHorizontal: 20,
+    borderRadius: 28,
+    paddingTop: 28,
+    paddingBottom: 22,
+    paddingHorizontal: 24,
     borderWidth: 1,
     borderColor: c.border,
     overflow: "hidden",
+    gap: 12,
   },
   statusAccent: {
     position: "absolute",
@@ -928,52 +999,110 @@ const styles = StyleSheet.create({
     right: 0,
     height: 6,
   },
-  statusRow: {
+  statusBadgeRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
-  },
-  statusPillRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
     marginBottom: 4,
   },
-  statusKicker: {
-    fontSize: 13,
+  statusIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statusTitle: {
+    fontSize: 24,
+    color: c.textPrimary,
     fontFamily: "Inter_700Bold",
     fontWeight: "800",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
+    letterSpacing: -0.4,
+    lineHeight: 30,
+  },
+  statusMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 2,
   },
   statusMeta: {
-    fontSize: 12,
+    fontSize: 14,
     color: c.textSecondary,
     fontFamily: "Inter_500Medium",
-    marginBottom: 4,
   },
   statusSub: {
-    fontSize: 14,
-    color: c.textPrimary,
+    fontSize: 16,
+    color: c.textSecondary,
     fontFamily: "Inter_400Regular",
-    lineHeight: 20,
+    lineHeight: 23,
   },
   statusCta: {
-    marginTop: 14,
+    marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    backgroundColor: c.bg,
-    borderRadius: 12,
-    paddingVertical: 12,
+    gap: 8,
+    backgroundColor: c.primary,
+    borderRadius: 16,
+    paddingVertical: 16,
   },
   statusCtaText: {
-    fontSize: 14,
-    color: c.primary,
+    fontSize: 16,
+    color: c.textWhite,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
+  },
+
+  // Branded home header
+  brandHeader: {
+    paddingHorizontal: 22,
+    paddingBottom: 8,
+    backgroundColor: c.bg,
+  },
+  brandTopRow: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 64,
+  },
+  brandLockup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  brandTile: {
+    borderRadius: 18,
+    backgroundColor: "#EDEBFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  brandWordmark: {
+    fontSize: 26,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.6,
+  },
+  brandLangAbsolute: {
+    position: "absolute",
+    right: 0,
+    top: 12,
+  },
+  brandGreeting: {
+    fontSize: 16,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+  },
+  brandName: {
+    fontSize: 30,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.6,
+    marginTop: 2,
+    lineHeight: 36,
   },
 
   // Stat tile
