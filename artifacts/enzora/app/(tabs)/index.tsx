@@ -276,7 +276,7 @@ function FactTile({
   return (
     <View style={[styles.factTile, softShadow]}>
       <IconChip icon={icon} tone={tone} size={36} />
-      <Text style={styles.factValue} numberOfLines={1} adjustsFontSizeToFit>
+      <Text style={styles.factValue} numberOfLines={2}>
         {value}
       </Text>
       <Text style={styles.factLabel} numberOfLines={2}>
@@ -430,17 +430,20 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: c.border,
-    padding: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 10,
     alignItems: "center",
     gap: 10,
-    minHeight: 130,
+    minHeight: 140,
   },
   factValue: {
-    fontSize: 22,
+    fontSize: 18,
     color: c.navy,
     fontFamily: "Inter_700Bold",
     fontWeight: "800",
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
+    textAlign: "center",
+    lineHeight: 22,
   },
   factLabel: {
     fontSize: 12,

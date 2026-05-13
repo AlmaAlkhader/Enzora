@@ -49,7 +49,14 @@ export const softShadow = Platform.select<ViewStyle>({
 export function EnzoraLogo({
   variant = "header",
 }: {
-  variant?: "header" | "headerLg" | "splash" | "auth" | "round" | "brandTile";
+  variant?:
+    | "header"
+    | "headerLg"
+    | "splash"
+    | "auth"
+    | "round"
+    | "brandTile"
+    | "compactTile";
   color?: string;
 }) {
   if (variant === "round") {
@@ -68,13 +75,29 @@ export function EnzoraLogo({
     );
   }
   if (variant === "brandTile") {
-    // Premium logo tile used in the branded home header — large, centered,
-    // sits on a soft lavender square so the mark feels intentional.
-    const tile = 64;
+    // Premium logo tile for the Home hero header. Large, intentional,
+    // sits on a soft lavender square so the mark feels like the brand.
+    const tile = 88;
     const imageH = Math.round(tile * 0.62);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
-      <View style={[styles.brandTile, { width: tile, height: tile }]}>
+      <View style={[styles.brandTile, { width: tile, height: tile, borderRadius: 22 }]}>
+        <Image
+          source={LOGO_SOURCE}
+          style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
+          contentFit="contain"
+        />
+      </View>
+    );
+  }
+  if (variant === "compactTile") {
+    // Same lavender tile, scaled down — used in every inner screen header
+    // so all sections clearly belong to one branded family.
+    const tile = 44;
+    const imageH = Math.round(tile * 0.6);
+    const imageW = Math.round(imageH * LOGO_ASPECT);
+    return (
+      <View style={[styles.brandTile, { width: tile, height: tile, borderRadius: 12 }]}>
         <Image
           source={LOGO_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
@@ -147,36 +170,48 @@ export function LanguageToggle({ dark: _dark = false }: { dark?: boolean }) {
   );
 }
 
-// ---------------- App Header (pastel, replaces GradientHeader) ----------------
-// Keeps the legacy `GradientHeader` API so every screen using it still works.
+// ---------------- App Header (unified branded header, compact variant) ---------
+// One reusable header for every inner screen (Wounds, History, Ask AI, Alerts,
+// Profile, Wound Detail, Color Guide, modals…). Top row has the Enzora logo
+// lockup (or a back button) on the leading side and EN/AR on the trailing
+// side. Optional title/subtitle row sits beneath with the same spacing rhythm
+// as the home `BrandedHeader`. Legacy props (`layout`, `logoSize`) are
+// accepted as no-ops so existing call sites keep working.
 export function GradientHeader({
   title,
   subtitle,
   right,
   back,
   onBack,
-  layout = "centered",
-  logoSize: _logoSize = "sm",
   titleStyle,
   greeting,
+  layout: _layout,
+  logoSize: _logoSize,
 }: {
   title?: string;
   subtitle?: string;
   right?: React.ReactNode;
   back?: boolean;
   onBack?: () => void;
-  layout?: "centered" | "split";
-  logoSize?: "sm" | "lg";
   titleStyle?: StyleProp<TextStyle>;
-  /** Optional small line above title, e.g. "Good morning,". When provided
-   * with `title` (a name) the header becomes the home greeting layout. */
+  /** Optional small line above title, e.g. "Hello,". */
   greeting?: string;
+  /** Deprecated — kept for back-compat, ignored. */
+  layout?: "centered" | "split";
+  /** Deprecated — kept for back-compat, ignored. */
+  logoSize?: "sm" | "lg";
 }) {
   const insets = useSafeAreaInsets();
-  const topPad = Math.max(insets.top, 0) + 14;
+  const hasTitleRow = !!(title || subtitle || greeting);
   return (
-    <View style={[styles.header, { paddingTop: topPad }]}>
-      <View style={styles.headerLeft}>
+    <View
+      style={[
+        styles.appHeader,
+        { paddingTop: Math.max(insets.top, 12) + 18 },
+        !hasTitleRow && { paddingBottom: 14 },
+      ]}
+    >
+      <View style={styles.appHeaderTopRow}>
         {back ? (
           <Pressable
             onPress={onBack}
@@ -184,7 +219,7 @@ export function GradientHeader({
             accessibilityRole="button"
             accessibilityLabel="Back"
             style={({ pressed }) => [
-              styles.backBtn,
+              styles.appBackBtn,
               webCursor,
               { opacity: pressed ? 0.7 : 1 },
             ]}
@@ -192,22 +227,30 @@ export function GradientHeader({
             <Feather
               name={I18nManager.isRTL ? "chevron-right" : "chevron-left"}
               size={22}
-              color={c.textPrimary}
+              color={c.navy}
             />
           </Pressable>
         ) : (
-          <EnzoraLogo variant="round" />
+          <View style={styles.appLockup}>
+            <EnzoraLogo variant="compactTile" />
+            <Text style={styles.appWordmark}>Enzora</Text>
+          </View>
         )}
-        <View style={{ flex: 1, marginLeft: 12 }}>
+        <View style={{ flex: 1 }} />
+        {right ? <View style={{ marginRight: 8 }}>{right}</View> : null}
+        <LanguageToggle />
+      </View>
+      {hasTitleRow ? (
+        <View style={styles.appTitleBlock}>
           {greeting ? (
-            <Text style={styles.headerGreeting} numberOfLines={1}>
+            <Text style={styles.appGreeting} numberOfLines={1}>
               {greeting}
             </Text>
           ) : null}
           {title ? (
             <Text
               style={[
-                greeting ? styles.headerName : styles.headerTitle,
+                greeting ? styles.appName : styles.appTitle,
                 titleStyle,
               ]}
               numberOfLines={1}
@@ -217,16 +260,12 @@ export function GradientHeader({
             </Text>
           ) : null}
           {subtitle ? (
-            <Text style={styles.headerSubtitle} numberOfLines={1}>
+            <Text style={styles.appSubtitle} numberOfLines={2}>
               {subtitle}
             </Text>
           ) : null}
         </View>
-      </View>
-      <View style={styles.headerRight}>
-        {right}
-        {layout ? <LanguageToggle /> : null}
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -1079,30 +1118,97 @@ const styles = StyleSheet.create({
     borderColor: c.border,
   },
   brandWordmark: {
-    fontSize: 26,
+    fontSize: 36,
     color: c.navy,
     fontFamily: "Inter_700Bold",
     fontWeight: "800",
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
   },
   brandLangAbsolute: {
     position: "absolute",
     right: 0,
-    top: 12,
+    top: 22,
   },
   brandGreeting: {
-    fontSize: 16,
+    fontSize: 18,
     color: c.textSecondary,
     fontFamily: "Inter_500Medium",
   },
   brandName: {
+    fontSize: 36,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.8,
+    marginTop: 4,
+    lineHeight: 42,
+  },
+
+  // Unified inner-screen branded header (compact variant of BrandedHeader)
+  appHeader: {
+    paddingHorizontal: 22,
+    backgroundColor: c.bg,
+  },
+  appHeaderTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 44,
+  },
+  appLockup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  appWordmark: {
+    fontSize: 20,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.4,
+  },
+  appBackBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: c.card,
+    borderWidth: 1,
+    borderColor: c.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  appTitleBlock: {
+    marginTop: 18,
+    paddingHorizontal: 4,
+    paddingBottom: 4,
+  },
+  appGreeting: {
+    fontSize: 15,
+    color: c.textSecondary,
+    fontFamily: "Inter_500Medium",
+    marginBottom: 2,
+  },
+  appTitle: {
+    fontSize: 26,
+    color: c.navy,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  appName: {
     fontSize: 30,
     color: c.navy,
     fontFamily: "Inter_700Bold",
     fontWeight: "800",
     letterSpacing: -0.6,
-    marginTop: 2,
     lineHeight: 36,
+  },
+  appSubtitle: {
+    fontSize: 14,
+    color: c.textSecondary,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
+    lineHeight: 20,
   },
 
   // Stat tile

@@ -1,0 +1,152 @@
+Please update the app header system and home screen header.
+
+I want the HOME SCREEN header in the first screenshot to be replaced with a header style similar to the second screenshot.
+
+Important:
+- Keep the improved cleaner home-screen structure from the first screenshot
+- But replace the current small/plain header with a more branded hero-style header like the second screenshot
+- Make the Enzora logo even bigger than in the second screenshot
+- Create one consistent reusable header system for ALL app sections
+- Fix the box where the word “now” is cut off
+
+MAIN GOAL
+Make the app feel more premium, more branded, and more visually consistent.
+
+1. HOME HEADER REDESIGN
+Replace the current home header with a heading style inspired by the second screenshot:
+- larger greeting
+- more breathing room
+- more visual impact
+- more branded appearance
+- stronger hierarchy
+
+Use a layout similar in spirit to the second screenshot:
+- large greeting text
+- patient name emphasized
+- Enzora logo displayed much more prominently
+- more top padding / safe-area spacing
+- more elegant composition
+
+Desired feel:
+- calm
+- premium
+- soft medical
+- highly branded
+- clean and modern
+
+2. MAKE THE ENZORA LOGO BIGGER AND BETTER
+I want the Enzora logo to be even bigger than in the second screenshot.
+
+Logo requirements:
+- significantly larger
+- more intentional placement
+- not tiny or squeezed
+- enough whitespace around it
+- visually important
+- polished and premium
+
+If helpful, show:
+- Enzora symbol + wordmark together
+or
+- large Enzora symbol with clean wordmark placement
+
+The logo should feel like a major branding element, not a small icon.
+
+3. CONSISTENT HEADER FOR ALL SECTIONS
+Create a reusable header component and apply it consistently across:
+- Home
+- Wounds
+- Wound Detail
+- History
+- Ask AI
+- Alerts
+- Profile
+- Color Guide
+- Doctor Report / modal headers if applicable
+
+All headers should feel like the same design system.
+
+Header system requirements:
+- same Enzora branding
+- same top spacing logic
+- same logo treatment family
+- same Arabic toggle style
+- same typography system
+- same rounded / soft medical aesthetic
+- same spacing rhythm
+
+Use variations if needed:
+- Home can be the largest “hero” version
+- Inner pages can use a slightly more compact version
+- but they must clearly belong to the same header family
+
+4. HEADER STYLE RULES
+Use Enzora colors strongly and consistently:
+- navy: #1B2A6B
+- indigo: #6E75BF
+- soft violet: #8879B8
+- pale lavender: #EDEBFF
+- pale background: #F4F8FF
+- white: #FFFFFF
+- muted text: #6B7FA3
+
+Header styling:
+- soft branded background
+- could be white with branded content OR a soft Enzora gradient / tint
+- very polished
+- elderly-friendly
+- elegant and uncluttered
+
+Top spacing:
+- increase top padding
+- respect safe area
+- nothing should feel cramped against the notch/status bar
+
+5. FIX THE CUT-OFF TEXT
+One of the supporting info boxes currently cuts off the word “now”.
+
+Fix this so text is never awkwardly truncated.
+
+Specifically:
+- “just now” must be fully visible
+- no clipped words
+- no ugly ellipsis where unnecessary
+- no broken card layout
+
+If needed:
+- slightly widen the card
+- reduce font size a little
+- adjust line height
+- change text layout
+- allow wrapping if appropriate
+- shorten the label intelligently
+
+But the result must look polished.
+
+6. GENERAL CLEANUP
+While making these changes:
+- keep the home screen calm and elderly-friendly
+- preserve the improved simplified layout
+- do not bring back clutter
+- do not add technical-looking dashboard elements
+- keep the home hierarchy clear:
+  1. branded header
+  2. device pill
+  3. hero status card
+  4. supporting facts
+  5. care tip
+  6. main action
+  7. bottom nav
+
+7. IMPLEMENTATION EXPECTATION
+Please:
+- create a shared reusable AppHeader / BrandHeader component
+- use variants like:
+  - hero
+  - standard
+  - back-enabled
+- apply it consistently across screens
+- ensure spacing and typography are consistent
+
+Final goal:
+I want the first screen to keep its cleaner home content structure, but with a new header inspired by the second screenshot, a much bigger/better Enzora logo, a consistent header system for all sections, and no cut-off text anywhere.
