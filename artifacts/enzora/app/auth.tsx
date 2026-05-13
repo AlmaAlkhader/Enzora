@@ -153,13 +153,16 @@ export default function AuthScreen() {
         end={{ x: 1, y: 1 }}
         style={[
           styles.top,
-          { paddingTop: insets.top + 12, minHeight: Math.max(180, height * 0.24) },
+          {
+            paddingTop: insets.top + 56,
+            minHeight: Math.max(200, height * 0.26),
+          },
         ]}
       >
         <View style={styles.logoWrap}>
           <EnzoraLogo variant="auth" />
         </View>
-        <View style={[styles.langAbsolute, { top: insets.top + 12 }]}>
+        <View style={[styles.langAbsolute, { top: insets.top + 28 }]}>
           <LanguageToggle dark />
         </View>
       </LinearGradient>
@@ -321,7 +324,7 @@ const styles = StyleSheet.create({
   top: { paddingHorizontal: 16, position: "relative" },
   langAbsolute: {
     position: "absolute",
-    right: 16,
+    right: 24,
   },
   logoWrap: {
     flex: 1,

@@ -1,0 +1,72 @@
+Fix the auth screen language toggle position AND update logo usage across the app.
+
+Important:
+Do not redesign the whole app.
+Do not change authentication logic.
+Do not change Firebase/sensor logic.
+Only adjust the language toggle placement and logo usage.
+
+PART 1 — Fix language toggle on Login / Sign Up screen
+
+Problem:
+The EN / AR language toggle on the Login / Sign Up screen is too high and too close to the phone notch/top edge.
+
+Task:
+Move the language toggle lower and align it better within the auth header area.
+
+Requirements:
+- Keep it in the top-right area.
+- Move it down so it does not feel cramped against the notch/status area.
+- Use safe-area padding.
+- Suggested position: safeAreaTop + 20px, or around 48–60px from the top.
+- Right spacing: around 24px.
+- Keep the same pill style.
+- Make sure it does not overlap the logo.
+- Check both Login and Sign Up tabs.
+- Check English and Arabic modes.
+
+Expected result:
+The language toggle should look intentionally placed inside the header, not floating too high.
+
+PART 2 — Logo usage rule
+
+I want different logo behavior depending on screen type.
+
+Auth screens:
+- On Login and Sign Up screens, keep the full Enzora logo with text.
+- The auth screen can show the full logo/wordmark because it is the first branded entry screen.
+
+All other app header sections:
+- Remove the text from the logo in all main app headers.
+- Use only the Enzora icon/symbol in headers.
+- Do NOT show the “Enzora” word text inside the header logo on main app screens.
+- Do NOT show the “Smart Wound Patch” subtitle in main app headers.
+- The header should show only the clean Enzora icon mark.
+
+Apply this to:
+- Home
+- Wounds
+- Wound Detail
+- History
+- Ask AI
+- Alerts
+- Profile
+- Color Guide
+- Doctor Report header/modal
+- Any other logged-in app section
+
+Logo sizing:
+- Main app header icon should be clean, centered, and visually balanced.
+- It can be larger than before, but it should not include text.
+- Keep enough whitespace around it.
+- It should not feel squeezed or blurry.
+- If the current asset includes text only as part of one image, create/use a cropped icon-only version from the logo asset or add a separate icon-only asset.
+
+Consistency:
+- Use the full logo only on Login / Sign Up.
+- Use icon-only logo everywhere else.
+- Keep the header design consistent across all main sections.
+- Do not mix full-logo and icon-only logo randomly.
+
+Deliver:
+Tell me which component/file controls the auth header, which component/file controls the main app headers, and confirm that full logo is only used on Login/Sign Up while icon-only logo is used everywhere else.

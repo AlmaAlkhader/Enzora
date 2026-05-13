@@ -26,6 +26,12 @@ const c = colors.light;
 
 const LOGO_SOURCE = require("@/assets/images/enzora-logo.png");
 const LOGO_ASPECT = 787 / 1024;
+// Icon-only mark (cropped from the full logo) — used in every in-app header
+// so headers carry only the clean Enzora symbol without the "Enzora" wordmark
+// or "Smart Wound Patch" tagline. The full logo is reserved for the auth
+// screen (the user's first branded entry point).
+const MARK_SOURCE = require("@/assets/images/enzora-mark.png");
+const MARK_ASPECT = 872 / 916;
 
 const webCursor =
   Platform.OS === "web" ? ({ cursor: "pointer" } as ViewStyle) : null;
@@ -60,14 +66,15 @@ export function EnzoraLogo({
   color?: string;
 }) {
   if (variant === "round") {
-    // Small white circle with logo inside — used in the compact header.
+    // Small white circle with the icon-only mark inside — used in the
+    // compact header.
     const containerH = 40;
-    const imageH = Math.round(containerH * 0.55);
-    const imageW = Math.round(imageH * LOGO_ASPECT);
+    const imageH = Math.round(containerH * 0.7);
+    const imageW = Math.round(imageH * MARK_ASPECT);
     return (
       <View style={styles.logoCircle}>
         <Image
-          source={LOGO_SOURCE}
+          source={MARK_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
           contentFit="contain"
         />
@@ -75,12 +82,12 @@ export function EnzoraLogo({
     );
   }
   if (variant === "brandTile") {
-    // Premium WHITE CIRCULAR logo medallion for the Home hero header.
-    // Large, intentional, with a soft lavender ring + drop shadow so the
-    // mark reads as the primary brand element on the screen.
+    // Premium WHITE CIRCULAR medallion for the Home hero header. Shows the
+    // icon-only Enzora mark — no wordmark, no tagline — so the symbol reads
+    // as the primary brand element on the screen.
     const tile = 96;
-    const imageH = Math.round(tile * 0.6);
-    const imageW = Math.round(imageH * LOGO_ASPECT);
+    const imageH = Math.round(tile * 0.7);
+    const imageW = Math.round(imageH * MARK_ASPECT);
     return (
       <View
         style={[
@@ -89,7 +96,7 @@ export function EnzoraLogo({
         ]}
       >
         <Image
-          source={LOGO_SOURCE}
+          source={MARK_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
           contentFit="contain"
         />
@@ -99,9 +106,10 @@ export function EnzoraLogo({
   if (variant === "compactTile") {
     // Same white circular medallion, scaled down — used in every inner
     // screen header so all sections clearly belong to one branded family.
+    // Icon-only: never the "Enzora" wordmark or "Smart Wound Patch" tagline.
     const tile = 60;
-    const imageH = Math.round(tile * 0.58);
-    const imageW = Math.round(imageH * LOGO_ASPECT);
+    const imageH = Math.round(tile * 0.7);
+    const imageW = Math.round(imageH * MARK_ASPECT);
     return (
       <View
         style={[
@@ -110,7 +118,7 @@ export function EnzoraLogo({
         ]}
       >
         <Image
-          source={LOGO_SOURCE}
+          source={MARK_SOURCE}
           style={{ width: imageW, height: imageH, backgroundColor: "transparent" }}
           contentFit="contain"
         />
@@ -303,7 +311,6 @@ export function BrandedHeader({
       <View style={styles.brandTopRow}>
         <View style={styles.brandLockup}>
           <EnzoraLogo variant="brandTile" />
-          <Text style={styles.brandWordmark}>Enzora</Text>
         </View>
         <View style={styles.brandLangAbsolute}>
           <LanguageToggle />
