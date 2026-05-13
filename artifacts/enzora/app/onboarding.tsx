@@ -1,17 +1,8 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from "react-native";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
@@ -20,7 +11,6 @@ import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
-const { width } = Dimensions.get("window");
 
 interface Slide {
   bg: [string, string];
@@ -69,52 +59,49 @@ export default function Onboarding() {
   const router = useRouter();
   const { setHasSeenOnboarding } = useApp();
   const [index, setIndex] = useState(0);
-  const listRef = useRef<FlatList<Slide>>(null);
-
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const i = Math.round(e.nativeEvent.contentOffset.x / width);
-    if (i !== index) setIndex(i);
-  };
 
   const next = async () => {
     if (index < slides.length - 1) {
-      listRef.current?.scrollToIndex({ index: index + 1, animated: true });
+      setIndex(index + 1);
     } else {
       await setHasSeenOnboarding(true);
       router.replace("/auth");
     }
   };
 
+  const skip = async () => {
+    await setHasSeenOnboarding(true);
+    router.replace("/auth");
+  };
+
+  const slide = slides[index]!;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }}>
       <View style={styles.topBar}>
-        <View />
+        <Pressable
+          onPress={skip}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={t("skip")}
+        >
+          <Text style={styles.skip}>{t("skip")}</Text>
+        </Pressable>
         <LanguageToggle />
       </View>
-      <FlatList
-        ref={listRef}
-        data={slides}
-        keyExtractor={(_, i) => String(i)}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        renderItem={({ item }) => (
-          <LinearGradient
-            colors={item.bg}
-            style={[styles.slide, { width }]}
-          >
-            <View style={styles.illustration}>{item.icon}</View>
-            <Text style={styles.title}>{t(item.titleKey)}</Text>
-            <Text style={styles.subtitle}>{t(item.subKey)}</Text>
-          </LinearGradient>
-        )}
-      />
+      <LinearGradient colors={slide.bg} style={styles.slide}>
+        <View style={styles.illustration}>{slide.icon}</View>
+        <Text style={styles.title}>{t(slide.titleKey)}</Text>
+        <Text style={styles.subtitle}>{t(slide.subKey)}</Text>
+      </LinearGradient>
       <View style={styles.dots}>
         {slides.map((_, i) => (
-          <View
+          <Pressable
             key={i}
+            onPress={() => setIndex(i)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`Slide ${i + 1}`}
             style={[
               styles.dot,
               {
@@ -185,6 +172,14 @@ const styles = StyleSheet.create({
   },
   dot: { height: 8, borderRadius: 4 },
   actions: { paddingHorizontal: 20, paddingBottom: 24, paddingTop: 8 },
+  skip: {
+    color: c.textSecondary,
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
   colorRow: { flexDirection: "row", gap: 16 },
   colorDot: { width: 56, height: 56, borderRadius: 28 },
 });
