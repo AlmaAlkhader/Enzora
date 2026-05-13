@@ -182,6 +182,28 @@ const en = {
   trouble4: "Contact your doctor if problem continues",
   callForHelp: "Call for Help",
   whatsappUs: "Message us on WhatsApp",
+
+  // Device ID setup
+  connectDeviceTitle: "Enter Your Device ID",
+  connectDeviceHeading: "Enter Your Device ID",
+  connectDeviceBody:
+    "Look at the sticker on the back of your Enzora device and type the ID below.",
+  deviceIdLabel: "Device ID",
+  deviceIdPlaceholder: "e.g. ENZORA-001",
+  deviceIdRequired: "Please enter your device ID.",
+  connectDeviceButton: "Connect Device",
+  deviceConnectedToast: "Device connected!",
+  deviceNotFound:
+    "We could not find this device. Please check the ID on the sticker and try again.",
+  deviceNoFirebase:
+    "We can't reach our servers right now. Please check your internet and try again.",
+  currentlyConnected: "Currently connected",
+  disconnectDevice: "Disconnect this device",
+
+  // Simplified home additions
+  connectToStart: "Connect your device to start monitoring",
+  viewMyWounds: "View My Wounds",
+  at: "at",
   whatsappPrefill: "Hi, I need help setting up my Enzora device",
 
   // Profile
@@ -439,6 +461,26 @@ const ar: typeof en = {
   trouble4: "اتصل بطبيبك إذا استمرت المشكلة",
   callForHelp: "اتصل للمساعدة",
   whatsappUs: "راسلنا على واتساب",
+
+  connectDeviceTitle: "أدخل رقم جهازك",
+  connectDeviceHeading: "أدخل رقم جهازك",
+  connectDeviceBody:
+    "انظر إلى الملصق في خلف جهاز إنزورا وأدخل الرقم أدناه.",
+  deviceIdLabel: "رقم الجهاز",
+  deviceIdPlaceholder: "مثال: ENZORA-001",
+  deviceIdRequired: "يرجى إدخال رقم جهازك.",
+  connectDeviceButton: "توصيل الجهاز",
+  deviceConnectedToast: "تم توصيل الجهاز!",
+  deviceNotFound:
+    "لم نتمكن من إيجاد هذا الجهاز. يرجى التحقق من الرقم على الملصق والمحاولة مرة أخرى.",
+  deviceNoFirebase:
+    "لا يمكننا الوصول إلى الخوادم الآن. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.",
+  currentlyConnected: "متصل حالياً",
+  disconnectDevice: "فصل هذا الجهاز",
+
+  connectToStart: "وصّل جهازك لبدء المراقبة",
+  viewMyWounds: "عرض جروحي",
+  at: "في",
   whatsappPrefill: "مرحباً، أحتاج مساعدة في إعداد جهاز إنزورا",
 
   editProfile: "تعديل الملف",

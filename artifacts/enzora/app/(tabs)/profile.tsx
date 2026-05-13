@@ -21,7 +21,7 @@ import {
   PrimaryButton,
   TextField,
 } from "@/components/Brand";
-import { MoodWeekStrip } from "@/components/Wellness";
+import { MoodWeekStrip, SOSButton } from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import { isBiometricAvailable } from "@/lib/biometric";
@@ -98,7 +98,12 @@ export default function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader layout="split" logoSize="lg" title={t("profile")} />
+      <GradientHeader
+        layout="split"
+        logoSize="lg"
+        title={t("profile")}
+        right={<SOSButton />}
+      />
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
         <Card style={{ alignItems: "center", gap: 8, padding: 24 }}>
           <View style={styles.avatar}>

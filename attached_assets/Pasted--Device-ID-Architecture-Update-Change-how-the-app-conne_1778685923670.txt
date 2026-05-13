@@ -1,0 +1,125 @@
+## Device ID Architecture Update
+
+Change how the app connects to Firebase sensor data.
+Instead of reading from /sensor, each device has 
+its own path based on a unique device ID.
+
+New Firebase structure:
+/devices/{deviceId}/sensor
+  - status: "yellow" | "green" | "blue"
+  - red: number
+  - green: number
+  - blue: number
+
+---
+
+### 1. Device Setup Flow
+
+When user taps "How to Connect?" or sets up 
+a new device, show a simple input screen:
+
+Title: "Enter Your Device ID"
+Arabic: "أدخل رقم جهازك"
+
+Illustration: small device with a sticker 
+on the back
+
+Instructions:
+"Look at the sticker on the back of your 
+ Enzora device and type the ID below."
+Arabic:
+"انظر إلى الملصق في خلف جهاز إنزورا 
+ وأدخل الرقم أدناه."
+
+Large input field:
+- Placeholder: "e.g. ENZORA-001"
+- Uppercase automatically
+- No spaces allowed
+
+Button: "Connect Device"
+Arabic: "توصيل الجهاز"
+
+---
+
+### 2. On Connect
+
+When user enters device ID and taps connect:
+
+1. Try to read from Firebase:
+   /devices/{deviceId}/sensor
+   
+2. If data exists:
+   - Save deviceId to localStorage:
+     localStorage.setItem('enzora_device_id', deviceId)
+   - Show success: "Device connected! ✅"
+   - Navigate to wound selection
+   
+3. If no data found after 10 seconds:
+   - Show error: 
+     "We could not find this device.
+      Please check the ID on the sticker 
+      and try again."
+   - Arabic:
+     "لم نتمكن من إيجاد هذا الجهاز.
+      يرجى التحقق من الرقم على الملصق 
+      والمحاولة مرة أخرى."
+
+---
+
+### 3. Firebase Listener Update
+
+Replace ALL instances of:
+ref(db, 'sensor')
+
+With:
+const deviceId = localStorage.getItem('enzora_device_id')
+ref(db, 'devices/' + deviceId + '/sensor')
+
+This means the app only reads data from 
+the specific device the customer registered.
+
+---
+
+### 4. Link Device to Wound
+
+When wound is created and device is connected:
+Save to localStorage under the wound:
+{
+  woundId: "...",
+  woundName: "...",
+  deviceId: "ENZORA-001",
+  ...
+}
+
+When monitoring a wound, always use 
+that wound's linked deviceId to read 
+from Firebase.
+
+---
+
+### 5. Multiple Wounds One Device
+
+One device can only monitor one wound 
+at a time — the currently active wound.
+
+If user has multiple wounds, only the 
+wound marked as "active" reads from 
+the device path.
+
+---
+
+### 6. Update Firebase Test Data
+
+For testing, go to Firebase console and 
+create this structure manually:
+
+/devices
+  /ENZORA-001
+    /sensor
+      status: "yellow"
+      red: 200
+      green: 180
+      blue: 50
+
+Then enter "ENZORA-001" in the app 
+device ID field to test the connection.

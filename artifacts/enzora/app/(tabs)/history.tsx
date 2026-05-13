@@ -9,7 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Card, EmptyState, GradientHeader } from "@/components/Brand";
-import { ReadingRow } from "@/app/(tabs)/index";
+import { ReadingRow } from "@/components/ReadingRow";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 

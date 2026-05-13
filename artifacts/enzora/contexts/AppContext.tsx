@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
-import { onValue, ref } from "firebase/database";
+import { get, onValue, ref } from "firebase/database";
 import React, {
   createContext,
   useCallback,
@@ -72,6 +72,7 @@ export interface Wound {
   notes: string;
   status: "active" | "healed";
   healedAt?: number | null;
+  deviceId?: string | null;
 }
 
 export interface Reading {
@@ -112,6 +113,7 @@ interface AppCtx {
   biometricEnabled: boolean;
   dailyReminderEnabled: boolean;
   isOnline: boolean;
+  connectedDeviceId: string | null;
   // Setters
   setHasSeenOnboarding: (v: boolean) => Promise<void>;
   setLanguage: (lang: "en" | "ar") => Promise<void>;
@@ -136,6 +138,10 @@ interface AppCtx {
   setActivePatient: (id: string | null) => Promise<void>;
   removePatient: (id: string) => Promise<void>;
   hasMoodToday: boolean;
+  connectDevice: (
+    deviceId: string,
+  ) => Promise<{ ok: true } | { ok: false; reason: "not-found" | "no-firebase" | "error" }>;
+  disconnectDevice: () => Promise<void>;
 }
 
 const Ctx = createContext<AppCtx | null>(null);
@@ -152,6 +158,11 @@ const readingsKey = (email: string, woundId: string) =>
   `enzora_readings_${email.toLowerCase()}_${woundId}`;
 const biometricKey = (email: string) =>
   `enzora.biometric.${email.toLowerCase()}`;
+const deviceKey = (email: string) => `enzora.device.${email.toLowerCase()}`;
+
+export function normaliseDeviceId(input: string): string {
+  return input.trim().toUpperCase().replace(/\s+/g, "");
+}
 
 function hashPassword(password: string): string {
   const salt = "enzora.v1";
@@ -254,6 +265,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [biometricEnabled, setBiometricEnabledState] = useState(false);
   const [dailyReminderEnabled, setDailyReminderEnabledState] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const [connectedDeviceId, setConnectedDeviceIdState] = useState<string | null>(
+    null,
+  );
 
 
   // Load preferences + restore session
@@ -288,16 +302,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             setProfile(accountToProfile(acc));
             const ws = await readWounds(acc.email);
             setWounds(ws);
-            const [ms, pts, apId, bio] = await Promise.all([
+            const [ms, pts, apId, bio, dev] = await Promise.all([
               readMoods(acc.email),
               readPatients(acc.email),
               readActivePatientId(acc.email),
               AsyncStorage.getItem(biometricKey(acc.email)),
+              AsyncStorage.getItem(deviceKey(acc.email)),
             ]);
             setMoods(ms);
             setPatients(pts);
             setActivePatientIdState(apId);
             setBiometricEnabledState(bio === "1");
+            setConnectedDeviceIdState(dev);
           } else {
             await AsyncStorage.removeItem(SESSION_KEY);
           }
@@ -328,17 +344,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     void readReadings(user.email, profile.activeWoundId).then(setReadings);
   }, [user, profile?.activeWoundId]);
 
+  // Resolve which device path to read from. Priority:
+  //   1. The active wound's linked deviceId
+  //   2. The user's currently-connected deviceId (fallback)
+  const activeWoundForDevice = useMemo(
+    () => wounds.find((w) => w.id === profile?.activeWoundId) ?? null,
+    [wounds, profile?.activeWoundId],
+  );
+  const effectiveDeviceId =
+    activeWoundForDevice?.deviceId ?? connectedDeviceId ?? null;
+
   // Sensor listener (Firebase RTDB — only for ESP32 sensor data).
-  // Connection state is driven *solely* by the presence of /sensor/status.
+  // Connection state is driven *solely* by the presence of
+  // /devices/{deviceId}/sensor/status for the currently-active device.
   useEffect(() => {
-    console.log("[sensor] effect mount — rtdb:", !!rtdb);
+    console.log("[sensor] effect mount — rtdb:", !!rtdb, "deviceId:", effectiveDeviceId);
     if (!rtdb) {
       console.warn("[sensor] rtdb is null — listener NOT attached");
       return;
     }
-    const sensorRef = ref(rtdb, "sensor");
-    console.log("[sensor] attaching listener at path 'sensor'", {
-      refKey: sensorRef.key,
+    if (!effectiveDeviceId) {
+      console.log("[sensor] no deviceId — skipping listener");
+      setSensor((s) => ({ ...s, connected: false, status: null }));
+      return;
+    }
+    const path = `devices/${effectiveDeviceId}/sensor`;
+    const sensorRef = ref(rtdb, path);
+    console.log("[sensor] attaching listener", {
+      path,
       refToString: sensorRef.toString(),
     });
     const unsub = onValue(
@@ -373,7 +406,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.log("[sensor] detaching listener");
       unsub();
     };
-  }, []);
+  }, [effectiveDeviceId]);
 
   // Save reading locally on sensor change
   const lastSavedTs = useRef<number | null>(null);
@@ -528,18 +561,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(SESSION_KEY, normEmail);
     setUser({ uid: normEmail, email: normEmail });
     setProfile(accountToProfile(acc));
-    const [ws, ms, pts, apId, bio] = await Promise.all([
+    const [ws, ms, pts, apId, bio, dev] = await Promise.all([
       readWounds(normEmail),
       readMoods(normEmail),
       readPatients(normEmail),
       readActivePatientId(normEmail),
       AsyncStorage.getItem(biometricKey(normEmail)),
+      AsyncStorage.getItem(deviceKey(normEmail)),
     ]);
     setWounds(ws);
     setMoods(ms);
     setPatients(pts);
     setActivePatientIdState(apId);
     setBiometricEnabledState(bio === "1");
+    setConnectedDeviceIdState(dev);
   }, []);
 
   const signOutUser = useCallback(async () => {
@@ -552,6 +587,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPatients([]);
     setActivePatientIdState(null);
     setBiometricEnabledState(false);
+    setConnectedDeviceIdState(null);
   }, []);
 
   const updateAccount = useCallback(
@@ -584,6 +620,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         status: "active",
         dateAdded: Date.now(),
         healedAt: null,
+        // Inherit the user's currently-connected device unless caller
+        // already specified one explicitly.
+        deviceId: w.deviceId ?? connectedDeviceId ?? null,
       };
       const list = await readWounds(user.email);
       const updated = [wound, ...list];
@@ -592,8 +631,70 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       await updateAccount((acc) => ({ ...acc, activeWoundId: id }));
       return id;
     },
-    [user, updateAccount],
+    [user, updateAccount, connectedDeviceId],
   );
+
+  const connectDevice = useCallback(
+    async (
+      rawId: string,
+    ): Promise<
+      { ok: true } | { ok: false; reason: "not-found" | "no-firebase" | "error" }
+    > => {
+      const deviceId = normaliseDeviceId(rawId);
+      if (!deviceId) return { ok: false, reason: "not-found" };
+      if (!rtdb) return { ok: false, reason: "no-firebase" };
+      try {
+        const snap = await Promise.race([
+          get(ref(rtdb, `devices/${deviceId}/sensor`)),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 10000),
+          ),
+        ]);
+        const v = snap.val();
+        if (!v || !v.status) {
+          return { ok: false, reason: "not-found" };
+        }
+        if (user) {
+          await AsyncStorage.setItem(deviceKey(user.email), deviceId);
+          // Also link this device to the active wound, if one exists and it
+          // doesn't already have its own device assigned.
+          if (profile?.activeWoundId) {
+            const list = await readWounds(user.email);
+            const updated = list.map((w) =>
+              w.id === profile.activeWoundId && !w.deviceId
+                ? { ...w, deviceId }
+                : w,
+            );
+            await writeWounds(user.email, updated);
+            setWounds(updated);
+          }
+        }
+        setConnectedDeviceIdState(deviceId);
+        return { ok: true };
+      } catch (err) {
+        console.warn("[device] connect failed", err);
+        return { ok: false, reason: "error" };
+      }
+    },
+    [user, profile?.activeWoundId],
+  );
+
+  const disconnectDevice = useCallback(async () => {
+    if (user) {
+      await AsyncStorage.removeItem(deviceKey(user.email));
+      // Also unlink the device from any wounds, otherwise the sensor
+      // listener would stay attached via activeWound.deviceId.
+      const list = await readWounds(user.email);
+      const updated = list.map((w) =>
+        w.deviceId ? { ...w, deviceId: null } : w,
+      );
+      if (updated.some((w, i) => w !== list[i])) {
+        await writeWounds(user.email, updated);
+        setWounds(updated);
+      }
+    }
+    setConnectedDeviceIdState(null);
+  }, [user]);
 
   const setActiveWound = useCallback(
     async (id: string) => {
@@ -737,6 +838,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setActivePatient,
     removePatient,
     hasMoodToday,
+    connectedDeviceId,
+    connectDevice,
+    disconnectDevice,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

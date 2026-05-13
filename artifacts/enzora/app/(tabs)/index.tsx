@@ -12,38 +12,21 @@ import {
 import { useTranslation } from "react-i18next";
 
 import {
-  Card,
   GradientHeader,
   PrimaryButton,
   StatusCard,
 } from "@/components/Brand";
-import {
-  LiveColorCircle,
-  PatientPill,
-  SOSButton,
-  TipsCarousel,
-} from "@/components/Wellness";
 import colors from "@/constants/colors";
-import { useApp, type Reading } from "@/contexts/AppContext";
+import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const {
-    profile,
-    sensor,
-    activeWound,
-    wounds,
-    readings,
-    patients,
-    activePatientId,
-    setActivePatient,
-  } = useApp();
+  const { profile, sensor, activeWound, readings } = useApp();
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
-  const [patientPickerOpen, setPatientPickerOpen] = useState(false);
 
   useEffect(() => {
     if (
@@ -57,14 +40,13 @@ export default function HomeScreen() {
   }, [sensor.status, sensor.connected, sensor.lastUpdated, lastDismissed]);
 
   const firstName = (profile?.name ?? "").split(" ")[0] ?? "";
-  const todayCount = readings.filter(
-    (r) => Date.now() - r.timestamp < 24 * 60 * 60 * 1000,
-  ).length;
-  const monitoringSince = activeWound
-    ? new Date(activeWound.dateAdded).toLocaleDateString()
-    : "—";
   const lastReading = readings[0];
-  const activePatient = patients.find((p) => p.id === activePatientId) ?? null;
+  const lastReadingTime = lastReading
+    ? new Date(lastReading.timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -72,126 +54,76 @@ export default function HomeScreen() {
         layout="split"
         logoSize="lg"
         title={`${t("hello")}, ${firstName || ""}`.trim()}
-        right={<SOSButton />}
       />
+
       <ScrollView
-        contentContainerStyle={{ padding: 18, paddingBottom: 40, gap: 16 }}
+        contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {patients.length > 0 && (
-          <PatientPill
-            patient={activePatient}
-            onPress={() => setPatientPickerOpen(true)}
+        {/* 1. Subtle connection pill */}
+        <View
+          style={[
+            styles.pill,
+            sensor.connected ? styles.pillOn : styles.pillOff,
+          ]}
+        >
+          <View
+            style={[
+              styles.dot,
+              { backgroundColor: sensor.connected ? c.normal : c.alert },
+            ]}
           />
-        )}
-
-        {sensor.connected ? (
-          <View style={styles.devicePill}>
-            <View style={[styles.dot, { backgroundColor: "#22C55E" }]} />
-            <Text style={styles.devicePillText}>
-              {t("deviceConnected")}
-              {activeWound ? ` — ${t("monitoring")} ${activeWound.name}` : ""}
-            </Text>
-          </View>
-        ) : (
-          <Pressable
-            onPress={() => router.push("/connect-help")}
-            style={styles.devicePillOff}
+          <Text
+            style={[
+              styles.pillText,
+              { color: sensor.connected ? c.normal : c.alert },
+            ]}
           >
-            <View style={[styles.dot, { backgroundColor: c.alert }]} />
-            <Text style={[styles.devicePillText, { color: c.alert }]}>
-              {t("deviceNotConnected")} — {t("tapToConnect")}
-            </Text>
-          </Pressable>
-        )}
+            {sensor.connected ? t("deviceConnected") : t("deviceNotConnected")}
+          </Text>
+        </View>
 
-        <LiveColorCircle
-          red={sensor.red}
-          green={sensor.green}
-          blue={sensor.blue}
-          status={sensor.status}
-          connected={sensor.connected}
-        />
-
-        {!sensor.connected ? (
-          <Card style={{ alignItems: "center", padding: 24, gap: 12 }}>
-            <View style={styles.illIcon}>
-              <Feather name="wifi-off" size={42} color={c.textSecondary} />
+        {/* 2. Hero status card — the focus of the screen */}
+        {sensor.connected && sensor.status ? (
+          <StatusCard status={sensor.status} />
+        ) : (
+          <View style={styles.calmCard}>
+            <View style={styles.calmIconWrap}>
+              <Feather name="link" size={36} color={c.primary} />
             </View>
-            <Text style={styles.cardTitle}>{t("deviceOfflineTitle")}</Text>
-            <Text style={styles.cardSub}>{t("deviceOfflineSub")}</Text>
+            <Text style={styles.calmTitle}>{t("connectToStart")}</Text>
             <PrimaryButton
               label={t("howToConnect")}
               icon="radio"
-              onPress={() => router.push("/connect-help")}
-              style={{ alignSelf: "stretch", marginTop: 4 }}
+              onPress={() => router.push("/connect-device")}
+              style={{ alignSelf: "stretch", marginTop: 6 }}
             />
-          </Card>
-        ) : sensor.status && activeWound ? (
-          <StatusCard status={sensor.status} />
-        ) : sensor.status && wounds.length === 0 ? (
-          <Card style={{ alignItems: "center", padding: 20, gap: 10 }}>
-            <Feather name="plus-circle" size={36} color={c.primary} />
-            <Text style={styles.cardTitle}>{t("selectWoundTitle")}</Text>
-            <PrimaryButton
-              label={t("addNewWound")}
-              icon="plus"
-              onPress={() => router.push("/wound/new")}
-              style={{ alignSelf: "stretch" }}
-            />
-          </Card>
-        ) : sensor.status ? (
-          <Card style={{ alignItems: "center", padding: 20, gap: 10 }}>
-            <Text style={styles.cardTitle}>{t("selectWoundTitle")}</Text>
-            <PrimaryButton
-              label={t("addNewWound")}
-              icon="plus"
-              variant="outline"
-              onPress={() => router.push("/wound/new")}
-              style={{ alignSelf: "stretch" }}
-            />
-          </Card>
-        ) : (
-          <Card style={{ alignItems: "center", padding: 24, gap: 8 }}>
-            <Feather name="activity" size={36} color={c.textSecondary} />
-            <Text style={styles.cardTitle}>{t("noReadingsYet")}</Text>
-            <Text style={styles.cardSub}>{t("waitingForDevice")}</Text>
-          </Card>
-        )}
-
-        {sensor.connected && activeWound && (
-          <View style={styles.statsRow}>
-            <Stat
-              label={t("lastReading")}
-              value={
-                lastReading
-                  ? new Date(lastReading.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "—"
-              }
-            />
-            <Stat label={t("todaysChecks")} value={String(todayCount)} />
-            <Stat label={t("monitoringSince")} value={monitoringSince} />
           </View>
         )}
 
-        {activeWound && <TipsCarousel />}
+        {/* 3. Last reading — small, calm */}
+        {sensor.connected && lastReadingTime ? (
+          <Text style={styles.lastReading}>
+            {t("lastReading")}: {t("today")} {t("at")} {lastReadingTime}
+          </Text>
+        ) : null}
 
-        {readings.length > 0 && (
-          <View style={{ gap: 10 }}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t("recentReadings")}</Text>
-              <Pressable onPress={() => router.push("/(tabs)/history")}>
-                <Text style={styles.link}>{t("seeAll")}</Text>
-              </Pressable>
-            </View>
-            {readings.slice(0, 5).map((r) => (
-              <ReadingRow key={r.id} reading={r} />
-            ))}
-          </View>
-        )}
+        {/* 4. One quick action */}
+        <View style={{ marginTop: 8 }}>
+          <PrimaryButton
+            label={
+              activeWound
+                ? `${t("viewMyWounds")}  →`
+                : `${t("addNewWound")}  →`
+            }
+            variant="outline"
+            onPress={() =>
+              activeWound
+                ? router.push("/(tabs)/wounds")
+                : router.push("/wound/new")
+            }
+          />
+        </View>
       </ScrollView>
 
       <InfectionModal
@@ -201,148 +133,9 @@ export default function HomeScreen() {
           setAlertOpen(false);
         }}
       />
-
-      <PatientPicker
-        visible={patientPickerOpen}
-        onClose={() => setPatientPickerOpen(false)}
-        onSelect={async (id) => {
-          await setActivePatient(id);
-          setPatientPickerOpen(false);
-        }}
-      />
     </View>
   );
 }
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statValue} numberOfLines={1}>
-        {value}
-      </Text>
-      <Text style={styles.statLabel} numberOfLines={2}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-export function ReadingRow({ reading }: { reading: Reading }) {
-  const { t } = useTranslation();
-  const color =
-    reading.status === "yellow"
-      ? c.normal
-      : reading.status === "green"
-        ? c.warning
-        : c.alert;
-  const label =
-    reading.status === "yellow"
-      ? t("normalLabel")
-      : reading.status === "green"
-        ? t("cautionLabel")
-        : t("alertFullLabel");
-  return (
-    <View style={[styles.timelineRow, { borderLeftColor: color }]}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.timelineLabel}>{label}</Text>
-        <Text style={styles.timelineMeta}>
-          R {reading.red} · G {reading.green} · B {reading.blue}
-        </Text>
-      </View>
-      <Text style={styles.timelineTime}>
-        {new Date(reading.timestamp).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </Text>
-    </View>
-  );
-}
-
-function PatientPicker({
-  visible,
-  onClose,
-  onSelect,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onSelect: (id: string | null) => Promise<void>;
-}) {
-  const { t } = useTranslation();
-  const { patients, activePatientId } = useApp();
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={pickerStyles.bg} onPress={onClose}>
-        <Pressable style={pickerStyles.card} onPress={() => undefined}>
-          <Text style={pickerStyles.title}>{t("monitoringFor")}</Text>
-          <Pressable
-            onPress={() => void onSelect(null)}
-            style={[
-              pickerStyles.row,
-              activePatientId === null && pickerStyles.rowActive,
-            ]}
-          >
-            <Feather name="user" size={18} color={c.primary} />
-            <Text style={pickerStyles.rowText}>{t("myself")}</Text>
-            {activePatientId === null && (
-              <Feather name="check" size={16} color={c.primary} />
-            )}
-          </Pressable>
-          {patients.map((p) => (
-            <Pressable
-              key={p.id}
-              onPress={() => void onSelect(p.id)}
-              style={[
-                pickerStyles.row,
-                activePatientId === p.id && pickerStyles.rowActive,
-              ]}
-            >
-              <Feather name="users" size={18} color={c.primary} />
-              <Text style={pickerStyles.rowText}>
-                {p.name}
-              </Text>
-              {activePatientId === p.id && (
-                <Feather name="check" size={16} color={c.primary} />
-              )}
-            </Pressable>
-          ))}
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-}
-
-const pickerStyles = StyleSheet.create({
-  bg: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 24,
-  },
-  card: { backgroundColor: c.card, borderRadius: 22, padding: 18, gap: 6 },
-  title: {
-    fontSize: 16,
-    color: c.textPrimary,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-    marginBottom: 6,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  rowActive: { backgroundColor: "rgba(110,117,191,0.10)" },
-  rowText: {
-    flex: 1,
-    fontSize: 15,
-    color: c.textPrimary,
-    fontFamily: "Inter_600SemiBold",
-  },
-});
 
 function InfectionModal({
   visible,
@@ -363,228 +156,167 @@ function InfectionModal({
       const Linking = await import("expo-linking");
       await Linking.openURL(`tel:${phone.replace(/[^+\d]/g, "")}`);
     } catch (err) {
-      console.warn("[alert] tel failed", err);
+      console.warn("[home] tel failed", err);
     }
     onClose();
   };
-  const steps = [
-    { icon: "shield" as const, text: t("alertStep1") },
-    { icon: "eye" as const, text: t("alertStep2") },
-    { icon: "phone" as const, text: t("alertStep3") },
-    { icon: "alert-triangle" as const, text: t("alertStep4") },
-  ];
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: c.alertBg, padding: 24 }}>
-        <ScrollView contentContainerStyle={{ paddingTop: 60, gap: 20 }}>
-          <View style={styles.alertIconWrap}>
-            <Feather name="alert-octagon" size={56} color={c.alert} />
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={modalStyles.bg}>
+        <View style={modalStyles.card}>
+          <View style={modalStyles.iconWrap}>
+            <Feather name="alert-octagon" size={42} color={c.alert} />
           </View>
-          <Text style={styles.alertTitle}>{t("alertTitle")}</Text>
-          <Text style={styles.alertBody}>{t("alertBody")}</Text>
-          <View style={{ gap: 12 }}>
-            {steps.map((s, i) => (
-              <View key={i} style={styles.alertStep}>
-                <View style={styles.stepIcon}>
-                  <Feather name={s.icon} size={18} color={c.alert} />
-                </View>
-                <Text style={styles.stepText}>{s.text}</Text>
-              </View>
-            ))}
+          <Text style={modalStyles.title}>{t("alertTitle")}</Text>
+          <Text style={modalStyles.body}>{t("alertBody")}</Text>
+          <View style={{ gap: 8, marginTop: 8 }}>
+            <Step n="1" text={t("alertStep1")} />
+            <Step n="2" text={t("alertStep2")} />
+            <Step n="3" text={t("alertStep3")} />
+            <Step n="4" text={t("alertStep4")} />
           </View>
-          <View style={{ gap: 10, marginTop: 12 }}>
-            <PrimaryButton
-              label={t("callEmergencyNow")}
-              icon="phone"
-              onPress={() => void callEmergency()}
-            />
-            <PrimaryButton
-              label={t("understand")}
-              variant="white"
-              onPress={onClose}
-            />
-          </View>
-        </ScrollView>
+          <PrimaryButton
+            label={t("callEmergencyNow")}
+            icon="phone"
+            onPress={() => void callEmergency()}
+            style={{ marginTop: 14 }}
+          />
+          <PrimaryButton
+            label={t("understand")}
+            variant="outline"
+            onPress={onClose}
+            style={{ marginTop: 8 }}
+          />
+        </View>
       </View>
     </Modal>
   );
 }
 
+function Step({ n, text }: { n: string; text: string }) {
+  return (
+    <View style={modalStyles.stepRow}>
+      <View style={modalStyles.stepNum}>
+        <Text style={modalStyles.stepNumText}>{n}</Text>
+      </View>
+      <Text style={modalStyles.stepText}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  bell: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
+  scroll: {
+    padding: 22,
+    paddingTop: 18,
+    paddingBottom: 48,
+    gap: 18,
   },
-  bellDot: {
-    position: "absolute",
-    top: 8,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: c.alert,
-  },
-  devicePill: {
-    backgroundColor: c.card,
+  pill: {
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    padding: 14,
-    borderRadius: 14,
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: c.border,
   },
-  devicePillOff: {
-    backgroundColor: c.alertBg,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: c.alert,
-  },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  devicePillText: {
-    color: c.textPrimary,
+  pillOn: { backgroundColor: c.normalBg, borderColor: c.normal },
+  pillOff: { backgroundColor: c.alertBg, borderColor: c.alert },
+  pillText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    flex: 1,
-  },
-  illIcon: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: c.input,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardTitle: {
-    fontSize: 18,
     fontWeight: "700",
-    color: c.textPrimary,
-    textAlign: "center",
-    fontFamily: "Inter_700Bold",
   },
-  cardSub: {
-    fontSize: 14,
-    color: c.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    fontFamily: "Inter_400Regular",
-  },
-  statsRow: { flexDirection: "row", gap: 10 },
-  statCard: {
-    flex: 1,
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  calmCard: {
     backgroundColor: c.card,
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: c.border,
-    gap: 4,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: c.textPrimary,
-    fontFamily: "Inter_700Bold",
-  },
-  statLabel: {
-    fontSize: 11,
-    color: c.textSecondary,
-    fontFamily: "Inter_500Medium",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    borderRadius: 22,
+    padding: 28,
     alignItems: "center",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: c.textPrimary,
-    fontFamily: "Inter_700Bold",
-  },
-  link: {
-    color: c.primary,
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-  },
-  timelineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-    backgroundColor: c.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: c.border,
-    borderLeftWidth: 4,
     gap: 12,
   },
-  timelineLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: c.textPrimary,
-    fontFamily: "Inter_600SemiBold",
-  },
-  timelineMeta: {
-    fontSize: 12,
-    color: c.textSecondary,
-    marginTop: 2,
-    fontFamily: "Inter_400Regular",
-  },
-  timelineTime: {
-    fontSize: 12,
-    color: c.textSecondary,
-    fontFamily: "Inter_500Medium",
-  },
-  alertIconWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: c.card,
+  calmIconWrap: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    backgroundColor: "rgba(110,117,191,0.10)",
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
   },
-  alertTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: c.alert,
-    textAlign: "center",
-    fontFamily: "Inter_700Bold",
-  },
-  alertBody: {
+  calmTitle: {
     fontSize: 18,
     color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
     textAlign: "center",
     lineHeight: 26,
+  },
+  lastReading: {
+    fontSize: 14,
+    color: c.textSecondary,
     fontFamily: "Inter_400Regular",
+    textAlign: "center",
   },
-  alertStep: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+});
+
+const modalStyles = StyleSheet.create({
+  bg: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    padding: 22,
+    justifyContent: "center",
+  },
+  card: {
     backgroundColor: c.card,
-    padding: 14,
-    borderRadius: 14,
+    borderRadius: 22,
+    padding: 22,
   },
-  stepIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  iconWrap: {
+    alignSelf: "center",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: c.alertBg,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 20,
+    color: c.alert,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  body: {
+    fontSize: 14,
+    color: c.textPrimary,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 20,
+  },
+  stepRow: { flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  stepNum: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: c.alertBg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepNumText: {
+    color: c.alert,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    fontSize: 13,
   },
   stepText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: c.textPrimary,
     fontFamily: "Inter_500Medium",
+    lineHeight: 20,
   },
 });

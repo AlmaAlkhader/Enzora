@@ -1,0 +1,82 @@
+The home screen is too busy and overwhelming.
+Simplify it completely — less is more.
+This app is for elderly patients who need 
+calm, clear, and simple screens.
+
+---
+
+### New home screen layout — clean version
+
+Remove all of the following completely:
+- The SOS floating button from the header
+  (move it to Profile screen instead)
+- The live sensor circle with RGB values
+  — this is technical and confusing for patients
+- The "LIVE SENSOR" label and R G B numbers
+- The "Which wound should we monitor?" prompt
+  — this should only appear once during setup
+
+---
+
+### What the home screen should show
+
+Keep only these elements in this order:
+
+1. HEADER (gradient purple):
+   - Enzora logo centered
+   - "Hello, [name]" bottom left
+   - Arabic toggle top right
+   - Clean, nothing else
+
+2. CONNECTION STATUS PILL:
+   - Green pill: "● Device Connected"
+   - Red pill: "● Device Not Connected"
+   - Small, subtle, just below header
+   - No large red boxes or warnings
+
+3. HERO STATUS CARD (the main focus):
+   When connected and status is yellow:
+   - Soft yellow/cream background
+   - Large simple checkmark icon ✓
+   - Big clear text: "Your wound looks normal"
+   - Small subtitle: "Last checked: [time]"
+   - Calm and reassuring, no extra information
+
+   When status is green:
+   - Soft warm background
+   - Warning icon
+   - "Early signs detected"
+   - "Please monitor closely"
+
+   When status is blue:
+   - Soft red background  
+   - Alert icon
+   - "Please contact your doctor"
+   - Gentle pulse animation only
+
+   When not connected:
+   - Simple message: "Connect your device 
+     to start monitoring"
+   - One button: "How to Connect?"
+
+4. LAST READING:
+   - Simple small text below the card:
+     "Last reading: Today at 10:45 AM"
+   - Nothing else
+
+5. QUICK ACTION BUTTON:
+   - One single button at the bottom:
+     "View My Wounds →"
+
+---
+
+### Design rules for this screen
+
+- Maximum 3 colors on the entire screen
+- No icons that are not immediately obvious
+- No technical terms (RGB, sensor, frequency)
+- Font size minimum 16px everywhere
+- Lots of white space — breathing room
+- The status card should be the ONLY 
+  thing the patient focuses on
+- Everything else is secondary and small

@@ -87,8 +87,14 @@ export default function ConnectHelp() {
 
         <View style={{ gap: 10, marginTop: 4 }}>
           <PrimaryButton
+            label={t("connectDeviceButton")}
+            icon="link"
+            onPress={() => router.push("/connect-device")}
+          />
+          <PrimaryButton
             label={t("callForHelp")}
             icon="phone"
+            variant="outline"
             onPress={() => void callSupport()}
           />
           <Pressable

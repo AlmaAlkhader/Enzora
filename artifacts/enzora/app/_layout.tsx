@@ -36,6 +36,10 @@ function RootLayoutNav() {
         name="connect-help"
         options={{ presentation: "modal" }}
       />
+      <Stack.Screen
+        name="connect-device"
+        options={{ presentation: "modal" }}
+      />
       <Stack.Screen name="wound/new" options={{ presentation: "modal" }} />
       <Stack.Screen name="wound/[id]" />
     </Stack>
