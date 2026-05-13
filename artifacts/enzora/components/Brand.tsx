@@ -485,6 +485,11 @@ export function TextField({
   secure?: boolean;
 } & Omit<TextInputProps, "value" | "onChangeText" | "placeholder">) {
   const [hidden, setHidden] = React.useState(secure);
+  // Merge caller style ON TOP of the base input style. Spreading `...rest`
+  // after `style={styles.input}` would replace it entirely (RN does not merge
+  // `style` props), which made multiline fields lose the white background,
+  // border, font, etc.
+  const { style: extraStyle, ...restProps } = rest;
   return (
     <View style={styles.inputWrap}>
       <TextInput
@@ -493,9 +498,9 @@ export function TextField({
         placeholder={placeholder}
         placeholderTextColor={c.textSecondary}
         secureTextEntry={!!hidden}
-        style={styles.input}
         autoCapitalize={secure ? "none" : rest.autoCapitalize}
-        {...rest}
+        {...restProps}
+        style={[styles.input, extraStyle]}
       />
       {secure ? (
         <Pressable
