@@ -255,7 +255,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dailyReminderEnabled, setDailyReminderEnabledState] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
 
-  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load preferences + restore session
   useEffect(() => {
@@ -329,51 +328,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     void readReadings(user.email, profile.activeWoundId).then(setReadings);
   }, [user, profile?.activeWoundId]);
 
-  // Sensor listener (Firebase RTDB — only for ESP32 sensor data)
+  // Sensor listener (Firebase RTDB — only for ESP32 sensor data).
+  // Connection state is driven *solely* by the presence of /sensor/status.
   useEffect(() => {
     if (!rtdb) return;
     const sensorRef = ref(rtdb, "sensor");
-    const unsub = onValue(sensorRef, (snap) => {
-      const v = snap.val() as
-        | {
-            status?: SensorStatus;
-            red?: number;
-            green?: number;
-            blue?: number;
-            timestamp?: number;
-          }
-        | null;
-      if (!v) {
-        setSensor((s) => ({ ...s, connected: false, lastUpdated: null }));
-        return;
-      }
-      const ts = typeof v.timestamp === "number" ? v.timestamp : Date.now();
-      setSensor({
-        status: (v.status as SensorStatus) ?? null,
-        red: v.red ?? 0,
-        green: v.green ?? 0,
-        blue: v.blue ?? 0,
-        lastUpdated: ts,
-        connected: true,
-      });
-    });
+    const unsub = onValue(
+      sensorRef,
+      (snap) => {
+        const v = snap.val() as
+          | {
+              status?: SensorStatus;
+              red?: number;
+              green?: number;
+              blue?: number;
+              timestamp?: number;
+            }
+          | null;
+        if (v && v.status) {
+          setSensor({
+            status: v.status as SensorStatus,
+            red: typeof v.red === "number" ? v.red : 0,
+            green: typeof v.green === "number" ? v.green : 0,
+            blue: typeof v.blue === "number" ? v.blue : 0,
+            lastUpdated:
+              typeof v.timestamp === "number" ? v.timestamp : Date.now(),
+            connected: true,
+          });
+        } else {
+          setSensor((s) => ({ ...s, connected: false, status: null }));
+        }
+      },
+      (err) => {
+        console.warn("[firebase] sensor listener error", err);
+        setSensor((s) => ({ ...s, connected: false }));
+      },
+    );
     return unsub;
-  }, []);
-
-  // Connection freshness check
-  useEffect(() => {
-    if (tickRef.current) clearInterval(tickRef.current);
-    tickRef.current = setInterval(() => {
-      setSensor((s) => {
-        if (!s.lastUpdated) return s;
-        const fresh = Date.now() - s.lastUpdated < 5 * 60 * 1000;
-        if (s.connected !== fresh) return { ...s, connected: fresh };
-        return s;
-      });
-    }, 30000);
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current);
-    };
   }, []);
 
   // Save reading locally on sensor change
