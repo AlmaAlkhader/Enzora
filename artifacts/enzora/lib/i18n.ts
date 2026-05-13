@@ -280,6 +280,31 @@ const en = {
   onboardColorBlue: "Blue = Call your doctor",
   onboardColorBlueDesc: "Possible infection — contact your doctor.",
 
+  // AI features
+  aiAssessmentTitle: "AI Assessment",
+  aiAnalyzing: "Analyzing your wound",
+  aiUnavailable: "Assessment unavailable. Please try again later.",
+  retry: "Retry",
+  aiDisclaimer:
+    "AI insights are for guidance only and do not replace medical advice.",
+  aiPredictionTitle: "AI Prediction",
+  aiAnalyzingHistory: "Analyzing your wound history",
+  aiNotEnoughReadings:
+    "Not enough readings yet for a prediction. Keep monitoring!",
+  aiPredict: "Generate prediction",
+  aiLastUpdated: "Last updated",
+  trendImproving: "Getting Better 📈",
+  trendStable: "Staying Stable ➡️",
+  trendWorsening: "Needs Attention 📉",
+  askEnzoraAI: "Ask Enzora AI",
+  chatIntro: "Hi! Ask me anything about your wound or healing.",
+  typeMessage: "Type your question…",
+  chatChip1: "Is my wound getting better?",
+  chatChip2: "What does green color mean?",
+  chatChip3: "Should I change my bandage?",
+  chatChip4: "When should I see a doctor?",
+  chatChip5: "I have pain near my wound",
+
   // Confetti / celebration
   congratulations: "Congratulations!",
   healedSubtitle:
@@ -588,6 +613,30 @@ const ar: typeof en = {
   onboardColorGreenDesc: "علامة مبكرة — راقب الجرح.",
   onboardColorBlue: "أزرق = اتصل بطبيبك",
   onboardColorBlueDesc: "عدوى محتملة — تواصل مع طبيبك.",
+
+  // AI features
+  aiAssessmentTitle: "تقييم الذكاء الاصطناعي",
+  aiAnalyzing: "نحلّل جرحك",
+  aiUnavailable: "التقييم غير متاح. يرجى المحاولة لاحقاً.",
+  retry: "إعادة المحاولة",
+  aiDisclaimer:
+    "نصائح الذكاء الاصطناعي للإرشاد فقط ولا تحل محل استشارة الطبيب.",
+  aiPredictionTitle: "توقع الذكاء الاصطناعي",
+  aiAnalyzingHistory: "نحلّل سجل جرحك",
+  aiNotEnoughReadings: "لا توجد قراءات كافية بعد للتوقع. تابع المتابعة!",
+  aiPredict: "إنشاء توقع",
+  aiLastUpdated: "آخر تحديث",
+  trendImproving: "يتحسن 📈",
+  trendStable: "مستقر ➡️",
+  trendWorsening: "يحتاج إلى متابعة 📉",
+  askEnzoraAI: "اسأل إنزورا الذكي",
+  chatIntro: "مرحباً! اسألني أي شيء عن جرحك أو شفائك.",
+  typeMessage: "اكتب سؤالك…",
+  chatChip1: "هل جرحي يتحسن؟",
+  chatChip2: "ماذا يعني اللون الأخضر؟",
+  chatChip3: "هل يجب أن أغير ضمادتي؟",
+  chatChip4: "متى يجب أن أزور الطبيب؟",
+  chatChip5: "أشعر بألم قرب جرحي",
 
   congratulations: "مبروك!",
   healedSubtitle:

@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { AITrend } from "@/components/AI";
 import { Card, EmptyState, GradientHeader } from "@/components/Brand";
 import { ReadingRow } from "@/components/ReadingRow";
 import colors from "@/constants/colors";
@@ -19,7 +20,7 @@ type Range = "today" | "7" | "30";
 
 export default function HistoryScreen() {
   const { t } = useTranslation();
-  const { readings, wounds } = useApp();
+  const { readings, wounds, activeWound } = useApp();
   const [range, setRange] = useState<Range>("7");
 
   const filtered = useMemo(() => {
@@ -98,6 +99,8 @@ export default function HistoryScreen() {
           <Text style={styles.sectionTitle}>{t("rgbTrend")}</Text>
           <RGBChart readings={filtered.slice(0, 30)} />
         </Card>
+
+        {activeWound ? <AITrend woundId={activeWound.id} /> : null}
 
         <View style={{ gap: 10 }}>
           <Text style={styles.sectionTitle}>{t("readingTimeline")}</Text>

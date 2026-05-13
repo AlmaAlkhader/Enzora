@@ -1,0 +1,229 @@
+The AI features were skipped and never built.
+Please build all three AI features now.
+
+---
+
+### Setup
+
+Use Replit's built-in Anthropic integration
+via the API server proxy.
+Do NOT embed the API key in the frontend code.
+
+All Claude API calls must go through the 
+Replit API server at:
+POST /api/claude
+
+Create server endpoint in the backend:
+app.post('/api/claude', async (req, res) => {
+  const { systemPrompt, userMessage, history } = req.body
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: [
+      ...(history || []),
+      { role: 'user', content: userMessage }
+    ]
+  })
+  res.json({ text: response.content[0].text })
+})
+
+Frontend calls this endpoint:
+async function callClaude(systemPrompt, userMessage, history = []) {
+  try {
+    const response = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ systemPrompt, userMessage, history })
+    })
+    const data = await response.json()
+    return data.text
+  } catch (error) {
+    console.error('AI error:', error)
+    return null
+  }
+}
+
+---
+
+### COLOR STATUS MEANING FOR AI
+
+Always include in every system prompt:
+YELLOW = wound is safe and healthy
+GREEN = early signs of infection starting
+BLUE = infection confirmed
+
+---
+
+### FEATURE 1 – AI Wound Assessment
+
+Where: below hero status card on Home screen
+and on Wound Detail screen.
+
+Trigger: call ONLY when status changes.
+Cache result in localStorage until 
+status changes again.
+
+UI:
+- White card, border-radius 16px, soft shadow
+- Header: ✨ "AI Assessment"
+- Body: AI response text, 16px
+- Footer: small gray "AI insights are for 
+  guidance only and do not replace 
+  medical advice."
+- Loading: "Analyzing your wound..." 
+  with animated dots
+- Error: "Assessment unavailable. 
+  Try again later." + retry button
+
+System prompt:
+"You are a warm caring medical assistant 
+for Enzora smart wound monitoring app.
+Users are elderly patients, diabetics, 
+and post-surgery patients.
+Color meanings:
+YELLOW = wound safe and healing normally
+GREEN = early infection signs — monitor 
+closely, consider calling doctor
+BLUE = infection confirmed — call doctor now
+Rules:
+- Address patient warmly by name
+- No medical jargon
+- Never diagnose
+- Maximum 3 sentences
+- End with one simple action to take now
+- Encourage calling doctor for green or blue
+- Be calm, never cause panic"
+
+User message:
+"Patient name: [name]
+Medical conditions: [conditions]
+Wound name: [wound name]
+Location: [location]
+Current status: [yellow/green/blue]
+Days monitored: [number]
+Last 5 readings: [array of statuses]
+Write a short 3-sentence assessment 
+addressed directly to this patient.
+[If Arabic: Respond in Arabic.]"
+
+---
+
+### FEATURE 2 – AI Chatbot
+
+Where: floating 💬 button on Home screen,
+bottom right above navigation bar.
+
+Button: 56x56px circle, gradient background,
+white chat icon, soft shadow.
+
+Opens full screen chat modal.
+
+Header: gradient, "Ask Enzora AI 🤖",
+close X button.
+
+Suggested chips before first message:
+- "Is my wound getting better?"
+- "What does green color mean?"
+- "Should I change my bandage?"
+- "When should I see a doctor?"
+- "I have pain near my wound"
+
+Arabic chips:
+- "هل جرحي يتحسن؟"
+- "ماذا يعني اللون الأخضر؟"
+- "هل يجب أن أغير ضمادتي؟"
+- "متى يجب أن أزور الطبيب؟"
+- "أشعر بألم قرب جرحي"
+
+Chat bubbles:
+- User: right, gradient background, white text
+- AI: left, white background, dark text
+- Loading: animated "..." bubble on left
+
+Input: text field + send button, 52px height.
+
+System prompt:
+"You are Enzora AI, a friendly caring 
+medical assistant. Speak like a kind 
+patient nurse explaining to a grandparent.
+Color meanings:
+YELLOW = safe and healing normally
+GREEN = early infection starting
+BLUE = infection confirmed
+Rules:
+- Maximum 4 sentences
+- Simple warm language
+- Never diagnose
+- Suggest doctor for green or blue
+- If patient mentions pain, swelling, 
+  or fever always recommend calling doctor"
+
+User message:
+"Patient name: [name]
+Conditions: [conditions]
+Wound: [name], Status: [status]
+Days monitored: [number]
+Question: [typed message]
+[If Arabic: Respond in Arabic.]"
+
+Send last 10 messages as conversation 
+history with each request.
+
+---
+
+### FEATURE 3 – AI Trend Prediction
+
+Where: History screen below chart,
+and Wound Detail screen.
+
+Trigger: when user taps refresh OR
+5+ new readings since last prediction.
+Cache in localStorage.
+
+UI card:
+- White card, border-radius 16px
+- Header: 🔮 "AI Prediction" + refresh button
+- Prediction badge:
+  IMPROVING: green background, 
+    "Getting Better 📈"
+  STABLE: yellow background, 
+    "Staying Stable ➡️"  
+  WORSENING: red background, 
+    "Needs Attention 📉"
+- 2 sentence explanation below badge
+- "Last updated: [time]" small gray text
+- Loading: "Analyzing your wound history..."
+- Min 3 readings required, else show:
+  "Not enough readings yet for a prediction."
+
+System prompt:
+"You are a medical AI for Enzora app.
+Analyze wound readings and predict trend.
+YELLOW = safe (best), GREEN = early 
+infection, BLUE = confirmed infection.
+YELLOW→GREEN→BLUE = worsening.
+BLUE→GREEN→YELLOW = improving.
+Same status repeated = stable.
+Simple language for elderly patients.
+Max 2 sentences. Never diagnose."
+
+User message:
+"Patient: [name]
+Conditions: [conditions]
+Wound: [name], Days: [number]
+Last 10 readings oldest to newest:
+[array of { status, timestamp }]
+Respond ONLY in JSON:
+{
+  trend: improving|stable|worsening,
+  explanation: string (max 2 sentences),
+  recommendation: string (one action)
+}
+[If Arabic: Respond in Arabic.]"
+
+---
+
+### ERROR HANDLING FOR ALL FEATURES
+
+All AI calls m

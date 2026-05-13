@@ -42,3 +42,8 @@ externalPort = 3000
 [[ports]]
 localPort = 18512
 externalPort = 3001
+
+[userenv]
+
+[userenv.shared]
+EXPO_PUBLIC_API_BASE_URL = "https://c412ee6e-7602-46c4-9201-fa34bfc794d2-00-tvje6wmwbhc6.sisko.replit.dev"
