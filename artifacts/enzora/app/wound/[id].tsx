@@ -82,6 +82,11 @@ export default function WoundDetail() {
     const confirmAndRun = async () => {
       setConfetti(true);
       await markHealed(wound.id);
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        // Native gets confetti + auto navigation; on web also surface a clear
+        // success line, since the confetti card is the only visual cue.
+        window.alert(t("woundMovedToHealed"));
+      }
       setTimeout(() => router.back(), 2300);
     };
     // react-native-web's Alert.alert maps to window.alert (no buttons), so the
@@ -115,9 +120,14 @@ export default function WoundDetail() {
     setNoteOpen(false);
   };
 
+  const isHealed = wound.status === "healed";
   const woundReadings = isActive ? readings : [];
   const lastReading = woundReadings[0];
   const startedOn = formatNiceDate(wound.dateAdded, i18n.language);
+  const healedOnLabel =
+    isHealed && wound.healedAt
+      ? formatNiceDate(wound.healedAt, i18n.language)
+      : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -135,46 +145,63 @@ export default function WoundDetail() {
           <Text style={styles.backText}>{t("back")}</Text>
         </Pressable>
 
-        {/* Monitoring pill + Switch Wound */}
-        <View style={{ gap: 6 }}>
-          <Pressable
-            onPress={() => {
-              if (!isActive) void setActiveWound(wound.id);
-            }}
-            style={isActive ? styles.monitoringPillActive : styles.activateBtn}
-          >
-            <Feather
-              name="radio"
-              size={16}
-              color={isActive ? c.normal : c.primary}
-            />
-            <Text
-              style={[
-                styles.activateText,
-                { color: isActive ? c.normal : c.primary },
-              ]}
-            >
-              {t("monitoring")}: {wound.name}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => router.push("/(tabs)/wounds")}
-            hitSlop={8}
-            style={styles.switchRow}
-          >
-            <Text style={styles.switchText}>{t("switchWound")} →</Text>
-          </Pressable>
-        </View>
-
-        {/* Status card (or calm placeholder) */}
-        {isActive && sensor.status ? (
-          <StatusCard status={sensor.status} />
+        {/* Healed badge — only for healed wounds */}
+        {isHealed ? (
+          <View style={styles.healedBadgeRow}>
+            <View style={styles.healedBadge}>
+              <Feather name="check-circle" size={16} color={c.normal} />
+              <Text style={styles.healedBadgeText}>{t("healedBadge")}</Text>
+            </View>
+            {healedOnLabel ? (
+              <Text style={styles.muted}>
+                {t("healedOn", { date: healedOnLabel })}
+              </Text>
+            ) : null}
+          </View>
         ) : (
-          <Card style={{ alignItems: "center", padding: 20, gap: 8 }}>
-            <Feather name="activity" size={32} color={c.textSecondary} />
-            <Text style={styles.muted}>{t("noReadingsYet")}</Text>
-          </Card>
+          /* Monitoring pill + Switch Wound — active wounds only */
+          <View style={{ gap: 6 }}>
+            <Pressable
+              onPress={() => {
+                if (!isActive) void setActiveWound(wound.id);
+              }}
+              style={isActive ? styles.monitoringPillActive : styles.activateBtn}
+            >
+              <Feather
+                name="radio"
+                size={16}
+                color={isActive ? c.normal : c.primary}
+              />
+              <Text
+                style={[
+                  styles.activateText,
+                  { color: isActive ? c.normal : c.primary },
+                ]}
+              >
+                {t("monitoring")}: {wound.name}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push("/(tabs)/wounds")}
+              hitSlop={8}
+              style={styles.switchRow}
+            >
+              <Text style={styles.switchText}>{t("switchWound")} →</Text>
+            </Pressable>
+          </View>
         )}
+
+        {/* Live status card — only for active wounds. Healed wounds should
+            not show urgent live status. */}
+        {!isHealed &&
+          (isActive && sensor.status ? (
+            <StatusCard status={sensor.status} />
+          ) : (
+            <Card style={{ alignItems: "center", padding: 20, gap: 8 }}>
+              <Feather name="activity" size={32} color={c.textSecondary} />
+              <Text style={styles.muted}>{t("noReadingsYet")}</Text>
+            </Card>
+          ))}
 
         {/* Circular healing journey */}
         {wound.status === "active" && (
@@ -245,7 +272,7 @@ export default function WoundDetail() {
             variant="outline"
             onPress={() => setNoteOpen(true)}
           />
-          {isActive && sensor.status === "yellow" && (
+          {!isHealed && (
             <PrimaryButton
               label={t("markHealed")}
               icon="check-circle"
@@ -342,6 +369,27 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   switchRow: { alignSelf: "center", paddingVertical: 4 },
+  healedBadgeRow: {
+    alignItems: "center",
+    gap: 8,
+  },
+  healedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: c.normalBg,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: c.normal,
+  },
+  healedBadgeText: {
+    fontSize: 15,
+    color: c.normal,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
   switchText: {
     color: c.primary,
     fontSize: 14,

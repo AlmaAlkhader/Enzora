@@ -48,7 +48,12 @@ function relativeMinutes(ts: number, t: (k: string) => string): string {
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { profile, sensor, activeWound, readings, statusLock } = useApp();
+  const { profile, sensor, activeWound, readings, statusLock, wounds } =
+    useApp();
+  const currentWoundsCount = wounds.filter(
+    (w) => w.status === "active",
+  ).length;
+  const hasNoCurrentWounds = currentWoundsCount === 0;
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
   const [bannerDismissedFor, setBannerDismissedFor] = useState<
@@ -150,7 +155,22 @@ export default function HomeScreen() {
 
         {/* HERO — main status. Blue/infected gets a dedicated urgent card so
             the patient instantly understands they need to act. */}
-        {showPending && statusLock ? (
+        {hasNoCurrentWounds ? (
+          <View style={[styles.connectCard, softShadow]}>
+            <View style={styles.connectIconWrap}>
+              <Feather name="heart" size={36} color={c.primary} />
+            </View>
+            <Text style={styles.connectTitle}>
+              {t("noActiveWoundMonitored")}
+            </Text>
+            <PrimaryButton
+              label={t("addNewWound")}
+              icon="plus"
+              onPress={() => router.push("/wound/new")}
+              style={{ alignSelf: "stretch", marginTop: 6 }}
+            />
+          </View>
+        ) : showPending && statusLock ? (
           <PendingConfirmationCard status={statusLock.status} />
         ) : hasActiveSensor && sensor.status === "blue" ? (
           <UrgentInfectionCard

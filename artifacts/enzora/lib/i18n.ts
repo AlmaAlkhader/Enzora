@@ -144,7 +144,7 @@ const en = {
   newWoundOption: "This is a new wound",
   markHealed: "Mark as Healed",
   markHealedConfirm:
-    "Wonderful news! Are you sure this wound has fully healed? It will move to your wound history.",
+    "This will move the wound to Healed Wounds and stop active monitoring.",
   yesHealed: "Yes, It's Healed",
   notYet: "Not Yet",
   addNote: "Add a Note",
@@ -262,6 +262,16 @@ const en = {
   trendSummaryWatch: "Some small changes were detected. Keep watching your wound.",
   trendSummaryAlert: "Alert readings appeared recently. Please contact your doctor.",
   trendSummaryEmpty: "No readings available yet.",
+
+  // Wounds tab sections
+  currentWoundsTitle: "Current Wounds",
+  healedWoundsTitle: "Healed Wounds",
+  noCurrentWounds: "No current wounds",
+  noHealedWoundsYet: "No healed wounds yet",
+  healedBadge: "Healed",
+  healedOn: "Healed on {{date}}",
+  noActiveWoundMonitored: "No active wound is being monitored.",
+  woundMovedToHealed: "Wound moved to Healed Wounds.",
 
   // Healing journey
   healingJourney: "Healing Journey",
@@ -540,7 +550,7 @@ const ar: typeof en = {
   newWoundOption: "هذا جرح جديد",
   markHealed: "تحديد كشُفي",
   markHealedConfirm:
-    "أخبار رائعة! هل أنت متأكد أن هذا الجرح قد شُفي تماماً؟ سينتقل إلى سجل الجروح.",
+    "سيتم نقل الجرح إلى الجروح المتعافية وإيقاف المتابعة النشطة.",
   yesHealed: "نعم، لقد شُفي",
   notYet: "ليس بعد",
   addNote: "إضافة ملاحظة",
@@ -649,6 +659,15 @@ const ar: typeof en = {
   trendSummaryWatch: "تم اكتشاف بعض التغيرات البسيطة. يرجى متابعة الجرح.",
   trendSummaryAlert: "ظهرت قراءات تنبيه مؤخراً. يرجى التواصل مع طبيبك.",
   trendSummaryEmpty: "لا توجد قراءات بعد.",
+
+  currentWoundsTitle: "الجروح الحالية",
+  healedWoundsTitle: "الجروح المتعافية",
+  noCurrentWounds: "لا توجد جروح حالية",
+  noHealedWoundsYet: "لا توجد جروح متعافية بعد",
+  healedBadge: "متعافٍ",
+  healedOn: "تم الشفاء في {{date}}",
+  noActiveWoundMonitored: "لا يوجد جرح قيد المتابعة حالياً.",
+  woundMovedToHealed: "تم نقل الجرح إلى الجروح المتعافية.",
 
   healingJourney: "رحلة الشفاء",
   dayOfMonitoring: "اليوم {{day}} من المراقبة",

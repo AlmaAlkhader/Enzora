@@ -1,0 +1,184 @@
+Update the Wounds screen and healing flow so wounds are separated into Current Wounds and Healed Wounds.
+
+Important:
+Do not redesign unrelated screens.
+Do not change authentication.
+Do not change Firebase sensor logic.
+Do not change ESP32 logic.
+Firebase is only for live sensor readings.
+The wound records should be updated in the existing Replit/backend database.
+
+Problem:
+When a wound is marked as healed, it should not disappear completely. It should be moved into a “Healed Wounds” section while keeping all of its information.
+
+Required behavior:
+
+1. Wounds screen sections
+
+On the Wounds screen, show two sections:
+
+Section 1:
+Title: “Current Wounds”
+Arabic: “الجروح الحالية”
+
+This section contains wounds that are still active / not healed.
+
+Section 2:
+Title: “Healed Wounds”
+Arabic: “الجروح المتعافية”
+
+This section contains wounds that were marked as healed.
+
+2. Current wound behavior
+
+If a wound is not healed:
+- Keep it in Current Wounds.
+- Show its name.
+- Show its note/description if available.
+- Show date created.
+- Show current status badge if available.
+- Tapping it opens Wound Detail.
+
+3. Healed wound behavior
+
+When a wound is marked as healed:
+- Do NOT delete it.
+- Do NOT remove its history.
+- Do NOT lose its notes.
+- Do NOT lose doctor report info.
+- Do NOT lose reading history.
+- Move it from Current Wounds to Healed Wounds.
+- Keep all its stored information.
+- Add or update healed metadata, for example:
+  - isHealed: true
+  - isActive: false
+  - healedAt: current date/time
+  - updatedAt: current date/time
+
+Use the existing database schema if similar fields already exist. Do not create conflicting fields if the project already has a healed/status field.
+
+4. Mark as Healed button
+
+Fix/update the “Mark as Healed” button on Wound Detail.
+
+When tapped:
+- Show confirmation dialog:
+  Title: “Mark as healed?”
+  Message: “This will move the wound to Healed Wounds and stop active monitoring.”
+  Buttons:
+  - Cancel
+  - Yes, mark healed
+
+Arabic:
+Title: “تأكيد الشفاء؟”
+Message: “سيتم نقل الجرح إلى الجروح المتعافية وإيقاف المتابعة النشطة.”
+Buttons:
+- إلغاء
+- نعم، تم الشفاء
+
+After confirming:
+- Update the wound in the backend database.
+- Set the wound as healed/inactive.
+- Preserve all existing wound data.
+- Refresh local state.
+- Move the wound to the Healed Wounds section.
+- If this was the active monitored wound, clear it or select another current wound.
+- Show success message:
+  English: “Wound moved to Healed Wounds.”
+  Arabic: “تم نقل الجرح إلى الجروح المتعافية.”
+
+5. Home screen active wound logic
+
+If the currently monitored wound is marked as healed:
+- Home should no longer show it as actively monitored.
+- If there are other current wounds, Home can show/select one of them.
+- If there are no current wounds, Home should show a calm empty state:
+  English: “No active wound is being monitored.”
+  Arabic: “لا يوجد جرح قيد المتابعة حالياً.”
+  Button:
+  English: “Add New Wound”
+  Arabic: “إضافة جرح جديد”
+
+6. Wound Detail for healed wounds
+
+When opening a healed wound from the Healed Wounds section:
+- It should still open its detail page.
+- Show a clear “Healed” badge.
+- Show healed date.
+- Keep all wound information visible:
+  - wound name
+  - description/notes
+  - created date
+  - healed date
+  - previous readings/history
+  - doctor report if available
+- Hide or disable active-monitoring actions that do not make sense anymore:
+  - Hide “Mark as Healed” because it is already healed.
+  - Hide or disable active monitoring pill if needed.
+  - Do not show urgent live status as if it is still being monitored.
+
+7. UI design
+
+Keep the current Enzora style:
+- soft pastel background
+- rounded white cards
+- clear section titles
+- large readable text
+- elderly-friendly spacing
+
+For Healed Wounds cards:
+- use a calm green/mint badge:
+  English: “Healed”
+  Arabic: “متعافٍ”
+- show healed date if available:
+  English: “Healed on May 13, 2026”
+  Arabic: use Arabic date formatting if already supported
+
+For Current Wounds cards:
+- show current status badge:
+  Normal / Watch / Alert
+  Arabic equivalents
+
+8. Empty states
+
+If there are no current wounds:
+Show:
+English: “No current wounds”
+Arabic: “لا توجد جروح حالية”
+
+If there are no healed wounds:
+Show:
+English: “No healed wounds yet”
+Arabic: “لا توجد جروح متعافية بعد”
+
+9. Data safety
+
+Very important:
+- Marking a wound as healed must update the record, not delete it.
+- Preserve all fields.
+- Preserve all notes.
+- Preserve reading history.
+- Preserve doctor reports.
+- Preserve creation date.
+- Preserve wound name and description.
+
+10. Testing checklist
+
+Test this exact flow:
+1. Log in.
+2. Go to Wounds.
+3. Confirm active wounds appear under Current Wounds.
+4. Open one active wound.
+5. Tap Mark as Healed.
+6. Confirm action.
+7. Confirm wound moves to Healed Wounds.
+8. Confirm wound is removed from Current Wounds.
+9. Open the healed wound.
+10. Confirm all wound info is still visible.
+11. Confirm Mark as Healed is no longer shown for healed wound.
+12. Refresh the app.
+13. Confirm the healed wound is still in Healed Wounds.
+14. Confirm Home no longer monitors that healed wound.
+
+Deliver:
+Tell me which files were changed, what field is used to mark a wound as healed, and confirm that healed wounds are preserved instead of deleted.

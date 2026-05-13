@@ -2,8 +2,8 @@ import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-  FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -26,51 +26,80 @@ export default function WoundsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { wounds, sensor, activeWound } = useApp();
-  const active = wounds.filter((w) => w.status === "active");
+  const current = wounds.filter((w) => w.status === "active");
+  const healed = wounds
+    .filter((w) => w.status === "healed")
+    .sort((a, b) => (b.healedAt ?? 0) - (a.healedAt ?? 0));
 
-  const subtitle = `${active.length} ${active.length === 1 ? t("activeWounds") : t("activeWoundsPlural")}`;
+  const subtitle = `${current.length} ${current.length === 1 ? t("activeWounds") : t("activeWoundsPlural")}`;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader layout="split" logoSize="lg" title={t("myWounds")} subtitle={subtitle} />
-      <FlatList
-        data={active}
-        keyExtractor={(w) => w.id}
-        contentContainerStyle={{ padding: 18, paddingBottom: 100, gap: 12 }}
-        ListEmptyComponent={
-          <EmptyState
-            icon="heart"
-            title={t("noWoundsYet")}
-            action={
+      <GradientHeader
+        layout="split"
+        logoSize="lg"
+        title={t("myWounds")}
+        subtitle={subtitle}
+      />
+      <ScrollView
+        contentContainerStyle={{ padding: 18, paddingBottom: 100, gap: 18 }}
+      >
+        {/* CURRENT WOUNDS */}
+        <View style={{ gap: 10 }}>
+          <Text style={styles.sectionTitle}>{t("currentWoundsTitle")}</Text>
+          {current.length === 0 ? (
+            <EmptyState
+              icon="heart"
+              title={t("noCurrentWounds")}
+              action={
+                <PrimaryButton
+                  label={t("addNewWound")}
+                  icon="plus"
+                  onPress={() => router.push("/wound/new")}
+                />
+              }
+            />
+          ) : (
+            <View style={{ gap: 12 }}>
+              {current.map((w) => (
+                <WoundCard
+                  key={w.id}
+                  wound={w}
+                  isActive={activeWound?.id === w.id}
+                  currentStatus={
+                    activeWound?.id === w.id ? sensor.status ?? null : null
+                  }
+                  onPress={() => router.push(`/wound/${w.id}`)}
+                />
+              ))}
               <PrimaryButton
                 label={t("addNewWound")}
                 icon="plus"
                 onPress={() => router.push("/wound/new")}
+                style={{ marginTop: 4 }}
               />
-            }
-          />
-        }
-        renderItem={({ item }) => (
-          <WoundCard
-            wound={item}
-            isActive={activeWound?.id === item.id}
-            currentStatus={
-              activeWound?.id === item.id ? sensor.status ?? null : null
-            }
-            onPress={() => router.push(`/wound/${item.id}`)}
-          />
-        )}
-        ListFooterComponent={
-          active.length > 0 ? (
-            <PrimaryButton
-              label={t("addNewWound")}
-              icon="plus"
-              onPress={() => router.push("/wound/new")}
-              style={{ marginTop: 12 }}
-            />
-          ) : null
-        }
-      />
+            </View>
+          )}
+        </View>
+
+        {/* HEALED WOUNDS */}
+        <View style={{ gap: 10 }}>
+          <Text style={styles.sectionTitle}>{t("healedWoundsTitle")}</Text>
+          {healed.length === 0 ? (
+            <EmptyState icon="check-circle" title={t("noHealedWoundsYet")} />
+          ) : (
+            <View style={{ gap: 12 }}>
+              {healed.map((w) => (
+                <HealedWoundCard
+                  key={w.id}
+                  wound={w}
+                  onPress={() => router.push(`/wound/${w.id}`)}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -131,9 +160,7 @@ function WoundCard({
           {new Date(wound.dateAdded).toLocaleDateString()}
         </Text>
       </View>
-      <View
-        style={[styles.badge, { backgroundColor: statusBg }]}
-      >
+      <View style={[styles.badge, { backgroundColor: statusBg }]}>
         <Text style={[styles.badgeText, { color: statusColor }]}>
           {statusText}
         </Text>
@@ -143,7 +170,58 @@ function WoundCard({
   );
 }
 
+function HealedWoundCard({
+  wound,
+  onPress,
+}: {
+  wound: Wound;
+  onPress: () => void;
+}) {
+  const { t, i18n } = useTranslation();
+  const healedDateStr = wound.healedAt
+    ? new Date(wound.healedAt).toLocaleDateString(
+        i18n.language === "ar" ? "ar" : "en-US",
+        { year: "numeric", month: "long", day: "numeric" },
+      )
+    : null;
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        softShadow,
+        { opacity: pressed ? 0.85 : 1 },
+      ]}
+    >
+      <IconChip icon="check-circle" tone="green" size={44} />
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={styles.name}>{wound.name}</Text>
+        {!!wound.location && (
+          <Text style={styles.meta}>{wound.location}</Text>
+        )}
+        {healedDateStr ? (
+          <Text style={styles.meta}>
+            {t("healedOn", { date: healedDateStr })}
+          </Text>
+        ) : null}
+      </View>
+      <View style={[styles.badge, { backgroundColor: c.normalBg }]}>
+        <Text style={[styles.badgeText, { color: c.normal }]}>
+          {t("healedBadge")}
+        </Text>
+      </View>
+      <Feather name="chevron-right" size={20} color={c.textSecondary} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: c.textPrimary,
+    fontFamily: "Inter_700Bold",
+  },
   card: {
     flexDirection: "row",
     alignItems: "center",
