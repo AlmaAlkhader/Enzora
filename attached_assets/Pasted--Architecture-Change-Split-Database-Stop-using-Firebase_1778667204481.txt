@@ -1,0 +1,112 @@
+## Architecture Change – Split Database
+
+Stop using Firebase for user authentication 
+and user data storage. The loading issues 
+are caused by Firebase initialization problems.
+
+Use this split architecture instead:
+
+FIREBASE REALTIME DATABASE:
+- Only used for ESP32 sensor data
+- Listen to /sensor/status for color readings
+- Read /sensor/red, /sensor/green, /sensor/blue
+- This is the only Firebase connection needed
+
+REPLIT'S BUILT-IN DATABASE (or localStorage):
+- User accounts (sign up / login)
+- Medical profile data
+- Wound records
+- Reading history
+- Alerts
+- Mood check-ins
+- All app data except sensor readings
+
+---
+
+### New Authentication System
+
+Replace Firebase Auth completely with 
+a simple local auth system:
+
+Sign Up:
+- Save user to localStorage:
+  {
+    name, email, 
+    password (hashed with btoa or simple hash),
+    medicalProfile: null,
+    createdAt: Date.now()
+  }
+- Key: 'enzora_user_' + email
+
+Login:
+- Check localStorage for matching email + password
+- If found: set current session
+- If not found: show "No account found" error
+- Save logged in state: 
+  localStorage.setItem('enzora_session', email)
+
+Session check on app load:
+- Check localStorage for 'enzora_session'
+- If exists → go to Home
+- If not → go to Login
+- No async calls, no loading spinners
+- Instant navigation, no waiting
+
+Logout:
+- localStorage.removeItem('enzora_session')
+- Navigate to Login
+
+---
+
+### Data Storage with localStorage
+
+Save all data to localStorage:
+
+User profile:
+localStorage.setItem('enzora_profile_' + email, 
+  JSON.stringify(profileData))
+
+Wounds:
+localStorage.setItem('enzora_wounds_' + email,
+  JSON.stringify(woundsArray))
+
+Readings history:
+localStorage.setItem('enzora_readings_' + email,
+  JSON.stringify(readingsArray))
+
+Alerts:
+localStorage.setItem('enzora_alerts_' + email,
+  JSON.stringify(alertsArray))
+
+---
+
+### Keep Firebase ONLY for sensor data
+
+Keep this Firebase connection only:
+import { initializeApp } from 'firebase/app'
+import { getDatabase, ref, onValue } from 
+  'firebase/database'
+
+const db = getDatabase(app)
+const sensorRef = ref(db, 'sensor')
+onValue(sensorRef, (snapshot) => {
+  const data = snapshot.val()
+  updateWoundStatus(data.status)
+  saveReading(data)
+})
+
+Remove all other Firebase imports and calls.
+Remove Firestore completely.
+Remove Firebase Auth completely.
+
+---
+
+### Result
+
+- App loads instantly with no spinner
+- No Firebase auth errors
+- No configuration issues
+- Sensor data still comes from Firebase 
+  in real time
+- All user data stored locally
+- Everything works offline too

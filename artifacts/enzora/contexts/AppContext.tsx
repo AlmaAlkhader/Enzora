@@ -1,23 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  createUserWithEmailAndPassword,
-  fetchSignInMethodsForEmail,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  type User,
-} from "firebase/auth";
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc,
-  type Timestamp,
-} from "firebase/firestore";
 import { onValue, ref } from "firebase/database";
 import React, {
   createContext,
@@ -31,7 +12,7 @@ import React, {
 import { I18nManager } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { auth, db, rtdb } from "@/lib/firebase";
+import { rtdb } from "@/lib/firebase";
 import i18n, { loadLanguage, saveLanguage } from "@/lib/i18n";
 
 export type SensorStatus = "yellow" | "green" | "blue";
@@ -46,12 +27,26 @@ export interface MedicalProfile {
   emergencyPhone: string;
 }
 
+export interface LocalUser {
+  uid: string;
+  email: string;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
   createdAt: number;
   medicalProfile: MedicalProfile | null;
   activeWoundId?: string | null;
+}
+
+interface StoredAccount {
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: number;
+  medicalProfile: MedicalProfile | null;
+  activeWoundId: string | null;
 }
 
 export interface Wound {
@@ -84,7 +79,7 @@ interface SensorData {
 }
 
 interface AppCtx {
-  user: User | null;
+  user: LocalUser | null;
   profile: UserProfile | null;
   wounds: Wound[];
   activeWound: Wound | null;
@@ -114,29 +109,94 @@ interface AppCtx {
 
 const Ctx = createContext<AppCtx | null>(null);
 
-function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(label)), ms);
-    p.then(
-      (v) => {
-        clearTimeout(t);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(t);
-        reject(e);
-      },
-    );
-  });
-}
-
 const ONBOARD_KEY = "enzora.onboarded";
 const LARGE_TEXT_KEY = "enzora.largeText";
 const NOTIF_KEY = "enzora.notif";
+const SESSION_KEY = "enzora_session";
+
+const userKey = (email: string) => `enzora_user_${email.toLowerCase()}`;
+const woundsKey = (email: string) => `enzora_wounds_${email.toLowerCase()}`;
+const readingsKey = (email: string, woundId: string) =>
+  `enzora_readings_${email.toLowerCase()}_${woundId}`;
+
+function hashPassword(password: string): string {
+  // Lightweight salted hash. Not cryptographically strong, but fine for a
+  // local-only demo account store. Don't use this for real secrets.
+  const salt = "enzora.v1";
+  let h = 0;
+  const s = salt + password;
+  for (let i = 0; i < s.length; i++) {
+    h = (h << 5) - h + s.charCodeAt(i);
+    h |= 0;
+  }
+  return `h1:${h.toString(36)}:${s.length}`;
+}
+
+async function readAccount(email: string): Promise<StoredAccount | null> {
+  const raw = await AsyncStorage.getItem(userKey(email));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as StoredAccount;
+  } catch {
+    return null;
+  }
+}
+
+async function writeAccount(acc: StoredAccount): Promise<void> {
+  await AsyncStorage.setItem(userKey(acc.email), JSON.stringify(acc));
+}
+
+async function readWounds(email: string): Promise<Wound[]> {
+  const raw = await AsyncStorage.getItem(woundsKey(email));
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as Wound[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeWounds(email: string, list: Wound[]): Promise<void> {
+  await AsyncStorage.setItem(woundsKey(email), JSON.stringify(list));
+}
+
+async function readReadings(
+  email: string,
+  woundId: string,
+): Promise<Reading[]> {
+  const raw = await AsyncStorage.getItem(readingsKey(email, woundId));
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as Reading[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeReadings(
+  email: string,
+  woundId: string,
+  list: Reading[],
+): Promise<void> {
+  await AsyncStorage.setItem(
+    readingsKey(email, woundId),
+    JSON.stringify(list),
+  );
+}
+
+function accountToProfile(acc: StoredAccount): UserProfile {
+  return {
+    name: acc.name,
+    email: acc.email,
+    createdAt: acc.createdAt,
+    medicalProfile: acc.medicalProfile,
+    activeWoundId: acc.activeWoundId,
+  };
+}
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { i18n: i18nInst } = useTranslation();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<LocalUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [wounds, setWounds] = useState<Wound[]>([]);
   const [readings, setReadings] = useState<Reading[]>([]);
@@ -157,109 +217,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load preferences
+  // Load preferences + restore session
   useEffect(() => {
     void (async () => {
-      const lang = await loadLanguage();
-      setLanguageState(lang);
-      await i18n.changeLanguage(lang);
       try {
-        I18nManager.allowRTL(true);
-        I18nManager.forceRTL(lang === "ar");
-      } catch {
-        // ignore
+        const lang = await loadLanguage();
+        setLanguageState(lang);
+        await i18n.changeLanguage(lang);
+        try {
+          I18nManager.allowRTL(true);
+          I18nManager.forceRTL(lang === "ar");
+        } catch {
+          // ignore
+        }
+        const [onb, lt, nf, session] = await Promise.all([
+          AsyncStorage.getItem(ONBOARD_KEY),
+          AsyncStorage.getItem(LARGE_TEXT_KEY),
+          AsyncStorage.getItem(NOTIF_KEY),
+          AsyncStorage.getItem(SESSION_KEY),
+        ]);
+        setHasSeenOnboardingState(onb === "1");
+        setLargeTextState(lt === "1");
+        setNotificationsEnabledState(nf !== "0");
+
+        if (session) {
+          const acc = await readAccount(session);
+          if (acc) {
+            setUser({ uid: acc.email, email: acc.email });
+            setProfile(accountToProfile(acc));
+            const ws = await readWounds(acc.email);
+            setWounds(ws);
+          } else {
+            await AsyncStorage.removeItem(SESSION_KEY);
+          }
+        }
+      } catch (err) {
+        console.warn("[app] failed to restore session", err);
+      } finally {
+        setPrefsLoaded(true);
+        setLoading(false);
       }
-      const onb = await AsyncStorage.getItem(ONBOARD_KEY);
-      setHasSeenOnboardingState(onb === "1");
-      const lt = await AsyncStorage.getItem(LARGE_TEXT_KEY);
-      setLargeTextState(lt === "1");
-      const nf = await AsyncStorage.getItem(NOTIF_KEY);
-      setNotificationsEnabledState(nf !== "0");
-      setPrefsLoaded(true);
     })();
   }, []);
 
-  // Auth state
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if (!u) {
-        setProfile(null);
-        setWounds([]);
-        setReadings([]);
-        setLoading(false);
-      }
-    });
-    return unsub;
-  }, []);
-
-  // User profile listener
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-    const userDoc = doc(db, "users", user.uid);
-    const unsub = onSnapshot(
-      userDoc,
-      (snap) => {
-        if (snap.exists()) {
-          setProfile(snap.data() as UserProfile);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
-      },
-      () => setLoading(false),
-    );
-    return unsub;
-  }, [user]);
-
-  // Wounds listener
-  useEffect(() => {
-    if (!user) return;
-    const wq = query(
-      collection(db, "users", user.uid, "wounds"),
-      orderBy("dateAdded", "desc"),
-    );
-    const unsub = onSnapshot(wq, (snap) => {
-      const list: Wound[] = [];
-      snap.forEach((d) => {
-        const data = d.data() as Omit<Wound, "id">;
-        list.push({ ...data, id: d.id });
-      });
-      setWounds(list);
-    });
-    return unsub;
-  }, [user]);
-
-  // Readings listener for active wound
+  // Load readings when active wound changes
   useEffect(() => {
     if (!user || !profile?.activeWoundId) {
       setReadings([]);
       return;
     }
-    const rq = query(
-      collection(
-        db,
-        "users",
-        user.uid,
-        "wounds",
-        profile.activeWoundId,
-        "readings",
-      ),
-      orderBy("timestamp", "desc"),
-    );
-    const unsub = onSnapshot(rq, (snap) => {
-      const list: Reading[] = [];
-      snap.forEach((d) => {
-        const data = d.data() as Omit<Reading, "id">;
-        list.push({ ...data, id: d.id });
-      });
-      setReadings(list);
-    });
-    return unsub;
+    void readReadings(user.email, profile.activeWoundId).then(setReadings);
   }, [user, profile?.activeWoundId]);
 
-  // Sensor listener
+  // Sensor listener (Firebase RTDB — only for ESP32 sensor data)
   useEffect(() => {
     if (!rtdb) return;
     const sensorRef = ref(rtdb, "sensor");
@@ -306,33 +316,33 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Save reading to firestore on sensor change
+  // Save reading locally on sensor change
   const lastSavedTs = useRef<number | null>(null);
   useEffect(() => {
-    if (!user || !profile?.activeWoundId || !sensor.status || !sensor.lastUpdated)
+    if (
+      !user ||
+      !profile?.activeWoundId ||
+      !sensor.status ||
+      !sensor.lastUpdated
+    )
       return;
     if (lastSavedTs.current === sensor.lastUpdated) return;
     lastSavedTs.current = sensor.lastUpdated;
-    const id =
-      Date.now().toString() + Math.random().toString(36).substr(2, 9);
-    void setDoc(
-      doc(
-        db,
-        "users",
-        user.uid,
-        "wounds",
-        profile.activeWoundId,
-        "readings",
-        id,
-      ),
-      {
-        status: sensor.status,
-        red: sensor.red,
-        green: sensor.green,
-        blue: sensor.blue,
-        timestamp: sensor.lastUpdated,
-      },
-    );
+    const reading: Reading = {
+      id: Date.now().toString() + Math.random().toString(36).slice(2, 11),
+      status: sensor.status,
+      red: sensor.red,
+      green: sensor.green,
+      blue: sensor.blue,
+      timestamp: sensor.lastUpdated,
+    };
+    const woundId = profile.activeWoundId;
+    void (async () => {
+      const existing = await readReadings(user.email, woundId);
+      const updated = [reading, ...existing].slice(0, 500);
+      await writeReadings(user.email, woundId, updated);
+      setReadings(updated);
+    })();
   }, [
     sensor.status,
     sensor.lastUpdated,
@@ -343,17 +353,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     profile?.activeWoundId,
   ]);
 
-  const setLanguage = useCallback(async (lang: "en" | "ar") => {
-    setLanguageState(lang);
-    await i18nInst.changeLanguage(lang);
-    await saveLanguage(lang);
-    try {
-      I18nManager.allowRTL(true);
-      I18nManager.forceRTL(lang === "ar");
-    } catch {
-      // ignore
-    }
-  }, [i18nInst]);
+  const setLanguage = useCallback(
+    async (lang: "en" | "ar") => {
+      setLanguageState(lang);
+      await i18nInst.changeLanguage(lang);
+      await saveLanguage(lang);
+      try {
+        I18nManager.allowRTL(true);
+        I18nManager.forceRTL(lang === "ar");
+      } catch {
+        // ignore
+      }
+    },
+    [i18nInst],
+  );
 
   const toggleLanguage = useCallback(async () => {
     const next: "en" | "ar" = language === "en" ? "ar" : "en";
@@ -376,131 +389,149 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const emailExists = useCallback(async (email: string) => {
-    try {
-      const methods = await withTimeout(
-        fetchSignInMethodsForEmail(auth, email),
-        8000,
-        "email-check-timeout",
-      );
-      return methods.length > 0;
-    } catch {
-      // If Firebase blocks email enumeration or the call times out,
-      // assume the email exists so the login flow proceeds and surfaces
-      // the real error from signInWithEmailAndPassword.
-      return true;
-    }
+    const acc = await readAccount(email);
+    return !!acc;
   }, []);
 
   const signUp = useCallback(
     async (name: string, email: string, password: string) => {
-      console.log("[signUp] starting", { email });
-      const cred = await withTimeout(
-        createUserWithEmailAndPassword(auth, email, password),
-        15000,
-        "auth-timeout",
-      );
-      console.log("[signUp] auth ok", cred.user.uid);
-      const userDoc: UserProfile = {
-        name,
-        email,
+      const normEmail = email.trim().toLowerCase();
+      const existing = await readAccount(normEmail);
+      if (existing) {
+        const err = new Error("email-already-in-use");
+        (err as Error & { code?: string }).code = "auth/email-already-in-use";
+        throw err;
+      }
+      const acc: StoredAccount = {
+        name: name.trim(),
+        email: normEmail,
+        passwordHash: hashPassword(password),
         createdAt: Date.now(),
         medicalProfile: null,
         activeWoundId: null,
       };
-      try {
-        await withTimeout(
-          setDoc(doc(db, "users", cred.user.uid), userDoc),
-          10000,
-          "firestore-timeout",
-        );
-        console.log("[signUp] profile saved");
-      } catch (err) {
-        // Don't block the signup flow if Firestore write fails — the
-        // auth account was already created. We'll let the user proceed
-        // and the profile will be created on next successful write.
-        console.warn("[signUp] failed to write profile", err);
-      }
+      await writeAccount(acc);
+      await AsyncStorage.setItem(SESSION_KEY, normEmail);
+      setUser({ uid: normEmail, email: normEmail });
+      setProfile(accountToProfile(acc));
+      setWounds([]);
     },
     [],
   );
 
   const signIn = useCallback(async (email: string, password: string) => {
-    await withTimeout(
-      signInWithEmailAndPassword(auth, email, password),
-      15000,
-      "auth-timeout",
-    );
+    const normEmail = email.trim().toLowerCase();
+    const acc = await readAccount(normEmail);
+    if (!acc) {
+      const err = new Error("user-not-found");
+      (err as Error & { code?: string }).code = "auth/user-not-found";
+      throw err;
+    }
+    if (acc.passwordHash !== hashPassword(password)) {
+      const err = new Error("wrong-password");
+      (err as Error & { code?: string }).code = "auth/wrong-password";
+      throw err;
+    }
+    await AsyncStorage.setItem(SESSION_KEY, normEmail);
+    setUser({ uid: normEmail, email: normEmail });
+    setProfile(accountToProfile(acc));
+    const ws = await readWounds(normEmail);
+    setWounds(ws);
   }, []);
 
   const signOutUser = useCallback(async () => {
-    await signOut(auth);
+    await AsyncStorage.removeItem(SESSION_KEY);
+    setUser(null);
+    setProfile(null);
+    setWounds([]);
+    setReadings([]);
   }, []);
+
+  const updateAccount = useCallback(
+    async (mutate: (acc: StoredAccount) => StoredAccount) => {
+      if (!user) return;
+      const current = await readAccount(user.email);
+      if (!current) return;
+      const next = mutate(current);
+      await writeAccount(next);
+      setProfile(accountToProfile(next));
+    },
+    [user],
+  );
 
   const saveMedicalProfile = useCallback(
     async (p: MedicalProfile) => {
-      if (!user) return;
-      await updateDoc(doc(db, "users", user.uid), { medicalProfile: p });
+      await updateAccount((acc) => ({ ...acc, medicalProfile: p }));
     },
-    [user],
+    [updateAccount],
   );
 
   const addWound = useCallback(
     async (w: Omit<Wound, "id" | "status" | "dateAdded">) => {
       if (!user) throw new Error("not authenticated");
       const id =
-        Date.now().toString() + Math.random().toString(36).substr(2, 9);
-      const wound: Omit<Wound, "id"> = {
+        Date.now().toString() + Math.random().toString(36).slice(2, 11);
+      const wound: Wound = {
         ...w,
+        id,
         status: "active",
         dateAdded: Date.now(),
         healedAt: null,
       };
-      await setDoc(doc(db, "users", user.uid, "wounds", id), wound);
-      await updateDoc(doc(db, "users", user.uid), { activeWoundId: id });
+      const list = await readWounds(user.email);
+      const updated = [wound, ...list];
+      await writeWounds(user.email, updated);
+      setWounds(updated);
+      await updateAccount((acc) => ({ ...acc, activeWoundId: id }));
       return id;
     },
-    [user],
+    [user, updateAccount],
   );
 
   const setActiveWound = useCallback(
     async (id: string) => {
-      if (!user) return;
-      await updateDoc(doc(db, "users", user.uid), { activeWoundId: id });
+      await updateAccount((acc) => ({ ...acc, activeWoundId: id }));
     },
-    [user],
+    [updateAccount],
   );
 
   const markHealed = useCallback(
     async (id: string) => {
       if (!user) return;
-      await updateDoc(doc(db, "users", user.uid, "wounds", id), {
-        status: "healed",
-        healedAt: Date.now(),
-      });
-      const remaining = wounds.filter((w) => w.id !== id && w.status === "active");
+      const list = await readWounds(user.email);
+      const updated = list.map((w) =>
+        w.id === id ? { ...w, status: "healed" as const, healedAt: Date.now() } : w,
+      );
+      await writeWounds(user.email, updated);
+      setWounds(updated);
       if (profile?.activeWoundId === id) {
-        await updateDoc(doc(db, "users", user.uid), {
-          activeWoundId: remaining[0]?.id ?? null,
-        });
+        const remaining = updated.find((w) => w.status === "active");
+        await updateAccount((acc) => ({
+          ...acc,
+          activeWoundId: remaining?.id ?? null,
+        }));
       }
     },
-    [user, wounds, profile?.activeWoundId],
+    [user, profile?.activeWoundId, updateAccount],
   );
 
   const addNote = useCallback(
     async (id: string, note: string) => {
       if (!user) return;
-      const w = wounds.find((x) => x.id === id);
-      const existing = w?.notes ?? "";
+      const list = await readWounds(user.email);
       const stamp = new Date().toLocaleString();
-      const combined = existing
-        ? `${existing}\n\n[${stamp}] ${note}`
-        : `[${stamp}] ${note}`;
-      await updateDoc(doc(db, "users", user.uid, "wounds", id), {
-        notes: combined,
+      const updated = list.map((w) => {
+        if (w.id !== id) return w;
+        const existing = w.notes ?? "";
+        const combined = existing
+          ? `${existing}\n\n[${stamp}] ${note}`
+          : `[${stamp}] ${note}`;
+        return { ...w, notes: combined };
       });
+      await writeWounds(user.email, updated);
+      setWounds(updated);
     },
-    [user, wounds],
+    [user],
   );
 
   const activeWound = useMemo(
@@ -545,6 +576,3 @@ export function useApp(): AppCtx {
   if (!ctx) throw new Error("useApp must be used within AppProvider");
   return ctx;
 }
-
-// Re-export for convenience
-export type { Timestamp };

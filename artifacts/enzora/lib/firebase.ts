@@ -1,27 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-// @ts-expect-error - getReactNativePersistence is exported but not in types
-import { initializeAuth, getAuth, getReactNativePersistence, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
 import { getDatabase, type Database } from "firebase/database";
-import { Platform } from "react-native";
-
-const missing: string[] = [];
-for (const k of [
-  "EXPO_PUBLIC_FIREBASE_API_KEY",
-  "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN",
-  "EXPO_PUBLIC_FIREBASE_PROJECT_ID",
-  "EXPO_PUBLIC_FIREBASE_APP_ID",
-] as const) {
-  if (!process.env[k]) missing.push(k);
-}
-if (missing.length > 0) {
-  console.error(
-    "[firebase] Missing required config:",
-    missing.join(", "),
-    "— sign up / login will not work until these are set.",
-  );
-}
 
 const rawDbUrl = process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL;
 const validDbUrl =
@@ -41,36 +19,21 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app: FirebaseApp;
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
-}
-
-let auth: Auth;
-try {
-  if (Platform.OS === "web") {
-    auth = getAuth(app);
-  } else {
-    auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage),
-    });
-  }
-} catch {
-  auth = getAuth(app);
-}
-
-const db: Firestore = getFirestore(app);
-
+let app: FirebaseApp | null = null;
 let rtdb: Database | null = null;
+
 try {
-  if (validDbUrl) {
+  if (validDbUrl && firebaseConfig.apiKey) {
+    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     rtdb = getDatabase(app);
+  } else if (!validDbUrl) {
+    console.warn(
+      "[firebase] EXPO_PUBLIC_FIREBASE_DATABASE_URL not set — sensor data will be offline.",
+    );
   }
-} catch {
+} catch (err) {
+  console.warn("[firebase] failed to initialize RTDB:", err);
   rtdb = null;
 }
 
-export { app, auth, db, rtdb };
-
+export { app, rtdb };
