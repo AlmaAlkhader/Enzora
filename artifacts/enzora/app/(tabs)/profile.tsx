@@ -77,6 +77,20 @@ export default function ProfileScreen() {
   };
 
   const med = profile?.medicalProfile;
+  const relLabelMap: Record<string, string> = {
+    self: t("relSelf"),
+    father: t("relFather"),
+    mother: t("relMother"),
+    grandparent: t("relGrandparent"),
+    other: t("relOther"),
+  };
+  const relLabel = med ? relLabelMap[med.relationship] ?? t("relSelf") : "";
+  const monitoredPersonLabel =
+    med && med.relationship !== "self"
+      ? med.monitoredName
+        ? `${med.monitoredName} (${relLabel})`
+        : relLabel
+      : t("relSelf");
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -101,6 +115,7 @@ export default function ProfileScreen() {
           <Text style={styles.section}>{t("medicalProfile")}</Text>
           {med ? (
             <View style={{ gap: 8, marginTop: 8 }}>
+              <Row label={t("monitoredPerson")} value={monitoredPersonLabel} />
               <Row label={t("age")} value={med.age || "—"} />
               <Row label={t("gender")} value={med.gender || "—"} />
               <Row

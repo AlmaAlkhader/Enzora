@@ -26,6 +26,16 @@ import {
 
 export type SensorStatus = "yellow" | "green" | "blue";
 
+// Relationship of the user to the person being monitored. "self" means the
+// user is monitoring their own wounds. The remaining values describe a
+// caregiver scenario (e.g. an adult child monitoring an elderly parent).
+export type MonitoredRelationship =
+  | "self"
+  | "father"
+  | "mother"
+  | "grandparent"
+  | "other";
+
 export interface MedicalProfile {
   age: string;
   gender: string;
@@ -34,6 +44,10 @@ export interface MedicalProfile {
   doctorPhone: string;
   emergencyContact: string;
   emergencyPhone: string;
+  // Who is being monitored. Defaults to "self" / empty name for legacy
+  // accounts that were created before family-monitoring shipped.
+  relationship: MonitoredRelationship;
+  monitoredName: string;
 }
 
 export interface LocalUser {
@@ -297,12 +311,26 @@ async function writeReadings(
   );
 }
 
+// Backfill fields added after launch so profiles persisted by older builds
+// keep working without a migration step. Defaults map the legacy single-user
+// flow to "monitoring myself".
+function normalizeMedicalProfile(
+  m: MedicalProfile | null,
+): MedicalProfile | null {
+  if (!m) return m;
+  return {
+    ...m,
+    relationship: m.relationship ?? "self",
+    monitoredName: m.monitoredName ?? "",
+  };
+}
+
 function accountToProfile(acc: StoredAccount): UserProfile {
   return {
     name: acc.name,
     email: acc.email,
     createdAt: acc.createdAt,
-    medicalProfile: acc.medicalProfile,
+    medicalProfile: normalizeMedicalProfile(acc.medicalProfile),
     activeWoundId: acc.activeWoundId,
   };
 }

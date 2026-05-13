@@ -11,23 +11,76 @@ import {
 } from "@/components/Brand";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import colors from "@/constants/colors";
-import { useApp } from "@/contexts/AppContext";
+import { useApp, type MonitoredRelationship } from "@/contexts/AppContext";
 
 const c = colors.light;
 
 export default function MedicalProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { saveMedicalProfile } = useApp();
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
-  const [otherCondition, setOtherCondition] = useState("");
-  const [docName, setDocName] = useState("");
-  const [docPhone, setDocPhone] = useState("");
-  const [emName, setEmName] = useState("");
-  const [emPhone, setEmPhone] = useState("");
+  const { saveMedicalProfile, profile } = useApp();
+  const existing = profile?.medicalProfile ?? null;
+  const [relationship, setRelationship] = useState<MonitoredRelationship>(
+    existing?.relationship ?? "self",
+  );
+  const [monitoredName, setMonitoredName] = useState(
+    existing?.monitoredName ?? "",
+  );
+  const [age, setAge] = useState(existing?.age ?? "");
+  const [gender, setGender] = useState(existing?.gender ?? "");
+  // Conditions are persisted as a comma-separated list of canonical English
+  // labels (see `conditionOptions[].en`). On edit we parse that list back
+  // into chip IDs and a free-text "other" value so re-saving the form does
+  // not silently wipe previously stored conditions.
+  const KNOWN_CONDITIONS: { v: string; en: string }[] = [
+    { v: "diabetes_type_1", en: "Diabetes Type 1" },
+    { v: "diabetes_type_2", en: "Diabetes Type 2" },
+    { v: "post_surgery", en: "Post-surgery wound" },
+    { v: "chronic_wound", en: "Chronic wound" },
+    { v: "bed_sore", en: "Bed sore" },
+    { v: "diabetic_foot", en: "Diabetic foot" },
+  ];
+  const parseConditions = (
+    raw: string | undefined,
+  ): { ids: string[]; other: string } => {
+    const parts = (raw ?? "")
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    const ids: string[] = [];
+    const otherParts: string[] = [];
+    for (const p of parts) {
+      const match = KNOWN_CONDITIONS.find((k) => k.en === p);
+      if (match) ids.push(match.v);
+      else otherParts.push(p);
+    }
+    if (otherParts.length > 0) ids.push("other");
+    // Strip a literal "Other" sentinel — that's just the marker we save when
+    // the user picked Other but typed nothing.
+    const other = otherParts.filter((p) => p !== "Other").join(", ");
+    return { ids, other };
+  };
+  const initialConditions = parseConditions(existing?.conditions);
+  const [selectedConditions, setSelectedConditions] = useState<string[]>(
+    initialConditions.ids,
+  );
+  const [otherCondition, setOtherCondition] = useState(initialConditions.other);
+  const [docName, setDocName] = useState(existing?.doctorName ?? "");
+  const [docPhone, setDocPhone] = useState(existing?.doctorPhone ?? "");
+  const [emName, setEmName] = useState(existing?.emergencyContact ?? "");
+  const [emPhone, setEmPhone] = useState(existing?.emergencyPhone ?? "");
   const [saving, setSaving] = useState(false);
+
+  // Person being monitored — choices are translated for display, but the
+  // value persisted is the stable id (used to render the right label later
+  // and to drive logic like the Home banner).
+  const relationshipOptions: { v: MonitoredRelationship; l: string }[] = [
+    { v: "self", l: t("relSelf") },
+    { v: "father", l: t("relFather") },
+    { v: "mother", l: t("relMother") },
+    { v: "grandparent", l: t("relGrandparent") },
+    { v: "other", l: t("relOther") },
+  ];
 
   const genders = [
     { v: "male", l: t("male") },
@@ -83,6 +136,8 @@ export default function MedicalProfileScreen() {
         doctorPhone: docPhone,
         emergencyContact: emName,
         emergencyPhone: emPhone,
+        relationship,
+        monitoredName: relationship === "self" ? "" : monitoredName.trim(),
       });
       router.replace("/(tabs)");
     } finally {
@@ -101,6 +156,8 @@ export default function MedicalProfileScreen() {
         doctorPhone: "",
         emergencyContact: "",
         emergencyPhone: "",
+        relationship: "self",
+        monitoredName: "",
       });
       router.replace("/(tabs)");
     } finally {
@@ -115,6 +172,41 @@ export default function MedicalProfileScreen() {
         bottomOffset={20}
         contentContainerStyle={styles.content}
       >
+        <Field label={t("monitoredPersonSection")}>
+          <View style={styles.chipRow}>
+            {relationshipOptions.map((opt) => {
+              const active = relationship === opt.v;
+              return (
+                <Pressable
+                  key={opt.v}
+                  onPress={() => setRelationship(opt.v)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active }}
+                  style={[styles.chip, active && styles.chipActive]}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      active && styles.chipTextActive,
+                    ]}
+                  >
+                    {opt.l}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {relationship !== "self" && (
+            <View style={{ marginTop: 10 }}>
+              <TextField
+                value={monitoredName}
+                onChangeText={setMonitoredName}
+                placeholder={t("personNamePlaceholder")}
+              />
+            </View>
+          )}
+        </Field>
+
         <Field label={t("age")}>
           <TextField
             value={age}

@@ -54,6 +54,23 @@ export default function HomeScreen() {
     (w) => w.status === "active",
   ).length;
   const hasNoCurrentWounds = currentWoundsCount === 0;
+  // Family-monitoring banner: "Monitoring: [person name]". For self-monitoring
+  // we fall back to the user's own first name; for caregiver scenarios we
+  // prefer the typed person name and fall back to the relationship label.
+  const med = profile?.medicalProfile;
+  const relLabelMap: Record<string, string> = {
+    self: t("relSelf"),
+    father: t("relFather"),
+    mother: t("relMother"),
+    grandparent: t("relGrandparent"),
+    other: t("relOther"),
+  };
+  const monitoredDisplay = (() => {
+    const userFirst = (profile?.name ?? "").split(" ")[0] ?? "";
+    if (!med || med.relationship === "self") return userFirst || t("relSelf");
+    const rel = relLabelMap[med.relationship] ?? t("relOther");
+    return med.monitoredName?.trim() || rel;
+  })();
   const [alertOpen, setAlertOpen] = useState(false);
   const [lastDismissed, setLastDismissed] = useState<number | null>(null);
   const [bannerDismissedFor, setBannerDismissedFor] = useState<
@@ -120,6 +137,22 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        {/* Monitoring banner — clearly identifies who this app is currently
+            tracking. Tappable so caregivers can quickly switch in profile. */}
+        <Pressable
+          onPress={() => router.push("/medical-profile")}
+          style={({ pressed }) => [
+            styles.monitoringBanner,
+            { opacity: pressed ? 0.85 : 1 },
+          ]}
+        >
+          <Feather name="users" size={16} color={c.primary} />
+          <Text style={styles.monitoringBannerText} numberOfLines={1}>
+            <Text style={styles.monitoringBannerLabel}>{t("monitoring")}: </Text>
+            {monitoredDisplay}
+          </Text>
+        </Pressable>
+
         {/* Connection pill */}
         <View
           style={[
@@ -624,6 +657,29 @@ function Step({ n, text }: { n: string; text: string }) {
 }
 
 const styles = StyleSheet.create({
+  monitoringBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "rgba(110,117,191,0.10)",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(110,117,191,0.25)",
+    marginBottom: 4,
+  },
+  monitoringBannerText: {
+    flex: 1,
+    fontSize: 14,
+    color: c.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+  },
+  monitoringBannerLabel: {
+    color: c.primary,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
   scroll: {
     paddingHorizontal: 22,
     paddingTop: 8,
