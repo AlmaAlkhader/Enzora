@@ -179,6 +179,7 @@ export function GradientHeader({
   onBack,
   layout = "centered",
   logoSize = "sm",
+  titleStyle,
 }: {
   title?: string;
   subtitle?: string;
@@ -193,6 +194,8 @@ export function GradientHeader({
    */
   layout?: "centered" | "split";
   logoSize?: "sm" | "lg";
+  /** Optional override for the title text style (e.g. lighter/smaller on home) */
+  titleStyle?: import("react-native").StyleProp<import("react-native").TextStyle>;
 }) {
   const insets = useSafeAreaInsets();
   const isSplit = layout === "split";
@@ -245,7 +248,7 @@ export function GradientHeader({
         <EnzoraLogo variant={logoSize === "lg" ? "headerLg" : "header"} />
         {!isSplit && title && (
           <Text
-            style={styles.headerTitle}
+            style={[styles.headerTitle, titleStyle]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -267,7 +270,7 @@ export function GradientHeader({
           <View style={{ flex: 1, paddingRight: 12, alignItems: "flex-start" }}>
             {title && (
               <Text
-                style={[styles.headerTitle, { textAlign: "left", marginTop: 0 }]}
+                style={[styles.headerTitle, { textAlign: "left", marginTop: 0 }, titleStyle]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >

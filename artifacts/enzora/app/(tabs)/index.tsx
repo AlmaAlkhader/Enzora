@@ -55,6 +55,7 @@ export default function HomeScreen() {
         layout="split"
         logoSize="lg"
         title={`${t("hello")}, ${firstName || ""}`.trim()}
+        titleStyle={{ fontSize: 18, fontWeight: "500", fontFamily: "Inter_500Medium" }}
       />
       <ScrollView
         contentContainerStyle={{ padding: 18, paddingBottom: 40, gap: 16 }}
