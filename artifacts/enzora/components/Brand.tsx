@@ -79,7 +79,7 @@ export function EnzoraLogo({
     const imageH = Math.round(iconH / 0.6);
     const imageW = Math.round(imageH * LOGO_ASPECT);
     return (
-      <View style={{ alignItems: "center", marginTop: 12 }}>
+      <View style={{ alignItems: "center", marginTop: 24 }}>
         <View
           style={{
             height: iconH,

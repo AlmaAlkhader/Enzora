@@ -43,7 +43,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader title={t("history")} />
+      <GradientHeader layout="split" logoSize="lg" title={t("history")} />
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
         <View style={styles.filterRow}>
           {(["today", "7", "30"] as const).map((k) => {

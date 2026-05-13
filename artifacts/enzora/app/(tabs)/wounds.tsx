@@ -26,7 +26,7 @@ export default function WoundsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader title={t("myWounds")} subtitle={subtitle} />
+      <GradientHeader layout="split" logoSize="lg" title={t("myWounds")} subtitle={subtitle} />
       <FlatList
         data={active}
         keyExtractor={(w) => w.id}

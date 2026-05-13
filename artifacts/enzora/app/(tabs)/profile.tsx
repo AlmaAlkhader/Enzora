@@ -51,7 +51,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader title={t("profile")} />
+      <GradientHeader layout="split" logoSize="lg" title={t("profile")} />
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
         <Card style={{ alignItems: "center", gap: 8, padding: 24 }}>
           <View style={styles.avatar}>

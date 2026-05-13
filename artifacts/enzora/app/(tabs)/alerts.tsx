@@ -40,7 +40,7 @@ export default function AlertsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <GradientHeader title={t("alerts")} />
+      <GradientHeader layout="split" logoSize="lg" title={t("alerts")} />
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 18 }}>
         {alerts.length === 0 ? (
           <EmptyState
