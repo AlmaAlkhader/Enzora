@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -28,6 +29,7 @@ import { DemoModeModal } from "@/components/DemoModeModal";
 import { PendingConfirmationCard } from "@/components/PendingConfirmation";
 import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
+import { LARGE_PHONE_MIN_WIDTH } from "@/constants/layout";
 import { useApp } from "@/contexts/AppContext";
 import { SUPPORT_PHONE } from "@/lib/support";
 
@@ -636,13 +638,40 @@ function FactTile({
   value: string;
   label: string;
 }) {
+  // Pro Max / Plus iPhones (≥430px wide) get a comfier tile so the row
+  // doesn't look sparse with extra horizontal real-estate.
+  const { width } = useWindowDimensions();
+  const isLarge = width >= LARGE_PHONE_MIN_WIDTH;
   return (
-    <View style={[styles.factTile, softShadow]}>
-      <IconChip icon={icon} tone={tone} size={36} />
-      <Text style={styles.factValue} numberOfLines={2}>
+    <View
+      style={[
+        styles.factTile,
+        isLarge && {
+          paddingVertical: 20,
+          paddingHorizontal: 12,
+          minHeight: 160,
+          gap: 12,
+        },
+        softShadow,
+      ]}
+    >
+      <IconChip icon={icon} tone={tone} size={isLarge ? 42 : 36} />
+      <Text
+        style={[
+          styles.factValue,
+          isLarge && { fontSize: 22, lineHeight: 26 },
+        ]}
+        numberOfLines={2}
+      >
         {value}
       </Text>
-      <Text style={styles.factLabel} numberOfLines={2}>
+      <Text
+        style={[
+          styles.factLabel,
+          isLarge && { fontSize: 14, lineHeight: 18 },
+        ]}
+        numberOfLines={2}
+      >
         {label}
       </Text>
     </View>

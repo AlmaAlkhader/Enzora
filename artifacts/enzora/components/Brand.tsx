@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
   type StyleProp,
   type TextStyle,
@@ -20,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Circle } from "react-native-svg";
 
 import colors from "@/constants/colors";
+import { LARGE_PHONE_MIN_WIDTH } from "@/constants/layout";
 import { useApp } from "@/contexts/AppContext";
 
 const c = colors.light;
@@ -740,6 +742,10 @@ export function StatusCard({
   ctaLabel?: string;
 }) {
   const { t } = useTranslation();
+  // Pro Max / Plus iPhones (≥430px wide) get a roomier hero so the title
+  // and CTA fill the extra width without looking lonely.
+  const { width } = useWindowDimensions();
+  const isLarge = width >= LARGE_PHONE_MIN_WIDTH;
   const cfg = {
     yellow: {
       color: c.normal,
@@ -770,11 +776,28 @@ export function StatusCard({
     },
   }[status];
   return (
-    <View style={[styles.statusCard, softShadow]}>
+    <View
+      style={[
+        styles.statusCard,
+        isLarge && {
+          paddingTop: 32,
+          paddingBottom: 26,
+          paddingHorizontal: 28,
+          gap: 14,
+        },
+        softShadow,
+      ]}
+    >
       <View style={[styles.statusAccent, { backgroundColor: cfg.color }]} />
       <View style={styles.statusBadgeRow}>
-        <View style={[styles.statusIconWrap, { backgroundColor: cfg.bg }]}>
-          <Feather name={cfg.icon} size={28} color={cfg.color} />
+        <View
+          style={[
+            styles.statusIconWrap,
+            isLarge && { width: 64, height: 64, borderRadius: 32 },
+            { backgroundColor: cfg.bg },
+          ]}
+        >
+          <Feather name={cfg.icon} size={isLarge ? 32 : 28} color={cfg.color} />
         </View>
         <View style={[styles.pill, { backgroundColor: cfg.bg }]}>
           <View style={[styles.pillDot, { backgroundColor: cfg.color }]} />
@@ -783,12 +806,33 @@ export function StatusCard({
           </Text>
         </View>
       </View>
-      <Text style={styles.statusTitle}>{cfg.title}</Text>
-      <Text style={styles.statusSub}>{cfg.sub}</Text>
+      <Text
+        style={[
+          styles.statusTitle,
+          isLarge && { fontSize: 28, lineHeight: 34 },
+        ]}
+      >
+        {cfg.title}
+      </Text>
+      <Text
+        style={[
+          styles.statusSub,
+          isLarge && { fontSize: 17, lineHeight: 25 },
+        ]}
+      >
+        {cfg.sub}
+      </Text>
       {lastCheckLabel ? (
         <View style={styles.statusMetaRow}>
-          <Feather name="clock" size={14} color={c.textSecondary} />
-          <Text style={styles.statusMeta}>{lastCheckLabel}</Text>
+          <Feather name="clock" size={isLarge ? 16 : 14} color={c.textSecondary} />
+          <Text
+            style={[
+              styles.statusMeta,
+              isLarge && { fontSize: 15 },
+            ]}
+          >
+            {lastCheckLabel}
+          </Text>
         </View>
       ) : null}
       {onPress ? (
@@ -796,18 +840,24 @@ export function StatusCard({
           onPress={onPress}
           style={({ pressed }) => [
             styles.statusCta,
+            isLarge && { paddingVertical: 18, marginTop: 12 },
             webCursor,
             { opacity: pressed ? 0.85 : 1 },
           ]}
           accessibilityRole="button"
           accessibilityLabel={ctaLabel ?? t("viewDetails")}
         >
-          <Text style={styles.statusCtaText}>
+          <Text
+            style={[
+              styles.statusCtaText,
+              isLarge && { fontSize: 18 },
+            ]}
+          >
             {ctaLabel ?? t("viewDetails")}
           </Text>
           <Feather
             name={I18nManager.isRTL ? "chevron-left" : "chevron-right"}
-            size={18}
+            size={isLarge ? 20 : 18}
             color={c.textWhite}
           />
         </Pressable>
