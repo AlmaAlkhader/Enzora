@@ -1,0 +1,68 @@
+I want to push the Enzora mobile app to GitHub using the same clean repository hierarchy I used for the website.
+
+Please organize the mobile app inside the existing repository structure like this:
+
+enzora/
+├── README.md
+├── .gitignore
+├── website/
+│   └── ...
+├── app/
+│   ├── package.json
+│   ├── app.json
+│   ├── assets/
+│   ├── src/
+│   ├── README.md
+│   └── other app files
+├── docs/
+│   ├── screenshots/
+│   └── diagrams/
+├── hardware/
+│   └── README.md
+└── firebase/
+    └── firebase-setup.md
+
+Important requirements:
+
+1. Move all current mobile app files into the `app/` folder.
+2. Do not delete or break any existing mobile app files.
+3. Make sure the app still runs correctly from inside the `app/` folder.
+4. If the app is built with Expo, make sure files like `app.json`, `package.json`, `assets/`, and the main source files are inside `app/`.
+5. If needed, update paths, imports, scripts, and configuration files so the app works normally after being moved.
+6. Do not touch or break the existing `website/` folder.
+7. Keep the repository organized so the website and mobile app are separate parts of the same Enzora project.
+8. Add or update `app/README.md` with clear instructions for running the mobile app locally.
+9. Update the main `README.md` to mention that the mobile app is stored in the `app/` folder.
+10. Make sure `.gitignore` excludes:
+   - node_modules
+   - .env files
+   - .expo
+   - dist
+   - build
+   - logs
+   - .DS_Store
+   - Firebase private keys
+   - serviceAccountKey.json
+   - any private API keys or secret configuration files
+
+The `app/README.md` should include:
+
+- App name: Enzora Mobile App
+- Short description of the app
+- Technologies used
+- How to install dependencies
+- How to run the app locally
+- How to run it with Expo if Expo is used
+- Notes about Firebase/environment variables
+- Warning not to commit private keys or secret files
+
+Use this app description:
+
+“Enzora Mobile App is the mobile interface for the Enzora smart wound-care system. It connects users to the digital side of the product, supporting wound monitoring, infection-risk alerts, device interaction, and a smoother health-tech user experience.”
+
+For local running instructions, include something like this if the app uses Expo:
+
+```bash
+cd app
+npm install
+npx expo start
