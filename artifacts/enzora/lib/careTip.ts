@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { callClaude } from "@/lib/ai";
+import { generateCareTips } from "@/lib/wellness";
 
 // ---------------------------------------------------------------------------
 // Daily personalized AI care tip
@@ -142,23 +143,32 @@ function buildUserMessage(ctx: CareTipContext): string {
   ].join("\n");
 }
 
-// Fallback message used when the AI server is unreachable. Practical and
-// language-aware so the card never looks broken.
+// Fallback message used when the AI server is unreachable. Reuses the
+// existing hardcoded `generateCareTips()` strings so the card never looks
+// broken and stays consistent with prior behavior.
 function fallbackMessage(ctx: CareTipContext): string {
+  const tips = generateCareTips({
+    profile: ctx.medicalConditions
+      ? {
+          age: "",
+          gender: "",
+          conditions: ctx.medicalConditions,
+          doctorName: "",
+          doctorPhone: "",
+          emergencyContact: "",
+          emergencyPhone: "",
+          relationship: "self",
+          monitoredName: "",
+        }
+      : null,
+    status: ctx.status,
+    location: ctx.woundName,
+    days: ctx.daysMonitored,
+    language: ctx.language,
+  });
+  if (tips.length) return tips.join(" ");
   if (ctx.language === "ar") {
-    if (ctx.status === "blue") {
-      return "اكتشف إنزورا قراءة تنبيه. اتصل بطبيبك اليوم.";
-    }
-    if (ctx.status === "green") {
-      return "تم اكتشاف تغيّر بسيط في الجرح. افحص الجرح واتصل بطبيبك إذا زاد الألم أو التورم.";
-    }
     return "حافظ على الجرح نظيفاً وجافاً. راقب أي تغيرات.";
-  }
-  if (ctx.status === "blue") {
-    return "Enzora detected an alert reading. Call your doctor today.";
-  }
-  if (ctx.status === "green") {
-    return "A small wound change was detected. Check your wound and call your doctor if pain or swelling increases.";
   }
   return "Keep the wound clean and dry. Monitor for any changes.";
 }

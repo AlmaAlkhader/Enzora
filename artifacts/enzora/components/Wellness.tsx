@@ -40,7 +40,6 @@ import { SUPPORT_PHONE } from "@/lib/support";
 import {
   calcHealingDays,
   calcHealingProgress,
-  generateCareTips,
   generateDoctorReport,
   type Patient,
 } from "@/lib/wellness";
@@ -383,101 +382,6 @@ const hpStyles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     fontWeight: "700",
     textAlign: "center",
-  },
-});
-
-// =============== Tips Carousel =================
-export function TipsCarousel() {
-  const { t } = useTranslation();
-  const { profile, sensor, activeWound, language } = useApp();
-  const days = activeWound ? calcHealingDays(activeWound) : 0;
-  const tips = useMemo(
-    () =>
-      generateCareTips({
-        profile: profile?.medicalProfile ?? null,
-        status: sensor.status,
-        location: activeWound?.location ?? "",
-        days,
-        language,
-      }),
-    [profile?.medicalProfile, sensor.status, activeWound?.location, days, language],
-  );
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    const id = setInterval(
-      () => setIndex((i) => (i + 1) % tips.length),
-      6000,
-    );
-    return () => clearInterval(id);
-  }, [tips.length]);
-  if (!tips.length) return null;
-  return (
-    <View style={{ gap: 8 }}>
-      <Text style={tipsStyles.heading}>{t("careTips")}</Text>
-      <View style={tipsStyles.card}>
-        <View style={tipsStyles.iconWrap}>
-          <Feather name="zap" size={20} color={c.primary} />
-        </View>
-        <Text style={tipsStyles.text}>{tips[index]}</Text>
-        <View style={tipsStyles.dots}>
-          {tips.map((_, i) => (
-            <Pressable
-              key={i}
-              onPress={() => setIndex(i)}
-              hitSlop={6}
-              style={[
-                tipsStyles.dot,
-                i === index && { backgroundColor: c.primary, width: 18 },
-              ]}
-            />
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-const tipsStyles = StyleSheet.create({
-  heading: {
-    fontSize: 16,
-    color: c.textPrimary,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-  },
-  card: {
-    backgroundColor: c.card,
-    borderRadius: 18,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: c.border,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(110,117,191,0.12)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    flex: 1,
-    fontSize: 14,
-    color: c.textPrimary,
-    fontFamily: "Inter_500Medium",
-    lineHeight: 20,
-  },
-  dots: {
-    flexDirection: "column",
-    gap: 4,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: c.border,
   },
 });
 
