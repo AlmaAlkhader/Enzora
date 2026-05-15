@@ -1,0 +1,111 @@
+Fix the Firebase device connection path again based on the actual Firebase screenshot.
+
+Important:
+Do not change authentication.
+Do not change the ESP32 logic unless necessary.
+Do not redesign the UI.
+Only fix the Firebase path used by the app.
+
+The app currently cannot find the device, but the device exists in Firebase.
+
+The actual Firebase Realtime Database hierarchy is:
+
+devices
+  ENZORA-001
+    sensorENZORA-001
+      sensor
+        blue: 74
+        deviceId: "ENZORA-001"
+        green: 77
+        red: 54
+        status: "blue"
+
+So the correct path is:
+
+devices/ENZORA-001/sensorENZORA-001/sensor
+
+The app should NOT read from:
+- /sensor
+- /sensor/status
+- /sensorENZORA-001/sensor
+- /devices/ENZORA-001/sensor
+- /devices/[deviceId]/sensor
+
+Correct dynamic path builder:
+
+const sensorPath = `devices/${deviceId}/sensor${deviceId}/sensor`;
+
+Example:
+deviceId = ENZORA-001
+
+sensorPath should become:
+
+devices/ENZORA-001/sensorENZORA-001/sensor
+
+Device connection logic:
+1. User enters device ID:
+   ENZORA-001
+
+2. Normalize it:
+   - trim spaces
+   - uppercase
+   - remove accidental spaces
+
+3. Build path:
+   devices/${deviceId}/sensor${deviceId}/sensor
+
+4. Read that Firebase node.
+
+5. If snapshot exists and has a status field:
+   - mark device as connected
+   - save connectedDeviceId = ENZORA-001
+   - listen to that exact path
+   - update Home, Wound Detail, History, Alerts, and notifications from sensor.status
+
+6. Do not check only:
+   devices/ENZORA-001
+
+7. Do not check only:
+   devices/ENZORA-001/sensor
+
+The real sensor values are inside:
+devices/ENZORA-001/sensorENZORA-001/sensor
+
+Add temporary safe logs:
+- entered deviceId
+- normalized deviceId
+- exact Firebase path being checked
+- snapshot exists yes/no
+- snapshot value
+- status value found
+
+Do not log secrets.
+
+Status logic:
+Use:
+sensor.status
+
+yellow = normal
+green = watch closely
+blue = infection alert
+
+RGB:
+Read red/green/blue if needed for internal visual glow, but do not show raw RGB boxes to elderly users.
+
+Testing:
+1. Enter ENZORA-001.
+2. Tap Connect Device.
+3. Confirm app checks:
+   devices/ENZORA-001/sensorENZORA-001/sensor
+4. Confirm it finds status: blue.
+5. Confirm Home shows infection alert / blue status.
+6. Change Firebase status to yellow.
+7. Confirm app updates live.
+8. Change status to green.
+9. Confirm History/Alerts/notification behavior works.
+10. Change status to blue.
+11. Confirm urgent UI works.
+
+Final result:
+The app should connect successfully using device ID ENZORA-001 and read from:
+devices/ENZORA-001/sensorENZORA-001/sensor

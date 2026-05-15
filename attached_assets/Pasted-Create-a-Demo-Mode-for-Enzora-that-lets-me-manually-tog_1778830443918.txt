@@ -1,0 +1,202 @@
+Create a Demo Mode for Enzora that lets me manually toggle the Firebase wound color/status for testing.
+
+Purpose:
+This is ONLY for testing and presentation. I want to quickly see how the app changes when the wound color changes without needing to physically change the sensor color every time.
+
+Important:
+Do not change authentication.
+Do not remove the real ESP32/Firebase sensor connection.
+Do not replace the real device connection.
+Do not redesign unrelated screens.
+Do not make the demo controls too visible for normal users.
+Do not hide it so much that I cannot reach it.
+
+Current Firebase structure:
+The app reads sensor data from:
+
+sensor${deviceId}/sensor
+
+Example:
+If connected device ID is ENZORA-001, the path is:
+
+sensorENZORA-001/sensor
+
+Inside it:
+- red
+- green
+- blue
+- status
+- deviceId
+
+Demo Mode behavior:
+After the user connects a device, add a small “Demo Mode” access point.
+
+Location:
+Put it somewhere easy but not too obvious:
+- On the device connection/status area, add a small subtle text button:
+  “Demo”
+  Arabic: “تجربة”
+OR
+- Add a small three-dot menu near the Device Connected pill with “Demo Mode”
+OR
+- Add it inside the Device Connected card as a small secondary link.
+
+Do NOT make it a large main button on the Home screen.
+Do NOT put it in a hidden place that is hard to find.
+
+Recommended:
+In the Home screen Device Connected card/pill, add a small secondary text link:
+“Demo Mode”
+Arabic: “وضع التجربة”
+
+Style:
+- small text button
+- color: #6E75BF
+- font size around 13–14px
+- no big card
+- no bright warning color
+- visible enough for me to tap during presentation
+
+When tapped:
+Open a small bottom sheet or modal called:
+
+English:
+“Demo Mode”
+
+Arabic:
+“وضع التجربة”
+
+Subtitle:
+English:
+“Manually test color changes for this device.”
+
+Arabic:
+“اختبر تغير الألوان يدوياً لهذا الجهاز.”
+
+Show the connected device ID:
+Device: ENZORA-001
+
+Inside the modal, show 3 buttons:
+
+1. Yellow / Normal
+English:
+“Set Yellow — Normal”
+Arabic:
+“تعيين أصفر — طبيعي”
+
+2. Green / Watch Closely
+English:
+“Set Green — Watch”
+Arabic:
+“تعيين أخضر — متابعة”
+
+3. Blue / Alert
+English:
+“Set Blue — Alert”
+Arabic:
+“تعيين أزرق — تنبيه”
+
+Button colors:
+- Yellow button uses soft yellow accent
+- Green button uses soft green accent
+- Blue button uses alert/blue/red accent based on app status styling
+
+When a demo button is tapped:
+Write to Firebase at the connected device path:
+
+sensor${deviceId}/sensor
+
+For ENZORA-001:
+sensorENZORA-001/sensor
+
+Update these values:
+
+Yellow:
+status: "yellow"
+red: 255
+green: 190
+blue: 20
+deviceId: connected deviceId
+
+Green:
+status: "green"
+red: 80
+green: 180
+blue: 90
+deviceId: connected deviceId
+
+Blue:
+status: "blue"
+red: 60
+green: 90
+blue: 220
+deviceId: connected deviceId
+
+Important:
+Use Firebase update() or set() carefully.
+Do not delete existing fields unnecessarily.
+Only update red, green, blue, status, deviceId, and updatedAt if used.
+
+Also add:
+updatedAt: server timestamp or current ISO timestamp if the app already uses that format.
+
+After changing the status:
+The app should behave exactly as if the ESP32 changed the value:
+- Home status updates
+- Bandage Color visual changes
+- status banner appears
+- History reading is added
+- Alert entry is created for green/blue
+- Expo/local notification behavior runs if enabled
+- Wound Detail updates
+- Color trend/history updates
+
+Do not create a separate fake demo state that bypasses the real app.
+The demo buttons should write to Firebase, and the normal Firebase listener should react to the change.
+
+Safety:
+Add a small note in the modal:
+English:
+“Demo Mode changes Firebase values for testing only.”
+
+Arabic:
+“وضع التجربة يغير قيم Firebase للاختبار فقط.”
+
+Close button:
+Add a close X or “Done” button.
+
+Access rules:
+Only show Demo Mode after a device is connected.
+If no device is connected:
+- hide Demo Mode
+or
+- tapping it shows:
+English: “Connect a device first.”
+Arabic: “قم بتوصيل الجهاز أولاً.”
+
+Optional:
+Add a toggle in code to control visibility:
+const SHOW_DEMO_MODE = true;
+
+But keep it true for now so I can use it during testing.
+
+Do not show raw RGB numbers to elderly users in the normal Home screen.
+RGB values should only be used internally or inside Demo Mode if needed.
+
+Testing checklist:
+1. Connect device ENZORA-001.
+2. Confirm Demo Mode link appears subtly near Device Connected.
+3. Tap Demo Mode.
+4. Tap Set Yellow.
+5. Confirm Firebase path sensorENZORA-001/sensor updates to status yellow.
+6. Confirm Home shows normal.
+7. Tap Set Green.
+8. Confirm Firebase updates to status green.
+9. Confirm Home shows watch closely, History updates, and alert/notification behavior happens.
+10. Tap Set Blue.
+11. Confirm Firebase updates to status blue.
+12. Confirm Home shows infection alert and urgent action.
+13. Confirm the real listener is used and no fake UI-only state is created.
+
+Final result:
+I want an easy but subtle Demo Mode after connecting the device, so I can manually toggle Firebase status for testing and presentation while keeping the real ESP32/Firebase connection intact.
