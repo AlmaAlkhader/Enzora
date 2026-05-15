@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Card, IconChip } from "@/components/Brand";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
+import { seedTipChatHistory } from "@/lib/ai";
 import {
   getOrGenerateDailyTip,
   type CareTipContext,
@@ -24,6 +26,7 @@ const c = colors.light;
 // per (user, wound, day); the user can refresh on demand.
 export function CareTipCard() {
   const { t } = useTranslation();
+  const router = useRouter();
   const {
     user,
     profile,
@@ -170,6 +173,27 @@ export function CareTipCard() {
           <Feather name="refresh-ccw" size={14} color={c.primary} />
           <Text style={styles.refreshText}>{t("refreshTip")}</Text>
         </Pressable>
+        <Pressable
+          onPress={() => {
+            if (!user || !message) return;
+            void seedTipChatHistory(user.email, t("explainTipSeed"), message)
+              .catch(() => {
+                /* non-fatal: chat will still open */
+              })
+              .finally(() => {
+                router.push("/(tabs)/ask");
+              });
+          }}
+          disabled={loading || !message}
+          style={({ pressed }) => [
+            styles.actionBtn,
+            styles.explainBtn,
+            { opacity: pressed || loading || !message ? 0.7 : 1 },
+          ]}
+        >
+          <Feather name="message-circle" size={14} color="#fff" />
+          <Text style={styles.explainText}>{t("explainTip")}</Text>
+        </Pressable>
       </View>
     </Card>
   );
@@ -238,6 +262,15 @@ const styles = StyleSheet.create({
   },
   refreshText: {
     color: c.primary,
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+  },
+  explainBtn: {
+    backgroundColor: c.primary,
+  },
+  explainText: {
+    color: "#fff",
     fontSize: 13,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",

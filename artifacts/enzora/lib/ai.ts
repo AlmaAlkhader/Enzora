@@ -77,6 +77,37 @@ export async function writeChatHistory(
   }
 }
 
+// Append a user/assistant turn that seeds the chat with today's care tip so
+// the AI screen has the tip in-context and the user can ask follow-ups.
+export async function seedTipChatHistory(
+  email: string,
+  seedLabel: string,
+  tipText: string,
+): Promise<void> {
+  const existing = await readChatHistory(email);
+  const userTurn: ChatMessage = {
+    role: "user",
+    content: `${seedLabel} ${tipText}`.trim(),
+  };
+  const assistantTurn: ChatMessage = {
+    role: "assistant",
+    content: tipText,
+  };
+  // Avoid stacking duplicate seed turns when the user taps the action
+  // multiple times for the same tip.
+  const last = existing[existing.length - 1];
+  const prev = existing[existing.length - 2];
+  if (
+    last?.role === "assistant" &&
+    last.content === assistantTurn.content &&
+    prev?.role === "user" &&
+    prev.content === userTurn.content
+  ) {
+    return;
+  }
+  await writeChatHistory(email, [...existing, userTurn, assistantTurn]);
+}
+
 export async function clearChatHistory(email: string): Promise<void> {
   try {
     await AsyncStorage.removeItem(CHAT_PREFIX + email.toLowerCase());

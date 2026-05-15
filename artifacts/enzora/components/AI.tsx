@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   I18nManager,
@@ -111,13 +112,16 @@ export function AIChatScreen() {
   const scrollRef = useRef<ScrollView | null>(null);
   const language = i18n.language;
 
-  // Load history on mount / when user changes.
-  useEffect(() => {
-    if (!user) return;
-    void readChatHistory(user.email).then((h) =>
-      setMessages(h.map((m) => ({ ...m }))),
-    );
-  }, [user]);
+  // Reload history every time the screen gains focus so seeded turns from
+  // other screens (e.g. "Ask about this tip") show up immediately.
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      void readChatHistory(user.email).then((h) =>
+        setMessages(h.map((m) => ({ ...m }))),
+      );
+    }, [user]),
+  );
 
   // Auto-scroll on new messages or while waiting for a reply.
   useEffect(() => {
