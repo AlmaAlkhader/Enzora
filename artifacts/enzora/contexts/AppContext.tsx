@@ -685,9 +685,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setFirebaseSensor((s) => ({ ...s, connected: false, status: null }));
       return;
     }
-    const path = `sensor${effectiveDeviceId}/sensor`;
+    const path = `devices/${effectiveDeviceId}/sensor${effectiveDeviceId}/sensor`;
     const sensorRef = ref(rtdb, path);
     console.log("[sensor] attaching listener", {
+      effectiveDeviceId,
       path,
       refToString: sensorRef.toString(),
     });
@@ -999,20 +1000,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       { ok: true } | { ok: false; reason: "not-found" | "no-firebase" | "error" }
     > => {
       const deviceId = normaliseDeviceId(rawId);
+      console.log("[device] connect attempt — raw:", rawId, "normalised:", deviceId);
       if (!deviceId) return { ok: false, reason: "not-found" };
       if (!rtdb) return { ok: false, reason: "no-firebase" };
       try {
+        const checkPath = `devices/${deviceId}/sensor${deviceId}/sensor`;
+        console.log("[device] checking Firebase path:", checkPath);
         const snap = await Promise.race([
-          get(ref(rtdb, `sensor${deviceId}/sensor`)),
+          get(ref(rtdb, checkPath)),
           new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error("timeout")), 10000),
           ),
         ]);
         const v = snap.val();
+        console.log("[device] snapshot exists:", snap.exists(), "value:", v, "status:", v?.status);
         // Accept the device as long as the node exists — a freshly-paired
         // device may not have pushed its first status reading yet, and
         // we don't want to reject the pairing in that case.
         if (!v) {
+          console.log("[device] node not found at path:", checkPath);
           return { ok: false, reason: "not-found" };
         }
         if (user) {
