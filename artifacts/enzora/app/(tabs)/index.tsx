@@ -20,6 +20,7 @@ import {
   StatusCard,
   softShadow,
 } from "@/components/Brand";
+import { BandageColorCard } from "@/components/BandageColorCard";
 import { CareTipCard } from "@/components/CareTipCard";
 import { ColorAlertBanner } from "@/components/ColorGuide";
 import { PendingConfirmationCard } from "@/components/PendingConfirmation";
@@ -48,8 +49,18 @@ function relativeMinutes(ts: number, t: (k: string) => string): string {
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { profile, sensor, activeWound, readings, statusLock, wounds } =
-    useApp();
+  const {
+    profile,
+    sensor,
+    activeWound,
+    readings,
+    statusLock,
+    wounds,
+    connectedDeviceId,
+  } = useApp();
+  // Effective device id: matches AppContext's resolution order so the
+  // connection pill reflects the same device the sensor listener is watching.
+  const effectiveDeviceId = activeWound?.deviceId ?? connectedDeviceId ?? null;
   const currentWoundsCount = wounds.filter(
     (w) => w.status === "active",
   ).length;
@@ -153,28 +164,48 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
 
-        {/* Connection pill */}
-        <View
-          style={[
-            styles.connPill,
-            sensor.connected ? styles.connPillOn : styles.connPillOff,
-          ]}
-        >
-          <View
-            style={[
-              styles.connDot,
-              { backgroundColor: sensor.connected ? c.warning : c.alert },
-            ]}
-          />
-          <Text
-            style={[
-              styles.connText,
-              { color: sensor.connected ? "#3F8F4F" : "#1F60B0" },
-            ]}
-          >
-            {sensor.connected ? t("deviceConnected") : t("deviceNotConnected")}
-          </Text>
-        </View>
+        {/* Connection pill — four patient-facing states:
+            no-device → "Connect your device"
+            device set, no data → "Device not found…"
+            connected, no status yet → "Waiting for sensor reading…"
+            connected with status → "Device Connected" */}
+        {(() => {
+          let label: string;
+          let on = false;
+          if (sensor.connected && sensor.status) {
+            label = t("connStateConnected");
+            on = true;
+          } else if (sensor.connected) {
+            label = t("connStateWaiting");
+          } else if (effectiveDeviceId) {
+            label = t("connStateNotFound");
+          } else {
+            label = t("connStateConnect");
+          }
+          return (
+            <View
+              style={[
+                styles.connPill,
+                on ? styles.connPillOn : styles.connPillOff,
+              ]}
+            >
+              <View
+                style={[
+                  styles.connDot,
+                  { backgroundColor: on ? c.warning : c.alert },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.connText,
+                  { color: on ? "#3F8F4F" : "#1F60B0" },
+                ]}
+              >
+                {label}
+              </Text>
+            </View>
+          );
+        })()}
 
         {/* Friendly explanation banner */}
         {showBanner && sensor.status ? (
@@ -240,6 +271,12 @@ export default function HomeScreen() {
             />
           </View>
         )}
+
+        {/* Soft "Bandage Color" glowing card — replaces the old technical RGB
+            tile. Patient-facing: only shows status meaning, never raw R/G/B. */}
+        {hasActiveSensor && sensor.status !== "blue" ? (
+          <BandageColorCard status={sensor.status} />
+        ) : null}
 
         {/* Three supporting facts — calm row. Hidden when infected so the
             urgent card and its actions dominate the screen. */}

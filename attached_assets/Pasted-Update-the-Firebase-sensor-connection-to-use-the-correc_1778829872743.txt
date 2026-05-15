@@ -1,0 +1,413 @@
+Update the Firebase sensor connection to use the correct device-based path and improve how RGB is used in the app.
+
+Important:
+Do not change authentication.
+Do not change the Replit/default database auth system.
+Do not redesign unrelated screens.
+Do not break existing Home, History, Alerts, Wound Detail, or notification behavior.
+Do not show technical RGB boxes to elderly users.
+
+CORRECT FIREBASE STRUCTURE
+
+My Firebase Realtime Database structure is:
+
+/sensorENZORA-001/sensor
+
+Inside that node:
+- blue: number
+- deviceId: "ENZORA-001"
+- green: number
+- red: number
+- status: "yellow" | "green" | "blue"
+
+The app should read from:
+
+/sensor[deviceId]/sensor
+
+Example:
+If deviceId = ENZORA-001, the Firebase path should be:
+
+/sensorENZORA-001/sensor
+
+Do NOT use:
+- /devices/ENZORA-001/sensor
+- /devices/[deviceId]/sensor
+- /sensor/status
+- /sensor
+
+The path must be dynamic:
+
+const sensorPath = `sensor${deviceId}/sensor`;
+
+Examples:
+deviceId = ENZORA-001
+path = sensorENZORA-001/sensor
+
+deviceId = ENZORA-002
+path = sensorENZORA-002/sensor
+
+Use ENZORA-001 as the default demo device ID, but keep the code dynamic so other devices can connect later.
+
+DEVICE CONNECTION BEHAVIOR
+
+1. The user enters or connects a device ID, for example:
+ENZORA-001
+
+2. Save the connected device ID in the existing app/backend user profile or app state.
+
+3. Use the saved device ID to listen to Firebase:
+
+sensorENZORA-001/sensor
+
+4. Read:
+- status
+- red
+- green
+- blue
+- deviceId
+
+5. Use sensor.status for all patient-facing logic:
+- yellow = normal
+- green = watch closely
+- blue = infection alert / call doctor
+
+6. The app should update these areas based on this new path:
+- Home status
+- Wound Detail status
+- History readings
+- Alerts
+- status-change banners
+- Expo/local notification behavior
+- daily care tip context if it uses current wound status
+
+7. If no device is connected:
+Show:
+English: “Connect your device”
+Arabic: “قم بتوصيل جهازك”
+
+Do not read from the old /sensor path.
+
+8. If the device ID does not exist in Firebase:
+Show:
+English: “Device not found. Please check the device ID.”
+Arabic: “لم يتم العثور على الجهاز. يرجى التأكد من رقم الجهاز.”
+
+9. If the device exists but has no sensor data:
+Show:
+English: “Waiting for sensor reading…”
+Arabic: “بانتظار قراءة الجهاز…”
+
+10. If the device is connected and sensor data is available:
+Show:
+English: “Device Connected”
+Arabic: “الجهاز متصل”
+
+REMOVE OLD PATHS
+
+Search the project and replace/remove old Firebase reads from:
+- /sensor
+- /sensor/status
+- /devices/[deviceId]/sensor
+- /devices/ENZORA-001/sensor
+
+The app should consistently use:
+
+sensor${deviceId}/sensor
+
+Do not hardcode ENZORA-001 everywhere.
+Only use ENZORA-001 as default demo value.
+
+RGB USAGE — MAKE IT FUN, NOT TECHNICAL
+
+I do NOT want raw RGB values displayed to elderly users.
+
+Do not show:
+- R: 65
+- G: 89
+- B: 101
+- raw RGB boxes
+- technical RGB tiles
+- confusing numbers on the normal Home screen
+
+Instead, use the RGB values in a soft, visual, fun way that does not overwhelm elderly users.
+
+Recommended replacement:
+
+Add or update a small patient-friendly card called:
+
+English:
+“Bandage Color”
+
+Arabic:
+“لون الضمادة”
+
+Inside the card:
+- show a large soft glowing circle or pill
+- the circle color should be based on the live sensor reading/status
+- do not show the numeric RGB values
+- show one short meaning label
+
+Patient-facing labels:
+
+Yellow:
+“Looks normal”
+
+Green:
+“Small change”
+
+Blue:
+“Needs attention”
+
+Arabic:
+
+Yellow:
+“يبدو طبيعياً”
+
+Green:
+“تغير بسيط”
+
+Blue:
+“يحتاج انتباه”
+
+Visual behavior:
+- Yellow status: soft yellow glow
+- Green status: soft green glow
+- Blue status: soft blue/red urgent glow depending on current app alert style
+- Add a subtle pulse animation if simple to implement
+- Keep it calm and medical, not childish
+
+Suggested card copy:
+
+Title:
+“Bandage Color”
+
+Subtitle based on status:
+Yellow: “Looks normal”
+Green: “Small change”
+Blue: “Needs attention”
+
+Small helper line:
+Yellow: “Keep it clean and dry.”
+Green: “Check it again today.”
+Blue: “Call your doctor today.”
+
+Arabic:
+Yellow: “حافظ عليه نظيفاً وجافاً.”
+Green: “افحصه مرة أخرى اليوم.”
+Blue: “اتصل بطبيبك اليوم.”
+
+HOME SCREEN CHANGES
+
+Replace RGB boxes with patient-friendly content.
+
+The Home screen should not show technical sensor values.
+
+Use fewer, meaningful cards:
+- Current wound
+- Last check
+- Days monitored
+- Bandage Color visual
+- What should I do now?
+
+The Home screen should stay elderly-friendly:
+- no clutter
+- no technical language
+- larger text
+- clear actions
+- calm layout
+
+If status is blue, Home should become more urgent:
+- show “Infection Alert”
+- show “Call Doctor Today”
+- reduce non-essential cards
+- keep the Bandage Color card simple and urgent
+
+HISTORY SCREEN
+
+Do not show raw RGB values in History.
+
+Instead show:
+- status timeline
+- yellow dot = normal
+- green dot = watch closely
+- blue dot = alert
+
+Reading timeline item should show:
+- status title
+- short patient-friendly meaning
+- time/date
+
+Examples:
+
+Yellow:
+Title: “Normal”
+Text: “Looks good”
+
+Green:
+Title: “Watch closely”
+Text: “Small change”
+
+Blue:
+Title: “Alert”
+Text: “Call doctor”
+
+Arabic:
+
+Yellow:
+“طبيعي”
+“يبدو جيداً”
+
+Green:
+“راقب الجرح”
+“تغير بسيط”
+
+Blue:
+“تنبيه”
+“اتصل بالطبيب”
+
+DOCTOR REPORT
+
+Main doctor report should not be cluttered with RGB values.
+
+Main report should show:
+- patient info
+- wound info
+- current status
+- status timeline
+- notes
+- days monitored
+- last check time
+- doctor/emergency contact if available
+
+If raw RGB is needed, show it only in a small optional section at the bottom:
+
+“Technical Sensor Data”
+
+Include:
+- Device ID
+- Red
+- Green
+- Blue
+- Timestamp
+
+This should be clearly secondary and not part of the main patient-facing summary.
+
+NOTIFICATIONS
+
+Status-change notifications must use the new Firebase path.
+
+When:
+
+sensor${deviceId}/sensor/status
+
+changes, the app should:
+- update UI
+- add history entry
+- create alert if green or blue
+- trigger Expo/local notification if enabled
+- show in-app banner if app is open
+
+Notification messages should stay short:
+
+Green:
+Title: “Small change detected”
+Body: “Please check your wound today.”
+
+Blue:
+Title: “Infection alert”
+Body: “Call your doctor today.”
+
+Yellow after green/blue:
+Title: “Wound looks better”
+Body: “Your reading is back to normal.”
+
+Arabic:
+
+Green:
+Title: “تم اكتشاف تغير بسيط”
+Body: “يرجى فحص الجرح اليوم.”
+
+Blue:
+Title: “تنبيه عدوى”
+Body: “اتصل بطبيبك اليوم.”
+
+Yellow:
+Title: “تحسنت حالة الجرح”
+Body: “عادت القراءة إلى الوضع الطبيعي.”
+
+DAILY CARE TIP CONTEXT
+
+If the daily care tip uses wound status, make sure it reads the current status from the new device path:
+
+sensor${deviceId}/sensor/status
+
+The care tip should use:
+- current status
+- days monitored
+- medical conditions
+- recent history
+- wound name
+
+Do not include raw RGB values in the AI tip.
+
+TESTING
+
+Test with device ID:
+
+ENZORA-001
+
+Testing checklist:
+
+1. Connect device using ENZORA-001.
+2. Confirm app reads from:
+   sensorENZORA-001/sensor
+
+3. Confirm app does NOT read from:
+   /sensor
+   /sensor/status
+   /devices/ENZORA-001/sensor
+
+4. Change Firebase status to:
+   yellow
+
+Expected:
+- Home shows normal
+- Bandage Color says “Looks normal”
+- no raw RGB boxes
+
+5. Change Firebase status to:
+   green
+
+Expected:
+- Home shows watch closely
+- Bandage Color says “Small change”
+- alert/history entry is created
+- notification/in-app alert behavior works
+
+6. Change Firebase status to:
+   blue
+
+Expected:
+- Home shows infection alert
+- Bandage Color says “Needs attention”
+- urgent call-doctor action appears
+- alert/history entry is created
+- notification/in-app alert behavior works
+
+7. Confirm History shows a status timeline, not RGB values.
+
+8. Confirm Doctor Report does not show RGB values in the main report.
+
+9. Confirm device ID is saved and reused after refresh.
+
+FINAL RESULT
+
+The app should connect using the actual Firebase path:
+
+sensorENZORA-001/sensor
+
+based on the entered device ID ENZORA-001.
+
+It should use status for all medical/patient-facing logic.
+
+It should use RGB values only for a soft visual “Bandage Color” glow/card, not as overwhelming technical boxes for elderly users.

@@ -673,7 +673,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Sensor listener (Firebase RTDB — only for ESP32 sensor data).
   // Connection state is driven *solely* by the presence of
-  // /devices/{deviceId}/sensor/status for the currently-active device.
+  // /sensor{deviceId}/sensor/status for the currently-active device.
   useEffect(() => {
     console.log("[sensor] effect mount — rtdb:", !!rtdb, "deviceId:", effectiveDeviceId);
     if (!rtdb) {
@@ -685,7 +685,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setFirebaseSensor((s) => ({ ...s, connected: false, status: null }));
       return;
     }
-    const path = `devices/${effectiveDeviceId}/sensor`;
+    const path = `sensor${effectiveDeviceId}/sensor`;
     const sensorRef = ref(rtdb, path);
     console.log("[sensor] attaching listener", {
       path,
@@ -698,9 +698,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         console.log("[sensor] Firebase listener triggered");
         console.log("[sensor] Snapshot value:", v);
         console.log("[sensor] Status:", v?.status);
-        const isConnected = !!(v && v.status);
-        console.log("[sensor] Connected state ->", isConnected);
-        if (isConnected) {
+        // Node reachable === device exists in RTDB. Status may still be
+        // missing on a brand-new device that hasn't pushed its first
+        // reading yet — in that case we surface a "waiting" state on Home
+        // rather than treating the device as not-found.
+        const nodeExists = !!v;
+        const hasStatus = !!(v && v.status);
+        console.log("[sensor] nodeExists:", nodeExists, "hasStatus:", hasStatus);
+        if (hasStatus) {
           setFirebaseSensor({
             status: v.status as SensorStatus,
             red: typeof v.red === "number" ? v.red : 0,
@@ -710,6 +715,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               typeof v.timestamp === "number" ? v.timestamp : Date.now(),
             connected: true,
           });
+        } else if (nodeExists) {
+          // Device node is present but no reading yet — keep `connected`
+          // true so Home can show "Waiting for sensor reading…", but
+          // status is null so downstream `hasActiveSensor` stays false.
+          setFirebaseSensor((s) => ({ ...s, connected: true, status: null }));
         } else {
           setFirebaseSensor((s) => ({ ...s, connected: false, status: null }));
         }
@@ -993,13 +1003,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!rtdb) return { ok: false, reason: "no-firebase" };
       try {
         const snap = await Promise.race([
-          get(ref(rtdb, `devices/${deviceId}/sensor`)),
+          get(ref(rtdb, `sensor${deviceId}/sensor`)),
           new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error("timeout")), 10000),
           ),
         ]);
         const v = snap.val();
-        if (!v || !v.status) {
+        // Accept the device as long as the node exists — a freshly-paired
+        // device may not have pushed its first status reading yet, and
+        // we don't want to reject the pairing in that case.
+        if (!v) {
           return { ok: false, reason: "not-found" };
         }
         if (user) {

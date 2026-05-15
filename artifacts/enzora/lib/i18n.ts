@@ -485,6 +485,23 @@ const en = {
   colorYellowBodyShort: "Healing well — keep it clean and dry.",
   colorGreenBodyShort: "Some change — watch closely today.",
   colorBlueBodyShort: "Possible infection — please call your doctor.",
+
+  // Bandage Color card (soft, patient-facing — no raw RGB)
+  bandageColorTitle: "Bandage Color",
+  bandageColorYellowLabel: "Looks normal",
+  bandageColorGreenLabel: "Watch closely",
+  bandageColorBlueLabel: "Possible infection",
+  bandageColorYellowHelper: "Keep it clean and dry.",
+  bandageColorGreenHelper: "Check your wound today.",
+  bandageColorBlueHelper: "Call your doctor today.",
+  bandageColorWaitingLabel: "Waiting for first reading",
+  bandageColorWaitingHelper: "Your sensor will report soon.",
+
+  // Connection states (patient-facing)
+  connStateConnect: "Connect your device",
+  connStateNotFound: "Device not found…",
+  connStateWaiting: "Waiting for sensor reading…",
+  connStateConnected: "Device Connected",
 };
 
 const ar: typeof en = {
@@ -938,6 +955,23 @@ const ar: typeof en = {
   colorYellowBodyShort: "يلتئم جيداً — حافظ عليه نظيفاً وجافاً.",
   colorGreenBodyShort: "بعض التغيير — راقب عن كثب اليوم.",
   colorBlueBodyShort: "احتمال عدوى — يرجى الاتصال بطبيبك.",
+
+  // Bandage Color card
+  bandageColorTitle: "لون الضمادة",
+  bandageColorYellowLabel: "يبدو طبيعياً",
+  bandageColorGreenLabel: "راقب عن كثب",
+  bandageColorBlueLabel: "احتمال عدوى",
+  bandageColorYellowHelper: "حافظ عليه نظيفاً وجافاً.",
+  bandageColorGreenHelper: "افحص جرحك اليوم.",
+  bandageColorBlueHelper: "اتصل بطبيبك اليوم.",
+  bandageColorWaitingLabel: "بانتظار أول قراءة",
+  bandageColorWaitingHelper: "سيقوم المستشعر بالإرسال قريباً.",
+
+  // Connection states
+  connStateConnect: "وصّل جهازك",
+  connStateNotFound: "تعذّر العثور على الجهاز…",
+  connStateWaiting: "بانتظار قراءة المستشعر…",
+  connStateConnected: "الجهاز متصل",
 };
 
 const STORAGE_KEY = "enzora.lang";

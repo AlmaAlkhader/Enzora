@@ -1,0 +1,130 @@
+Fix the login issue where existing accounts are shown as “email not registered.”
+
+Important:
+Do not change Firebase sensor logic.
+Do not change the ESP32 connection.
+Do not redesign the UI.
+Do not replace the current authentication system.
+The app uses the existing Replit/default backend database for login/signup.
+
+Problem:
+When I try to log in with an account that I already created before, the app says:
+“Email has not registered before”
+or similar.
+
+But I am sure the account exists.
+
+Task:
+Debug and fix the login lookup logic.
+
+Check these possible causes:
+
+1. Email normalization
+Make sure both signup and login normalize email the same way:
+- trim spaces
+- lowercase email
+- remove accidental leading/trailing spaces
+
+Example:
+const normalizedEmail = email.trim().toLowerCase();
+
+Use this normalized email consistently when:
+- creating account
+- checking if account exists
+- logging in
+
+2. Wrong database/table/key
+Check if signup saves users in one place but login searches in another place.
+
+For example:
+- signup creates user in one table/collection/key
+- login checks a different table/collection/key
+
+Fix login so it checks the same user storage used by signup.
+
+3. Old accounts and new accounts mismatch
+If the app changed database schema recently, make login support existing saved users.
+
+Check whether old users are stored with:
+- email
+- emailAddress
+- userEmail
+- lowercase email
+- original case email
+
+Login should find existing accounts reliably.
+
+4. Case-sensitive email issue
+If the user signed up with:
+Alma.Khader@gmail.com
+
+and logs in with:
+alma.khader@gmail.com
+
+it should still work.
+
+5. Storage/session issue
+Check whether the account is actually saved after signup.
+After signup:
+- confirm the user record is inserted into the backend database
+- confirm email is saved correctly
+- confirm password hash/token/session is saved correctly if applicable
+
+6. Error message accuracy
+Only show “email not registered” if the backend truly cannot find the user.
+
+If the user exists but password is wrong, show:
+“Incorrect password.”
+
+If there is a backend/database error, show:
+“Login failed. Please try again.”
+
+Do not show “email not registered” for every login failure.
+
+7. Add temporary safe debug logs
+Add backend logs for login attempts:
+- normalized email being searched
+- whether user was found
+- which table/storage was checked
+- do not log passwords
+- do not log password hashes
+- do not log secrets
+
+8. Test checklist
+Test these cases:
+
+A. New account:
+- Sign up with a new email.
+- Log out.
+- Log in with the same email.
+- Confirm login works.
+
+B. Case-insensitive:
+- Sign up with TestUser@gmail.com
+- Log in with testuser@gmail.com
+- Confirm login works.
+
+C. Spaces:
+- Log in with spaces before/after email.
+- Confirm login still works.
+
+D. Existing old account:
+- Try logging in with previously created account.
+- Confirm it works if the account exists in database.
+
+E. Wrong password:
+- Existing email + wrong password should show “Incorrect password,” not “email not registered.”
+
+Important:
+Do not delete existing users.
+Do not reset the database.
+Do not force me to create new accounts again.
+Preserve old accounts and make login find them correctly.
+
+Deliver:
+Tell me exactly:
+- where signup saves users
+- where login checks users
+- what was wrong
+- what files were changed
+- whether emails are now normalized consistently
