@@ -507,6 +507,18 @@ const en = {
   connStateNotFound: "Device not found…",
   connStateWaiting: "Waiting for sensor reading…",
   connStateConnected: "Device Connected",
+
+  // Demo Mode
+  demoModeLink: "Demo Mode",
+  demoModeTitle: "Demo Mode",
+  demoModeSubtitle: "Manually test color changes for this device.",
+  demoModeDevice: "Device",
+  demoModeSetYellow: "Set Yellow — Normal",
+  demoModeSetGreen: "Set Green — Watch",
+  demoModeSetBlue: "Set Blue — Alert",
+  demoModeSafetyNote: "Demo Mode changes Firebase values for testing only.",
+  demoModeConnectFirst: "Connect a device first.",
+  demoModeDone: "Done",
 };
 
 const ar: typeof en = {
@@ -982,6 +994,18 @@ const ar: typeof en = {
   connStateNotFound: "تعذّر العثور على الجهاز…",
   connStateWaiting: "بانتظار قراءة المستشعر…",
   connStateConnected: "الجهاز متصل",
+
+  // Demo Mode
+  demoModeLink: "وضع التجربة",
+  demoModeTitle: "وضع التجربة",
+  demoModeSubtitle: "اختبر تغير الألوان يدوياً لهذا الجهاز.",
+  demoModeDevice: "الجهاز",
+  demoModeSetYellow: "تعيين أصفر — طبيعي",
+  demoModeSetGreen: "تعيين أخضر — متابعة",
+  demoModeSetBlue: "تعيين أزرق — تنبيه",
+  demoModeSafetyNote: "وضع التجربة يغير قيم Firebase للاختبار فقط.",
+  demoModeConnectFirst: "قم بتوصيل الجهاز أولاً.",
+  demoModeDone: "تم",
 };
 
 const STORAGE_KEY = "enzora.lang";

@@ -3,6 +3,7 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   I18nManager,
   Modal,
   Pressable,
@@ -23,10 +24,13 @@ import {
 import { BandageColorCard } from "@/components/BandageColorCard";
 import { CareTipCard } from "@/components/CareTipCard";
 import { ColorAlertBanner } from "@/components/ColorGuide";
+import { DemoModeModal } from "@/components/DemoModeModal";
 import { PendingConfirmationCard } from "@/components/PendingConfirmation";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import { SUPPORT_PHONE } from "@/lib/support";
+
+const SHOW_DEMO_MODE = true;
 
 const c = colors.light;
 
@@ -88,6 +92,7 @@ export default function HomeScreen() {
   const [bannerDismissedFor, setBannerDismissedFor] = useState<
     "green" | "blue" | null
   >(null);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   useEffect(() => {
     if (
@@ -184,26 +189,44 @@ export default function HomeScreen() {
             label = t("connStateConnect");
           }
           return (
-            <View
-              style={[
-                styles.connPill,
-                on ? styles.connPillOn : styles.connPillOff,
-              ]}
-            >
+            <View style={styles.connPillWrap}>
               <View
                 style={[
-                  styles.connDot,
-                  { backgroundColor: on ? c.warning : c.alert },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.connText,
-                  { color: on ? "#3F8F4F" : "#1F60B0" },
+                  styles.connPill,
+                  on ? styles.connPillOn : styles.connPillOff,
                 ]}
               >
-                {label}
-              </Text>
+                <View
+                  style={[
+                    styles.connDot,
+                    { backgroundColor: on ? c.warning : c.alert },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.connText,
+                    { color: on ? "#3F8F4F" : "#1F60B0" },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </View>
+              {SHOW_DEMO_MODE ? (
+                <Pressable
+                  onPress={() => {
+                    if (!effectiveDeviceId) {
+                      Alert.alert("", t("demoModeConnectFirst"));
+                    } else {
+                      setDemoOpen(true);
+                    }
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("demoModeLink")}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                >
+                  <Text style={styles.demoLink}>{t("demoModeLink")}</Text>
+                </Pressable>
+              ) : null}
             </View>
           );
         })()}
@@ -374,6 +397,14 @@ export default function HomeScreen() {
           setAlertOpen(false);
         }}
       />
+
+      {SHOW_DEMO_MODE && effectiveDeviceId ? (
+        <DemoModeModal
+          visible={demoOpen}
+          deviceId={effectiveDeviceId}
+          onClose={() => setDemoOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -743,6 +774,10 @@ const styles = StyleSheet.create({
   },
 
   // Connection
+  connPillWrap: {
+    alignItems: "center",
+    gap: 6,
+  },
   connPill: {
     alignSelf: "center",
     flexDirection: "row",
@@ -761,6 +796,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.6,
     textTransform: "uppercase",
+  },
+  demoLink: {
+    fontSize: 13,
+    color: "#6E75BF",
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
 
   // Connect-to-start hero (replaces StatusCard when no sensor)
