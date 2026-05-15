@@ -1,0 +1,257 @@
+Fix the app sizing, spacing, and safe-area layout so it looks correct on a real iOS device.
+
+Problem:
+I am currently using “Simulate on Web” in Replit, but the sizing and spacing do not match how the app looks on an actual iPhone/iOS device. Some elements feel too large, too close to the notch, too low, cut off, or poorly spaced.
+
+Goal:
+Make the whole app responsive and properly fitted for iOS devices, especially iPhones with a notch / Dynamic Island.
+
+Important:
+Do not change authentication.
+Do not change Firebase sensor logic.
+Do not change the database structure.
+Do not redesign the app into a new style.
+Keep the current Enzora design, but fix sizing, spacing, safe areas, and responsive behavior.
+
+GENERAL REQUIREMENTS
+
+1. Use Safe Area properly
+Apply SafeAreaView / useSafeAreaInsets correctly across all screens.
+
+Make sure:
+- content does not touch the notch / Dynamic Island
+- language toggle is not too high
+- SOS button is not too high
+- logo is not hidden behind the notch
+- headers have enough top padding
+- bottom nav does not overlap the iPhone home indicator
+- buttons near the bottom are not hidden behind the bottom nav or home indicator
+
+Use react-native-safe-area-context if already installed.
+If not installed, install and use it properly.
+
+2. Fix header spacing
+All headers should have consistent iOS-safe spacing.
+
+Apply to:
+- Landing/onboarding screens
+- Login / Sign Up
+- Medical Profile
+- Home
+- Wounds
+- Wound Detail
+- History
+- Ask AI
+- Alerts
+- Profile
+- Color Guide
+- Doctor Report
+
+Header rules:
+- add top padding using safeAreaInsets.top
+- language toggle should sit comfortably below the top edge
+- SOS button should not overlap the language toggle
+- logo should be clearly visible and centered/aligned nicely
+- page title should not be too close to the top
+
+3. Fix bottom spacing
+The bottom navigation and bottom buttons must work on iPhone.
+
+Make sure:
+- bottom tab bar accounts for safeAreaInsets.bottom
+- scrollable screens have enough bottom padding
+- final buttons are not hidden by the tab bar
+- Profile screen can scroll fully
+- Medical Profile Save button is reachable
+- Ask AI input bar is above the home indicator and keyboard
+
+4. Fix scroll behavior
+Any screen with many fields/cards should use proper scrolling.
+
+Screens that must scroll correctly:
+- Medical Profile
+- Profile
+- Wounds
+- Wound Detail
+- History
+- Alerts
+- Ask AI chat
+- Landing/onboarding if content does not fit
+
+Use ScrollView / KeyboardAvoidingView where needed.
+
+Important:
+- Do not force everything into one fixed screen height.
+- Avoid absolute positioning unless necessary.
+- Avoid hardcoded heights that break on different iPhones.
+
+5. Fix keyboard behavior
+On Login, Sign Up, Medical Profile, Add Wound, Notes, and Ask AI:
+
+- keyboard should not cover inputs
+- keyboard should not cover the Ask AI input bar
+- user should be able to scroll while typing
+- use KeyboardAvoidingView on iOS
+- use keyboardVerticalOffset if needed
+
+6. Use responsive sizing
+Replace fragile fixed sizes with responsive values where appropriate.
+
+Avoid:
+- fixed screen heights that assume web simulator
+- large absolute top values
+- huge margins that break on smaller phones
+- cards that extend off-screen
+- text that gets cut off
+
+Use:
+- Dimensions / useWindowDimensions if needed
+- flex layout
+- percentage widths
+- maxWidth only when necessary
+- proper paddingHorizontal
+- consistent spacing scale
+
+7. Fix text clipping
+Make sure no text is cut off.
+
+Examples:
+- “just now” should not become “just n…”
+- long Arabic text should wrap properly
+- buttons should not cut labels
+- cards should not clip content
+- form labels should stay readable
+
+Use:
+- numberOfLines only when intentional
+- proper flexShrink
+- proper minHeight
+- allow wrapping where needed
+
+8. Fix card spacing
+Cards should have consistent spacing on real iOS.
+
+Use:
+- screen paddingHorizontal around 20
+- card padding around 16–20
+- vertical gap around 14–18
+- border radius around 18–22
+- no cards touching screen edges
+- no overcrowded dashboard boxes
+
+9. Fix onboarding / landing pages
+The 3 landing pages should fit iOS screens.
+
+Make sure:
+- logo is not too high
+- language toggle is placed correctly
+- animation/illustration is not oversized
+- title/subtitle fit on screen
+- Next/Get Started buttons are reachable
+- page dots are above the bottom safe area
+- content works on smaller iPhones too
+
+10. Fix Login / Sign Up
+The auth screen should fit iOS correctly.
+
+Make sure:
+- language toggle is lower and not near the notch
+- full Enzora logo fits nicely
+- form does not feel squeezed
+- inputs are reachable when keyboard opens
+- Create Account / Login button is not hidden
+- tab switcher fits properly
+- screen scrolls if needed on smaller devices
+
+11. Fix Home screen
+The Home screen should feel calm and not crowded on iOS.
+
+Make sure:
+- header has enough top spacing
+- main status card is visible without being cramped
+- Bandage Color card fits well
+- supporting cards do not overflow
+- no content is hidden behind bottom navigation
+- urgent blue state fits properly and shows call buttons clearly
+
+12. Fix Profile screen
+The Profile screen currently has many cards and can feel cramped.
+
+Make sure:
+- user card is not cut off
+- Medical Profile section fits
+- Daily Wellness Reminder section fits
+- SOS/language/header area has correct spacing
+- Logout button is visible and reachable
+- hidden developer diagnostics remain hidden
+- all content scrolls properly
+
+13. Fix Ask AI screen
+Make Ask AI fit iOS correctly.
+
+Requirements:
+- messages area scrolls
+- input bar stays above keyboard and home indicator
+- input bar is not hidden behind bottom nav
+- disclaimer does not crowd the header
+- Arabic layout still works
+
+14. Fix iOS-specific testing
+Do not rely only on Replit Simulate on Web.
+
+Use iOS-safe layout assumptions:
+- notch / Dynamic Island
+- home indicator
+- keyboard
+- smaller screen heights
+- real phone aspect ratios
+
+Add comments or constants if helpful:
+- SAFE_TOP_PADDING
+- TAB_BAR_HEIGHT
+- BOTTOM_SAFE_PADDING
+- SCREEN_HORIZONTAL_PADDING
+
+15. Keep the design consistent
+Do not redesign the app.
+Just make the existing design fit correctly.
+
+Keep:
+- Enzora colors
+- pastel medical style
+- rounded cards
+- current navigation
+- current content
+- current functionality
+
+Testing checklist:
+Test each screen on the iPhone preview / Expo Go device, not only web simulator.
+
+Check:
+1. Landing page 1, 2, 3
+2. Login
+3. Sign Up
+4. Medical Profile
+5. Home
+6. Wounds
+7. Wound Detail
+8. History
+9. Ask AI
+10. Alerts
+11. Profile
+12. Color Guide
+13. Doctor Report
+
+For each screen confirm:
+- nothing touches the notch
+- nothing touches the home indicator
+- bottom nav does not cover content
+- keyboard does not cover inputs
+- cards are not cut off
+- text is not clipped
+- buttons are reachable
+- Arabic mode still fits
+- smaller iPhone sizes still look acceptable
+
+Final result:
+The app should look polished and properly spaced on a real iOS device, not just in Replit’s web simulator.
