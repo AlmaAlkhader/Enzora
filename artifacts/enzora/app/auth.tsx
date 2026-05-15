@@ -35,7 +35,7 @@ const { height } = Dimensions.get("window");
 export default function AuthScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { signUp, signIn, emailExists, setBiometricEnabled } = useApp();
+  const { signUp, signIn, setBiometricEnabled } = useApp();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"signup" | "login">("signup");
   const [name, setName] = useState("");
@@ -93,12 +93,9 @@ export default function AuthScreen() {
         await signUp(name.trim(), email.trim(), password);
         router.replace("/medical-profile");
       } else {
-        const exists = await emailExists(email.trim());
-        if (!exists) {
-          setErrors({ email: t("unknownEmail") });
-          setSubmitting(false);
-          return;
-        }
+        console.info("[auth] login submit", {
+          email: email.trim().toLowerCase(),
+        });
         await signIn(email.trim(), password);
         await AsyncStorage.setItem(
           "enzora.lastBiometricEmail",
@@ -123,14 +120,17 @@ export default function AuthScreen() {
           ? String((err as { code?: string }).code)
           : "";
       const raw = err instanceof Error ? err.message : "";
-      let friendly = t("somethingWrong");
+      let friendly = tab === "login" ? t("loginFailed") : t("somethingWrong");
+      let fieldErrors: Record<string, string> = {};
       if (code === "auth/email-already-in-use") friendly = t("emailInUse");
       else if (code === "auth/invalid-email") friendly = t("invalidEmail");
       else if (code === "auth/weak-password") friendly = t("passwordTooShort");
-      else if (
+      else if (code === "auth/user-not-found" && tab === "login") {
+        fieldErrors = { email: t("unknownEmail") };
+        friendly = "";
+      } else if (
         code === "auth/wrong-password" ||
-        code === "auth/invalid-credential" ||
-        code === "auth/user-not-found"
+        code === "auth/invalid-credential"
       )
         friendly = t("authError");
       else if (code === "auth/network-request-failed" || raw === "auth-timeout")
@@ -138,8 +138,11 @@ export default function AuthScreen() {
       else if (code === "auth/operation-not-allowed")
         friendly = t("authNotEnabled");
       else if (raw === "firestore-timeout") friendly = t("networkError");
-      else if (raw) friendly = raw;
-      setErrors({ form: friendly });
+      // Any other thrown error in login (including storage errors) falls
+      // through to the generic loginFailed message — never "email not
+      // registered."
+      if (Object.keys(fieldErrors).length > 0) setErrors(fieldErrors);
+      else setErrors({ form: friendly });
     } finally {
       setSubmitting(false);
     }

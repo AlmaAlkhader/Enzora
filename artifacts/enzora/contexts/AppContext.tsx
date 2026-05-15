@@ -269,12 +269,25 @@ function hashPassword(password: string): string {
 }
 
 async function readAccount(email: string): Promise<StoredAccount | null> {
-  const raw = await AsyncStorage.getItem(userKey(email));
+  let raw: string | null;
+  try {
+    raw = await AsyncStorage.getItem(userKey(email));
+  } catch (e) {
+    const err = new Error("account-read-failed");
+    (err as Error & { code?: string; cause?: unknown }).code =
+      "auth/storage-error";
+    (err as Error & { cause?: unknown }).cause = e;
+    throw err;
+  }
   if (!raw) return null;
   try {
     return JSON.parse(raw) as StoredAccount;
-  } catch {
-    return null;
+  } catch (e) {
+    const err = new Error("account-parse-failed");
+    (err as Error & { code?: string; cause?: unknown }).code =
+      "auth/storage-error";
+    (err as Error & { cause?: unknown }).cause = e;
+    throw err;
   }
 }
 
@@ -851,19 +864,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const emailExists = useCallback(async (email: string) => {
-    const acc = await readAccount(email);
+    const acc = await readAccount(email.trim().toLowerCase());
     return !!acc;
   }, []);
 
   const signUp = useCallback(
     async (name: string, email: string, password: string) => {
       const normEmail = email.trim().toLowerCase();
+      console.info("[auth] signUp lookup", {
+        email: normEmail,
+        key: userKey(normEmail),
+      });
       const existing = await readAccount(normEmail);
       if (existing) {
+        console.warn("[auth] signUp email already in use", normEmail);
         const err = new Error("email-already-in-use");
         (err as Error & { code?: string }).code = "auth/email-already-in-use";
         throw err;
       }
+      console.info("[auth] signUp creating new account for", normEmail);
       const acc: StoredAccount = {
         name: name.trim(),
         email: normEmail,
@@ -886,12 +905,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     const normEmail = email.trim().toLowerCase();
+    console.info("[auth] signIn lookup", {
+      email: normEmail,
+      key: userKey(normEmail),
+    });
     const acc = await readAccount(normEmail);
     if (!acc) {
+      console.warn("[auth] signIn no account for", normEmail);
       const err = new Error("user-not-found");
       (err as Error & { code?: string }).code = "auth/user-not-found";
       throw err;
     }
+    console.info("[auth] signIn account found for", normEmail);
     if (acc.passwordHash !== hashPassword(password)) {
       const err = new Error("wrong-password");
       (err as Error & { code?: string }).code = "auth/wrong-password";

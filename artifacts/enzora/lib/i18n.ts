@@ -40,6 +40,7 @@ const en = {
   passwordsDontMatch: "Passwords don't match",
   required: "This field is required",
   authError: "Wrong email or password. Please try again.",
+  loginFailed: "Login failed. Please try again.",
   emailInUse: "This email is already registered. Try logging in instead.",
   networkError:
     "Couldn't reach the server. Please check your internet connection and try again.",
@@ -557,6 +558,7 @@ const ar: typeof en = {
   passwordsDontMatch: "كلمتا المرور غير متطابقتين",
   required: "هذا الحقل مطلوب",
   authError: "البريد الإلكتروني أو كلمة المرور غير صحيحة. حاول مرة أخرى.",
+  loginFailed: "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى.",
   emailInUse: "هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول.",
   networkError:
     "تعذر الوصول إلى الخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
