@@ -1,4 +1,4 @@
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -25,6 +25,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
+import BandageIllustration from "@/components/BandageIllustration";
 import { EnzoraLogo, LanguageToggle } from "@/components/Brand";
 import colors, { brandGradient } from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
@@ -208,7 +209,7 @@ function HeroBandage() {
       <Animated.View style={[styles.heroGlow, glowStyle]} />
       <Floating>
         <View style={styles.heroCard}>
-          <MaterialCommunityIcons name="bandage" size={56} color={c.primary} />
+          <BandageIllustration size={Math.min(180, SCREEN_W * 0.5)} />
           <View style={styles.dotsRowSmall}>
             {DOT_COLORS.map((color, i) => (
               <PulsingDot key={color} color={color} delay={i * 350} size={12} />
