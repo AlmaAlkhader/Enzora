@@ -393,6 +393,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void (async () => {
       try {
+        try {
+          await AsyncStorage.removeItem("enzora.largeText");
+        } catch {
+          // ignore — key may already be absent
+        }
         const lang = await loadLanguage();
         setLanguageState(lang);
         await i18n.changeLanguage(lang);
