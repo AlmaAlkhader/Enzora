@@ -1,0 +1,196 @@
+Create 3 simple onboarding / landing pages before Login and Sign Up for the Enzora app.
+
+Important:
+Do not change authentication logic.
+Do not change Firebase logic.
+Do not change Login / Sign Up functionality.
+Only redesign the pre-auth landing flow.
+
+Goal:
+I want 3 landing pages that appear before the login/sign up screen.
+They should be:
+- simple
+- clean
+- animated
+- fun
+- branded
+- in the same Enzora theme
+- not too detailed
+- not text heavy
+
+The landing pages should feel like part of the same Enzora app.
+
+DESIGN STYLE
+
+Use the same Enzora visual style:
+- soft pastel background
+- pale blue / pale lavender
+- indigo / violet accents
+- rounded shapes
+- calm medical feeling
+- modern and clean
+- elderly-friendly
+- simple and premium
+- not childish
+- not cluttered
+
+Suggested color palette:
+- #1B2A6B
+- #6E75BF
+- #8879B8
+- #EDEBFF
+- #F4F8FF
+- #FFFFFF
+- #BFEBD8
+- #FFB703
+- #7BC47F
+- #4A90E2
+
+GENERAL LAYOUT FOR ALL 3 PAGES
+
+Each page should have:
+1. top safe-area spacing
+2. language toggle at the top right
+3. a simple animated illustration in the center/top
+4. one short title
+5. one short subtitle
+6. page indicator dots
+7. bottom actions:
+   - Next
+   - Skip
+On the last page:
+   - Get Started
+   - I already have an account
+
+Use the Enzora full logo at the top or near the hero area.
+Keep it elegant and consistent.
+
+ANIMATION STYLE
+
+Animations should be light and subtle:
+- fade in
+- slight floating motion
+- soft pulse
+- simple dot animation
+- gentle card movement
+
+Do not use heavy animation.
+Do not make it distracting.
+
+LANDING PAGE 1
+
+Theme:
+Smart wound monitoring
+
+Illustration idea:
+- smart bandage / patch
+- soft glow
+- small live color dots
+- a clean medical card
+
+Title:
+English: “Smart wound care”
+Arabic: “رعاية ذكية للجروح”
+
+Subtitle:
+English: “Enzora helps you monitor your wound in a simple way.”
+Arabic: “يساعدك إنزورا على متابعة الجرح بطريقة بسيطة.”
+
+LANDING PAGE 2
+
+Theme:
+Easy color alerts
+
+Illustration idea:
+- 3 soft color circles or pills
+- yellow, green, blue
+- tiny pulse animation
+- very clean and simple
+
+Title:
+English: “Clear color alerts”
+Arabic: “تنبيهات لونية واضحة”
+
+Subtitle:
+English: “See when the wound looks normal and when it needs attention.”
+Arabic: “اعرف متى يكون الجرح طبيعياً ومتى يحتاج إلى الانتباه.”
+
+Do not make this page too technical.
+Do not explain too much.
+Keep it simple.
+
+LANDING PAGE 3
+
+Theme:
+Helpful support and reports
+
+Illustration idea:
+- simple doctor report card
+- small message/chat icon
+- soft checkmark / shield / doctor-ready document
+
+Title:
+English: “Helpful every day”
+Arabic: “مفيد كل يوم”
+
+Subtitle:
+English: “Get simple tips, alerts, and reports ready to share with your doctor.”
+Arabic: “احصل على نصائح بسيطة وتنبيهات وتقارير جاهزة للمشاركة مع طبيبك.”
+
+BOTTOM BUTTONS
+
+For pages 1 and 2:
+- Skip
+- Next
+
+For page 3:
+Primary:
+English: “Get Started”
+Arabic: “ابدأ الآن”
+
+Secondary:
+English: “I already have an account”
+Arabic: “لدي حساب بالفعل”
+
+Behavior:
+- Skip goes directly to auth screen
+- Next goes to next landing page
+- Get Started opens Sign Up
+- I already have an account opens Login
+
+PAGE INDICATOR
+
+Add 3 small dots at the bottom center:
+- active page dot filled with Enzora indigo
+- inactive dots light gray/lavender
+
+CONSISTENCY
+
+Make sure the onboarding pages visually match:
+- the login page
+- sign up page
+- the main app theme
+
+Use the same background family, spacing, rounded UI style, and brand colors.
+
+Do not make the onboarding look like a different app.
+
+ACCESSIBILITY
+
+Make text readable and large enough.
+Keep each page simple.
+Do not overload with information.
+Keep subtitles short, 1–2 lines maximum.
+
+OPTIONAL NICE TOUCHES
+
+If easy:
+- swiping horizontally moves between pages
+- smooth page transition animation
+- small floating background blobs
+- slight logo fade-in
+
+FINAL RESULT
+
+I want 3 simple, beautiful, animated landing pages that introduce Enzora in a light and fun way before login.
+They should be informative but short, and fully match the Enzora theme.

@@ -520,6 +520,19 @@ const en = {
   demoModeSafetyNote: "Demo Mode changes Firebase values for testing only.",
   demoModeConnectFirst: "Connect a device first.",
   demoModeDone: "Done",
+
+  // Landing / onboarding (3-page flow)
+  landingCta: "Get Started",
+  landingSecondary: "I already have an account",
+  landingHeroLabel: "Live wound monitoring",
+  nextStep: "Next",
+  skipShort: "Skip",
+  onboardSmartTitle: "Smart wound care",
+  onboardSmartSub: "Enzora helps you monitor your wound in a simple way.",
+  onboardAlertsTitle: "Clear color alerts",
+  onboardAlertsSub: "See when the wound looks normal and when it needs attention.",
+  onboardSupportTitle: "Helpful every day",
+  onboardSupportSub: "Get simple tips, alerts, and reports ready to share with your doctor.",
 };
 
 const ar: typeof en = {
@@ -1008,6 +1021,19 @@ const ar: typeof en = {
   demoModeSafetyNote: "وضع التجربة يغير قيم Firebase للاختبار فقط.",
   demoModeConnectFirst: "قم بتوصيل الجهاز أولاً.",
   demoModeDone: "تم",
+
+  // Landing / onboarding (3-page flow)
+  landingCta: "ابدأ الآن",
+  landingSecondary: "لدي حساب بالفعل",
+  landingHeroLabel: "مراقبة الجرح مباشرة",
+  nextStep: "التالي",
+  skipShort: "تخطي",
+  onboardSmartTitle: "رعاية ذكية للجروح",
+  onboardSmartSub: "يساعدك إنزورا على متابعة الجرح بطريقة بسيطة.",
+  onboardAlertsTitle: "تنبيهات لونية واضحة",
+  onboardAlertsSub: "اعرف متى يكون الجرح طبيعياً ومتى يحتاج إلى الانتباه.",
+  onboardSupportTitle: "مفيد كل يوم",
+  onboardSupportSub: "احصل على نصائح بسيطة وتنبيهات وتقارير جاهزة للمشاركة مع طبيبك.",
 };
 
 const STORAGE_KEY = "enzora.lang";

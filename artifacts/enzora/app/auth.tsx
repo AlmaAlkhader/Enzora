@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -35,9 +35,12 @@ const { height } = Dimensions.get("window");
 export default function AuthScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { intent } = useLocalSearchParams<{ intent?: string }>();
   const { signUp, signIn, setBiometricEnabled } = useApp();
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<"signup" | "login">("signup");
+  const [tab, setTab] = useState<"signup" | "login">(
+    intent === "login" ? "login" : "signup",
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
