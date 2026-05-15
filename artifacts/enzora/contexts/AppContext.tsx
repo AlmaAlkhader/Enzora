@@ -141,7 +141,6 @@ interface AppCtx {
   loading: boolean;
   prefsLoaded: boolean;
   language: "en" | "ar";
-  largeText: boolean;
   notificationsEnabled: boolean;
   hasSeenOnboarding: boolean;
   // Wellness extensions
@@ -167,7 +166,6 @@ interface AppCtx {
   setHasSeenOnboarding: (v: boolean) => Promise<void>;
   setLanguage: (lang: "en" | "ar") => Promise<void>;
   toggleLanguage: () => Promise<void>;
-  setLargeText: (v: boolean) => Promise<void>;
   setNotificationsEnabled: (v: boolean) => Promise<void>;
   setBiometricEnabled: (v: boolean) => Promise<void>;
   setDailyReminderEnabled: (v: boolean) => Promise<void>;
@@ -194,7 +192,6 @@ interface AppCtx {
 const Ctx = createContext<AppCtx | null>(null);
 
 const ONBOARD_KEY = "enzora.onboarded";
-const LARGE_TEXT_KEY = "enzora.largeText";
 const NOTIF_KEY = "enzora.notif";
 const SESSION_KEY = "enzora_session";
 const DAILY_REMINDER_KEY = "enzora.dailyReminder";
@@ -375,7 +372,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
   const [loading, setLoading] = useState(true);
   const [language, setLanguageState] = useState<"en" | "ar">("en");
-  const [largeText, setLargeTextState] = useState(false);
   const [notificationsEnabled, setNotificationsEnabledState] = useState(true);
   const [hasSeenOnboarding, setHasSeenOnboardingState] = useState(false);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
@@ -406,15 +402,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } catch {
           // ignore
         }
-        const [onb, lt, nf, dr, session] = await Promise.all([
+        const [onb, nf, dr, session] = await Promise.all([
           AsyncStorage.getItem(ONBOARD_KEY),
-          AsyncStorage.getItem(LARGE_TEXT_KEY),
           AsyncStorage.getItem(NOTIF_KEY),
           AsyncStorage.getItem(DAILY_REMINDER_KEY),
           AsyncStorage.getItem(SESSION_KEY),
         ]);
         setHasSeenOnboardingState(onb === "1");
-        setLargeTextState(lt === "1");
         setNotificationsEnabledState(nf !== "0");
         setDailyReminderEnabledState(dr !== "0");
 
@@ -827,11 +821,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await setLanguage(next);
   }, [language, setLanguage]);
 
-  const setLargeText = useCallback(async (v: boolean) => {
-    setLargeTextState(v);
-    await AsyncStorage.setItem(LARGE_TEXT_KEY, v ? "1" : "0");
-  }, []);
-
   const setNotificationsEnabled = useCallback(async (v: boolean) => {
     setNotificationsEnabledState(v);
     await AsyncStorage.setItem(NOTIF_KEY, v ? "1" : "0");
@@ -1145,7 +1134,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     loading,
     prefsLoaded,
     language,
-    largeText,
     notificationsEnabled,
     hasSeenOnboarding,
     patients,
@@ -1156,7 +1144,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setHasSeenOnboarding,
     setLanguage,
     toggleLanguage,
-    setLargeText,
     setNotificationsEnabled,
     setBiometricEnabled,
     setDailyReminderEnabled,

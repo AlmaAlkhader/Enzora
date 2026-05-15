@@ -46,8 +46,6 @@ export default function ProfileScreen() {
     signOutUser,
     language,
     toggleLanguage,
-    largeText,
-    setLargeText,
     notificationsEnabled,
     setNotificationsEnabled,
     biometricEnabled,
@@ -689,17 +687,6 @@ export default function ProfileScreen() {
                 />
               </View>
             )}
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
-                <Feather name="type" size={20} color={c.primary} />
-                <Text style={styles.settingLabel}>{t("largeText")}</Text>
-              </View>
-              <Switch
-                value={largeText}
-                onValueChange={setLargeText}
-                trackColor={{ true: c.primary, false: c.border }}
-              />
-            </View>
           </View>
         </Card>
 
