@@ -80,28 +80,10 @@ const firebaseConfig = {
 let app: FirebaseApp | null = null;
 let rtdb: Database | null = null;
 
-console.log("[firebase] config check", {
-  hasApiKey: !!firebaseConfig.apiKey,
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
-  databaseURL: validDbUrl ?? "(missing/invalid)",
-  rawEnv: {
-    EXPO_PUBLIC_FIREBASE_DATABASE_URL: envDbUrl ?? "(unset)",
-    EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: envAuthDomain ?? "(unset)",
-    EXPO_PUBLIC_FIREBASE_PROJECT_ID: envProjectId ?? "(unset)",
-  },
-});
-
 try {
   if (validDbUrl && firebaseConfig.apiKey) {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     rtdb = getDatabase(app);
-    console.log("[firebase] initialized", {
-      app: !!app,
-      appName: app?.name,
-      rtdb: !!rtdb,
-      databaseURL: validDbUrl,
-    });
   } else if (!validDbUrl) {
     console.warn(
       "[firebase] could not derive a valid RTDB URL from any env var — sensor data will be offline.",

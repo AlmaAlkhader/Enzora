@@ -675,37 +675,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Connection state is driven *solely* by the presence of
   // /sensor{deviceId}/sensor/status for the currently-active device.
   useEffect(() => {
-    console.log("[sensor] effect mount — rtdb:", !!rtdb, "deviceId:", effectiveDeviceId);
     if (!rtdb) {
       console.warn("[sensor] rtdb is null — listener NOT attached");
       return;
     }
     if (!effectiveDeviceId) {
-      console.log("[sensor] no deviceId — skipping listener");
       setFirebaseSensor((s) => ({ ...s, connected: false, status: null }));
       return;
     }
     const path = `devices/${effectiveDeviceId}/sensor${effectiveDeviceId}/sensor`;
     const sensorRef = ref(rtdb, path);
-    console.log("[sensor] attaching listener", {
-      effectiveDeviceId,
-      path,
-      refToString: sensorRef.toString(),
-    });
     const unsub = onValue(
       sensorRef,
       (snap) => {
         const v = snap.val();
-        console.log("[sensor] Firebase listener triggered");
-        console.log("[sensor] Snapshot value:", v);
-        console.log("[sensor] Status:", v?.status);
         // Node reachable === device exists in RTDB. Status may still be
         // missing on a brand-new device that hasn't pushed its first
         // reading yet — in that case we surface a "waiting" state on Home
         // rather than treating the device as not-found.
         const nodeExists = !!v;
         const hasStatus = !!(v && v.status);
-        console.log("[sensor] nodeExists:", nodeExists, "hasStatus:", hasStatus);
         if (hasStatus) {
           setFirebaseSensor({
             status: v.status as SensorStatus,
@@ -731,7 +720,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       },
     );
     return () => {
-      console.log("[sensor] detaching listener");
       unsub();
     };
   }, [effectiveDeviceId]);
@@ -1000,12 +988,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       { ok: true } | { ok: false; reason: "not-found" | "no-firebase" | "error" }
     > => {
       const deviceId = normaliseDeviceId(rawId);
-      console.log("[device] connect attempt — raw:", rawId, "normalised:", deviceId);
       if (!deviceId) return { ok: false, reason: "not-found" };
       if (!rtdb) return { ok: false, reason: "no-firebase" };
       try {
         const checkPath = `devices/${deviceId}/sensor${deviceId}/sensor`;
-        console.log("[device] checking Firebase path:", checkPath);
         const snap = await Promise.race([
           get(ref(rtdb, checkPath)),
           new Promise<never>((_, reject) =>
@@ -1013,12 +999,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ),
         ]);
         const v = snap.val();
-        console.log("[device] snapshot exists:", snap.exists(), "value:", v, "status:", v?.status);
         // Accept the device as long as the node exists — a freshly-paired
         // device may not have pushed its first status reading yet, and
         // we don't want to reject the pairing in that case.
         if (!v) {
-          console.log("[device] node not found at path:", checkPath);
           return { ok: false, reason: "not-found" };
         }
         if (user) {
