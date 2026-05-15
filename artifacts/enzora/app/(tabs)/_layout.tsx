@@ -20,6 +20,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: "none",
         tabBarActiveTintColor: c.navActive,
         tabBarInactiveTintColor: c.navInactive,
         tabBarStyle: {

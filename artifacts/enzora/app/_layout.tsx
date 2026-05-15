@@ -53,22 +53,32 @@ function RootLayoutNav() {
   }, [router]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="onboarding" />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        animationDuration: 280,
+        gestureEnabled: true,
+      }}
+    >
+      <Stack.Screen name="index" options={{ animation: "fade" }} />
+      <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
       <Stack.Screen name="auth" />
       <Stack.Screen name="medical-profile" />
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
       <Stack.Screen
         name="connect-help"
-        options={{ presentation: "modal" }}
+        options={{ presentation: "modal", animation: "fade_from_bottom" }}
       />
       <Stack.Screen
         name="connect-device"
-        options={{ presentation: "modal" }}
+        options={{ presentation: "modal", animation: "fade_from_bottom" }}
       />
-      <Stack.Screen name="wound/new" options={{ presentation: "modal" }} />
-      <Stack.Screen name="wound/[id]" />
+      <Stack.Screen
+        name="wound/new"
+        options={{ presentation: "modal", animation: "fade_from_bottom" }}
+      />
+      <Stack.Screen name="wound/[id]" options={{ animation: "slide_from_right" }} />
     </Stack>
   );
 }
