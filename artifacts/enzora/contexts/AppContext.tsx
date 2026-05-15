@@ -946,6 +946,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       void clearPushSubscription(user.email);
     }
     await AsyncStorage.removeItem(SESSION_KEY);
+    // Reset the "has seen landing/onboarding" flag so that when a different
+    // user opens the app on this device they get the branded landing screen
+    // again instead of dropping straight into /auth. A returning user who
+    // restores their session via SESSION_KEY skips this code path entirely,
+    // so they still go directly to Home as before.
+    await AsyncStorage.setItem(ONBOARD_KEY, "0");
+    setHasSeenOnboardingState(false);
     setUser(null);
     setProfile(null);
     setWounds([]);
