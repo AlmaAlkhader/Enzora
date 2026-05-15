@@ -6,6 +6,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 import { useTranslation } from "react-i18next";
 
 import { GradientHeader, PrimaryButton } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { SUPPORT_PHONE } from "@/lib/support";
 
@@ -14,6 +15,7 @@ const c = colors.light;
 export default function ConnectHelp() {
   const { t } = useTranslation();
   const router = useRouter();
+  const scrollContentStyle = useScrollContentStyle(24, false);
 
   const callSupport = async () => {
     try {
@@ -60,7 +62,7 @@ export default function ConnectHelp() {
         back
         onBack={() => router.back()}
       />
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 16 }}>
+      <ScrollView contentContainerStyle={[{ paddingTop: 18, gap: 16 }, scrollContentStyle]}>
         {steps.map((s, i) => (
           <View key={i} style={styles.step}>
             <View style={styles.stepIcon}>

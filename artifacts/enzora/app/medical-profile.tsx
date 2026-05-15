@@ -10,6 +10,7 @@ import {
   TextField,
 } from "@/components/Brand";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { useApp, type MonitoredRelationship } from "@/contexts/AppContext";
 
@@ -19,6 +20,7 @@ export default function MedicalProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { saveMedicalProfile, profile } = useApp();
+  const scrollContentStyle = useScrollContentStyle(24, false);
   const existing = profile?.medicalProfile ?? null;
   const [relationship, setRelationship] = useState<MonitoredRelationship>(
     existing?.relationship ?? "self",
@@ -170,7 +172,7 @@ export default function MedicalProfileScreen() {
       <GradientHeader title={t("medicalProfile")} />
       <KeyboardAwareScrollViewCompat
         bottomOffset={20}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, scrollContentStyle]}
       >
         <Field label={t("monitoredPersonSection")}>
           <View style={styles.chipRow}>
@@ -318,7 +320,7 @@ export default function MedicalProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 16, paddingTop: 16, gap: 16, paddingBottom: 32 },
+  content: { paddingTop: 16, gap: 16 },
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chipRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   chip: {

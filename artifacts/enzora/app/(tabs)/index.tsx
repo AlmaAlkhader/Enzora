@@ -26,6 +26,7 @@ import { CareTipCard } from "@/components/CareTipCard";
 import { ColorAlertBanner } from "@/components/ColorGuide";
 import { DemoModeModal } from "@/components/DemoModeModal";
 import { PendingConfirmationCard } from "@/components/PendingConfirmation";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 import { SUPPORT_PHONE } from "@/lib/support";
@@ -54,6 +55,7 @@ function relativeMinutes(ts: number, t: (k: string) => string): string {
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const scrollContentStyle = useScrollContentStyle(20);
   const {
     profile,
     sensor,
@@ -151,7 +153,7 @@ export default function HomeScreen() {
       />
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, scrollContentStyle]}
         showsVerticalScrollIndicator={false}
       >
         {/* Monitoring banner — clearly identifies who this app is currently
@@ -767,9 +769,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   scroll: {
-    paddingHorizontal: 22,
     paddingTop: 8,
-    paddingBottom: 64,
     gap: 20,
   },
 

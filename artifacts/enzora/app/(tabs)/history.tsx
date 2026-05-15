@@ -9,6 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Card, EmptyState, GradientHeader } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import { ReadingRow } from "@/components/ReadingRow";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
@@ -20,6 +21,7 @@ type Range = "today" | "7" | "30";
 export default function HistoryScreen() {
   const { t } = useTranslation();
   const { readings, wounds, activeWound } = useApp();
+  const scrollContentStyle = useScrollContentStyle();
   const [range, setRange] = useState<Range>("7");
 
   const filtered = useMemo(() => {
@@ -44,7 +46,7 @@ export default function HistoryScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <GradientHeader layout="split" logoSize="lg" title={t("history")} />
-      <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
+      <ScrollView contentContainerStyle={[{ gap: 16 }, scrollContentStyle]}>
         <View style={styles.filterRow}>
           {(["today", "7", "30"] as const).map((k) => {
             const label =

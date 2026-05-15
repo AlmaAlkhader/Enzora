@@ -9,6 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { EmptyState, GradientHeader } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { useApp, type Reading } from "@/contexts/AppContext";
 
@@ -17,6 +18,7 @@ const c = colors.light;
 export default function AlertsScreen() {
   const { t } = useTranslation();
   const { readings } = useApp();
+  const scrollContentStyle = useScrollContentStyle();
 
   const alerts = useMemo(
     () => readings.filter((r) => r.status !== "yellow"),
@@ -41,7 +43,7 @@ export default function AlertsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <GradientHeader layout="split" logoSize="lg" title={t("alerts")} />
-      <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 18 }}>
+      <ScrollView contentContainerStyle={[{ gap: 18 }, scrollContentStyle]}>
         {alerts.length === 0 ? (
           <EmptyState
             icon="bell-off"

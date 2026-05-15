@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { GradientHeader } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import { ColorGuideRows } from "@/components/ColorGuide";
 import colors from "@/constants/colors";
 
@@ -20,12 +21,13 @@ const c = colors.light;
 export default function ColorGuideScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const scrollContentStyle = useScrollContentStyle(24, false);
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <GradientHeader layout="split" logoSize="lg" title={t("colorGuide")} />
       <ScrollView
-        contentContainerStyle={{ padding: 22, paddingBottom: 60, gap: 18 }}
+        contentContainerStyle={[{ paddingTop: 20, gap: 18 }, scrollContentStyle]}
       >
         <Pressable onPress={() => router.back()} style={styles.backRow}>
           <Feather

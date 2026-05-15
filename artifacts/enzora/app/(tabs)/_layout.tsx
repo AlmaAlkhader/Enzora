@@ -2,15 +2,19 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 
 import colors from "@/constants/colors";
+import { TAB_BAR_BASE_H, TAB_BAR_INNER_PAD } from "@/constants/layout";
 
 const c = colors.light;
 
 export default function TabLayout() {
   const { t } = useTranslation();
   const isWeb = Platform.OS === "web";
+  const insets = useSafeAreaInsets();
+  const bottomInset = isWeb ? 0 : insets.bottom;
 
   return (
     <Tabs
@@ -22,7 +26,9 @@ export default function TabLayout() {
           backgroundColor: c.card,
           borderTopColor: c.border,
           borderTopWidth: 1,
-          ...(isWeb ? { height: 88 } : { height: 70, paddingBottom: 10 }),
+          ...(isWeb
+            ? { height: 88 }
+            : { height: TAB_BAR_BASE_H + bottomInset, paddingBottom: bottomInset + TAB_BAR_INNER_PAD }),
           paddingTop: 8,
           ...Platform.select({
             ios: {

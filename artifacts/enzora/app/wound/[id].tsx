@@ -21,6 +21,7 @@ import {
   StatusCard,
   TextField,
 } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import {
   ConfettiOverlay,
   DoctorReportModal,
@@ -63,6 +64,7 @@ export default function WoundDetail() {
   const [note, setNote] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  const scrollContentStyle = useScrollContentStyle(24, false);
 
   if (!wound) {
     return (
@@ -138,7 +140,7 @@ export default function WoundDetail() {
         subtitle={wound.location || undefined}
       />
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 18 }}
+        contentContainerStyle={[{ paddingTop: 18, gap: 18 }, scrollContentStyle]}
       >
         <Pressable onPress={() => router.back()} style={styles.backRow}>
           <Feather name="chevron-left" size={22} color={c.primary} />

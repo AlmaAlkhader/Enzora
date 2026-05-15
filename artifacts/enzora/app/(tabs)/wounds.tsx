@@ -17,6 +17,7 @@ import {
   PrimaryButton,
   softShadow,
 } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { useApp, type Wound } from "@/contexts/AppContext";
 
@@ -26,6 +27,7 @@ export default function WoundsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { wounds, sensor, activeWound } = useApp();
+  const scrollContentStyle = useScrollContentStyle();
   const current = wounds.filter((w) => w.status === "active");
   const healed = wounds
     .filter((w) => w.status === "healed")
@@ -41,9 +43,7 @@ export default function WoundsScreen() {
         title={t("myWounds")}
         subtitle={subtitle}
       />
-      <ScrollView
-        contentContainerStyle={{ padding: 18, paddingBottom: 100, gap: 18 }}
-      >
+      <ScrollView contentContainerStyle={[{ gap: 18 }, scrollContentStyle]}>
         {/* CURRENT WOUNDS */}
         <View style={{ gap: 10 }}>
           <Text style={styles.sectionTitle}>{t("currentWoundsTitle")}</Text>

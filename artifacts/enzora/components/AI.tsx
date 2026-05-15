@@ -15,6 +15,7 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -106,6 +107,7 @@ type StampedMessage = ChatMessage & { ts?: number };
 export function AIChatScreen() {
   const { t, i18n } = useTranslation();
   const { user, profile, activeWound, sensor } = useApp();
+  const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<StampedMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -261,7 +263,7 @@ Patient question: ${text}${arabic}`;
         ) : null}
       </ScrollView>
 
-      <View style={chatStyles.inputBar}>
+      <View style={[chatStyles.inputBar, Platform.OS !== "web" && insets.bottom > 0 ? { paddingBottom: insets.bottom + 10 } : null]}>
         <TextInput
           value={input}
           onChangeText={setInput}

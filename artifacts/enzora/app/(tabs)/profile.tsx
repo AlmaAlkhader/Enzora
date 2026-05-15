@@ -15,6 +15,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Card, GradientHeader } from "@/components/Brand";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import { SOSButton } from "@/components/Wellness";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
@@ -201,6 +202,7 @@ export default function ProfileScreen() {
   };
   const [avatarTaps, setAvatarTaps] = useState(0);
   void avatarTaps;
+  const scrollContentStyle = useScrollContentStyle();
 
   useEffect(() => {
     void (async () => {
@@ -260,7 +262,7 @@ export default function ProfileScreen() {
         title={t("profile")}
         right={<SOSButton />}
       />
-      <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 80, gap: 16 }}>
+      <ScrollView contentContainerStyle={[{ gap: 16 }, scrollContentStyle]}>
         <Card style={{ alignItems: "center", gap: 8, padding: 24 }}>
           <Pressable onPress={onAvatarTap} style={styles.avatar}>
             <Text style={styles.avatarText}>

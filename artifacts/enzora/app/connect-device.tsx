@@ -17,6 +17,7 @@ import {
   TextField,
 } from "@/components/Brand";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { normaliseDeviceId, useApp } from "@/contexts/AppContext";
 
@@ -30,6 +31,7 @@ export default function ConnectDevice() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const scrollContentStyle = useScrollContentStyle(24, false);
 
   const onConnect = async () => {
     setError(null);
@@ -59,7 +61,7 @@ export default function ConnectDevice() {
       <GradientHeader layout="split" logoSize="lg" />
       <KeyboardAwareScrollViewCompat
         bottomOffset={20}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, scrollContentStyle]}
       >
         <Pressable
           onPress={() => router.back()}
@@ -133,7 +135,7 @@ export default function ConnectDevice() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 22, gap: 16, paddingBottom: 60 },
+  content: { paddingTop: 20, gap: 16 },
   backRow: {
     flexDirection: "row",
     alignItems: "center",

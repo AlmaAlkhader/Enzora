@@ -10,6 +10,7 @@ import {
   TextField,
 } from "@/components/Brand";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
+import { useScrollContentStyle } from "@/components/ScreenContainer";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
 
@@ -19,6 +20,7 @@ export default function NewWound() {
   const { t } = useTranslation();
   const router = useRouter();
   const { addWound } = useApp();
+  const scrollContentStyle = useScrollContentStyle(24, false);
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -56,7 +58,7 @@ export default function NewWound() {
       />
       <KeyboardAwareScrollViewCompat
         bottomOffset={20}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, scrollContentStyle]}
       >
         <Field label={t("woundName")} error={errors.name}>
           <TextField
@@ -112,5 +114,5 @@ export default function NewWound() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 20, gap: 16, paddingBottom: 60 },
+  content: { paddingTop: 16, gap: 16 },
 });
