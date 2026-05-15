@@ -1,0 +1,198 @@
+Redesign the landing page / welcome screen before Login and Sign Up so it matches the current Enzora app theme.
+
+Important:
+Do not change authentication logic.
+Do not change Firebase sensor logic.
+Do not change Login or Sign Up functionality.
+Only redesign the landing/welcome screen before authentication.
+
+Problem:
+The landing page before login does not match the rest of the app. It feels disconnected from the Enzora pastel medical dashboard theme.
+
+Goal:
+Create a catchy, animated, Enzora-branded landing screen that feels consistent with the rest of the app.
+
+Design direction:
+Use the same theme as the app:
+- soft pale blue/lavender background
+- Enzora indigo/violet colors
+- rounded cards
+- soft glow
+- calm medical feeling
+- premium but simple
+- elderly-friendly
+- not childish
+- not generic
+
+Colors:
+- navy: #1B2A6B
+- indigo: #6E75BF
+- violet: #8879B8
+- pale lavender: #EDEBFF
+- pale blue: #F4F8FF
+- white: #FFFFFF
+- mint accent: #BFEBD8
+- yellow status accent: #FFB703
+- green status accent: #7BC47F
+- blue alert accent: #4A90E2
+
+Landing screen layout:
+
+1. Top area
+- Add generous safe-area padding.
+- Place the Enzora full logo in the center.
+- The logo should look premium and large.
+- Use full logo with text on the landing/auth pages only.
+- Keep the language toggle top-right, but position it nicely with safe-area spacing.
+
+2. Animated hero visual
+Create a simple animated hero illustration inspired by the product:
+- a soft smart bandage / patch card
+- subtle pulsing glow
+- three small color dots: yellow, green, blue
+- a small “Live wound monitoring” style visual
+- gentle floating animation
+
+Animation ideas:
+- logo fades/scales in
+- bandage card floats slightly up/down
+- color dots softly pulse one by one
+- background has subtle gradient blobs
+- no fast or distracting animation
+
+3. Main headline
+Use a catchy headline:
+
+English:
+“Smart wound care, made simple.”
+
+Arabic:
+“رعاية ذكية للجروح ببساطة.”
+
+4. Subtitle
+English:
+“Enzora helps you monitor wound color changes and know when to act.”
+
+Arabic:
+“يساعدك إنزورا على متابعة تغير لون الجرح ومعرفة متى يجب التصرف.”
+
+Keep subtitle short and clear.
+
+5. Three feature pills/cards
+Show 3 small rounded feature items:
+
+English:
+- “Live color monitoring”
+- “Simple alerts”
+- “Doctor-ready reports”
+
+Arabic:
+- “متابعة اللون مباشرة”
+- “تنبيهات بسيطة”
+- “تقارير جاهزة للطبيب”
+
+Use soft icons:
+- color circle
+- bell
+- report/document
+
+6. Buttons
+At bottom, show two clear actions:
+
+Primary button:
+English: “Get Started”
+Arabic: “ابدأ الآن”
+
+This opens Sign Up by default.
+
+Secondary text/button:
+English: “I already have an account”
+Arabic: “لدي حساب بالفعل”
+
+This opens Login.
+
+Button style:
+- primary gradient #6E75BF → #8879B8
+- 56px height
+- rounded 16px
+- bold white text
+- secondary button clean and simple
+
+7. Page transition
+When tapping Get Started or Login:
+- use a smooth transition to the auth form
+- no abrupt jump if possible
+
+8. Consistency with auth screens
+The landing screen should visually match the Sign Up/Login screen:
+- same background family
+- same logo treatment
+- same language toggle
+- same rounded/pastel feel
+- same typography
+
+Do not make the landing page dark.
+Do not use harsh hospital colors.
+Do not overload it with text.
+Do not show raw RGB values.
+Do not mention ESP32/Firebase on the landing page.
+
+9. Accessibility
+- large readable text
+- high contrast
+- clear buttons
+- enough spacing
+- no tiny labels
+- simple patient-friendly language
+
+10. Optional skip behavior
+If user is already logged in:
+- do not show landing page
+- go directly to Home
+
+If user is logged out:
+- show landing page first
+
+11. Arabic / RTL
+Make sure Arabic version:
+- uses Arabic translations
+- respects RTL layout
+- keeps the visual layout clean
+- language toggle works
+
+Suggested landing screen content:
+
+English:
+Headline:
+“Smart wound care, made simple.”
+
+Subtitle:
+“Monitor wound color changes, get clear alerts, and share reports with your doctor.”
+
+Feature cards:
+“Live color monitoring”
+“Simple alerts”
+“Doctor-ready reports”
+
+Buttons:
+“Get Started”
+“I already have an account”
+
+Arabic:
+Headline:
+“رعاية ذكية للجروح ببساطة.”
+
+Subtitle:
+“تابع تغير لون الجرح، استلم تنبيهات واضحة، وشارك التقارير مع طبيبك.”
+
+Feature cards:
+“متابعة اللون مباشرة”
+“تنبيهات بسيطة”
+“تقارير جاهزة للطبيب”
+
+Buttons:
+“ابدأ الآن”
+“لدي حساب بالفعل”
+
+Final result:
+The landing page should feel like a beautiful Enzora-branded intro screen, matching the rest of the pastel medical dashboard app, with soft animations and clear call-to-action buttons.
