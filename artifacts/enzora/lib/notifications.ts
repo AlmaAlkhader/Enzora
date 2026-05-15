@@ -117,11 +117,11 @@ function transitionCopy(
     return en
       ? {
           title: "Small change detected",
-          body: "Please check your wound today.",
+          body: "Check your wound today.",
         }
       : {
           title: "تم اكتشاف تغير بسيط",
-          body: "يرجى فحص الجرح اليوم.",
+          body: "افحص جرحك اليوم.",
         };
   }
   if (next === "yellow" && (prev === "green" || prev === "blue")) {
@@ -206,12 +206,12 @@ export async function scheduleDailyReminder({
     // pre-baked and would otherwise become stale before they fire.
     const title =
       language === "ar"
-        ? "نصيحة إنزورا جاهزة"
-        : "Your Enzora care tip is ready";
+        ? "نصيحة جاهزة"
+        : "Care tip ready";
     const body =
       language === "ar"
-        ? "افتح إنزورا لقراءة نصيحة العناية اليوم."
-        : "Open Enzora for today's wound-care advice.";
+        ? "افتح إنزورا لنصيحة اليوم."
+        : "Open Enzora for today's tip.";
     await Notifications.scheduleNotificationAsync({
       identifier: DAILY_ID,
       content: { title, body },

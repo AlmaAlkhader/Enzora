@@ -26,6 +26,7 @@ import { ColorAlertBanner } from "@/components/ColorGuide";
 import { PendingConfirmationCard } from "@/components/PendingConfirmation";
 import colors from "@/constants/colors";
 import { useApp } from "@/contexts/AppContext";
+import { SUPPORT_PHONE } from "@/lib/support";
 
 const c = colors.light;
 
@@ -623,7 +624,7 @@ function InfectionModal({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { profile } = useApp();
+  const { profile, sensor } = useApp();
   const callEmergency = async () => {
     const phone = profile?.medicalProfile?.emergencyPhone?.trim();
     if (!phone) {
@@ -631,12 +632,28 @@ function InfectionModal({
       return;
     }
     try {
-      const Linking = await import("expo-linking");
       await Linking.openURL(`tel:${phone.replace(/[^+\d]/g, "")}`);
     } catch (err) {
       console.warn("[home] tel failed", err);
     }
     onClose();
+  };
+  const shareWhatsApp = async () => {
+    const status = sensor.status ?? "blue";
+    const key =
+      status === "yellow"
+        ? "whatsappShareYellow"
+        : status === "green"
+          ? "whatsappShareGreen"
+          : "whatsappShareBlue";
+    const number = SUPPORT_PHONE.replace(/[^+\d]/g, "").replace(/^\+/, "");
+    const text = encodeURIComponent(t(key));
+    const url = `https://wa.me/${number}?text=${text}`;
+    try {
+      await Linking.openURL(url);
+    } catch (err) {
+      console.warn("[home] whatsapp share failed", err);
+    }
   };
   return (
     <Modal
@@ -663,6 +680,13 @@ function InfectionModal({
             icon="phone"
             onPress={() => void callEmergency()}
             style={{ marginTop: 14 }}
+          />
+          <PrimaryButton
+            label={t("shareStatusWhatsApp")}
+            icon="message-circle"
+            variant="outline"
+            onPress={() => void shareWhatsApp()}
+            style={{ marginTop: 8 }}
           />
           <PrimaryButton
             label={t("understand")}

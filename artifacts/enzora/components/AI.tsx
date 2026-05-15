@@ -39,7 +39,17 @@ const webCursor =
 const COLOR_RULES = `Color meanings:
 YELLOW = wound is safe and healing normally
 GREEN = early signs of infection — monitor closely, consider calling doctor
-BLUE = infection confirmed — call doctor now`;
+BLUE = infection confirmed — call doctor now
+
+Exact script when asked what a color means (use these verbatim):
+YELLOW EN: "Yellow means your wound is safe and healing normally. Keep it clean and dry."
+GREEN EN: "Green means early signs of infection. Monitor your wound closely and call your doctor if it does not improve."
+BLUE EN: "Blue means infection is confirmed. Call your doctor now."
+YELLOW AR: "الأصفر يعني أن الجرح آمن ويلتئم بشكل طبيعي. حافظ عليه نظيفاً وجافاً."
+GREEN AR: "الأخضر يعني ظهور علامات مبكرة للعدوى. راقب الجرح عن كثب واتصل بطبيبك إذا لم تتحسن الحال."
+BLUE AR: "الأزرق يعني تأكد وجود عدوى. اتصل بطبيبك الآن."`;
+
+// Urgent mode: 2–3 sentences with a clear action; normal mode: 2–4 sentences.
 
 const SUGGESTED_KEYS = [
   "chatChip1",
@@ -124,14 +134,15 @@ export function AIChatScreen() {
     setMessages(next);
     setSending(true);
 
-    const sys = `You are Enzora AI, a friendly caring medical assistant. Speak like a kind, patient nurse explaining things to a grandparent.
+    const sys = `You are Enzora AI, a clear and practical wound-care assistant. Answer in 2–4 short sentences. Use neutral, direct language — no emotional phrases.
 ${COLOR_RULES}
 Rules:
-- Maximum 4 sentences
-- Simple warm language
 - Never diagnose
-- Suggest doctor for green or blue
-- If patient mentions pain, swelling, or fever, always recommend calling their doctor`;
+- For green: advise monitoring and mention calling the doctor if it persists
+- For blue: tell the patient to call their doctor now
+- For fever, severe pain, spreading redness, bad smell, or feeling unwell: advise urgent care immediately
+- If asked what a color means, give the one-sentence answer from the color rules above
+- End every response with one clear next step`;
 
     const arabic = language === "ar" ? "\nRespond in Arabic." : "";
     const woundName = activeWound?.name ?? "(no active wound)";

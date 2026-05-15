@@ -73,21 +73,19 @@ export async function writeCachedTip(tip: CachedCareTip): Promise<void> {
 }
 
 const SYSTEM_PROMPT_EN =
-  "You are Enzora Care Assistant. Write short, warm wound-care tips. Do " +
-  "not diagnose. Do not scare the patient. Use simple words. Maximum 3 " +
-  "short sentences. Give one helpful tip and one clear action for today. " +
-  "Use at most one gentle motivational phrase — do not repeat 'you are " +
-  "doing great' every time. If the status is an alert, be urgent but " +
-  "brief. Do not use raw RGB values. Do not use the word 'diagnosis'. " +
-  "Respond in English.";
+  "You are Enzora Care Assistant, a practical wound-care advisor. Write " +
+  "clear, direct wound-care tips in at most 3 short sentences: one " +
+  "practical tip and one clear action. Do not diagnose. Do not use " +
+  "emotional or motivational language. If the status is an alert, be " +
+  "brief and direct. Do not use raw RGB values. Do not use the word " +
+  "'diagnosis'. Respond in English.";
 
 const SYSTEM_PROMPT_AR =
-  "أنت مساعد إنزورا للعناية. اكتب نصائح قصيرة ودافئة للعناية بالجروح. لا " +
-  "تقدم تشخيصاً. لا تخيف المريض. استخدم كلمات بسيطة. ثلاث جمل قصيرة كحد " +
-  "أقصى. قدم نصيحة مفيدة واحدة وإجراءً واضحاً واحداً لليوم. استخدم عبارة " +
-  "تشجيعية لطيفة واحدة على الأكثر — لا تكرر 'أنت تقوم بعمل رائع' في كل " +
-  "مرة. إذا كانت الحالة تنبيهاً، كن عاجلاً لكن مختصراً. لا تستخدم قيم RGB " +
-  "الخام. لا تستخدم كلمة 'تشخيص'. أجب بالعربية.";
+  "أنت مساعد إنزورا للعناية، مستشار عملي للعناية بالجروح. اكتب نصائح " +
+  "واضحة ومباشرة في ثلاث جمل قصيرة كحد أقصى: نصيحة عملية واحدة وإجراء " +
+  "واضح واحد. لا تقدم تشخيصاً. لا تستخدم لغة عاطفية أو تشجيعية. إذا " +
+  "كانت الحالة تنبيهاً، كن مختصراً ومباشراً. لا تستخدم قيم RGB الخام. " +
+  "لا تستخدم كلمة 'تشخيص'. أجب بالعربية.";
 
 function statusLabel(s: SensorStatus | null, lang: Language): string {
   if (!s) return lang === "ar" ? "غير معروفة" : "unknown";
@@ -144,26 +142,25 @@ function buildUserMessage(ctx: CareTipContext): string {
   ].join("\n");
 }
 
-// Calm fallback message used when the AI server is unreachable. Still
-// personalized and language-aware so the card never looks broken.
+// Fallback message used when the AI server is unreachable. Practical and
+// language-aware so the card never looks broken.
 function fallbackMessage(ctx: CareTipContext): string {
-  const first = (ctx.patientName || "").split(" ")[0]?.trim() || "";
   if (ctx.language === "ar") {
     if (ctx.status === "blue") {
-      return `صباح الخير${first ? " يا " + first : ""}. اكتشف إنزورا قراءة تنبيه. اتصل بطبيبك اليوم.`;
+      return "اكتشف إنزورا قراءة تنبيه. اتصل بطبيبك اليوم.";
     }
     if (ctx.status === "green") {
-      return `صباح الخير${first ? " يا " + first : ""}. تم ملاحظة تغير بسيط. افحص الجرح اليوم واتصل بالطبيب إذا زاد الألم أو التورم.`;
+      return "تم اكتشاف تغيّر بسيط في الجرح. افحص الجرح واتصل بطبيبك إذا زاد الألم أو التورم.";
     }
-    return `صباح الخير${first ? " يا " + first : ""}. يبدو الجرح مستقراً اليوم. حافظ عليه نظيفاً وجافاً.`;
+    return "حافظ على الجرح نظيفاً وجافاً. راقب أي تغيرات.";
   }
   if (ctx.status === "blue") {
-    return `Good morning${first ? ", " + first : ""}. Enzora detected an alert reading. Call your doctor today.`;
+    return "Enzora detected an alert reading. Call your doctor today.";
   }
   if (ctx.status === "green") {
-    return `Good morning${first ? ", " + first : ""}. A small change was noticed. Check the wound today and call your doctor if pain or swelling increases.`;
+    return "A small wound change was detected. Check your wound and call your doctor if pain or swelling increases.";
   }
-  return `Good morning${first ? ", " + first : ""}. Your wound looks stable today. Keep it clean and dry.`;
+  return "Keep the wound clean and dry. Monitor for any changes.";
 }
 
 export interface GenerateOptions {

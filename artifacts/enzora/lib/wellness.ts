@@ -109,10 +109,10 @@ export function generateCareTips({
     );
   } else {
     en.push(
-      `Day ${days} is going well — keep the patch dry and avoid pressure on the area.`,
+      `Keep the patch dry and avoid pressure on the wound area.`,
     );
     ar.push(
-      `اليوم ${days} يسير بشكل جيد — حافظ على جفاف اللاصقة وتجنّب الضغط على المنطقة.`,
+      `حافظ على جفاف اللاصقة وتجنّب الضغط على منطقة الجرح.`,
     );
   }
 

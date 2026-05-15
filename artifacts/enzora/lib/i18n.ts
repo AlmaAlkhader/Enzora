@@ -165,7 +165,7 @@ const en = {
   // Alert modal
   alertTitle: "Your Wound Needs Attention",
   alertBody:
-    "Our sensor detected a possible infection. Please don't worry — here is what to do:",
+    "The sensor detected a possible infection. Here is what to do:",
   alertStep1: "Do NOT remove the bandage yourself",
   alertStep2: "Check if area is red, swollen, or warm",
   alertStep3: "Call your doctor as soon as possible",
@@ -380,10 +380,10 @@ const en = {
   // Status lock (safety feature)
   pendingGreenTitle: "Please Check Your Wound",
   pendingGreenBody:
-    "Earlier, the sensor detected early signs of inflammation. Even though the latest reading looks normal, please confirm you have checked on your wound before we mark it as safe.",
+    "The sensor detected early signs of inflammation. Confirm you have checked your wound before we mark it safe.",
   pendingBlueTitle: "Please Confirm You Saw a Doctor",
   pendingBlueBody:
-    "The sensor previously detected a sign of inflammation. Please confirm you have seen a doctor or checked on your wound before we mark it as safe again.",
+    "The sensor detected signs of inflammation. Confirm you have seen a doctor or checked your wound before we mark it safe.",
   confirmCheckedSelf: "I checked my wound, all is well ✓",
   confirmCheckedDoctor: "I saw a doctor, all is clear ✓",
   stillConcerned: "Still concerned — keep monitoring",
@@ -421,9 +421,15 @@ const en = {
   viewHealedWounds: "View Healed Wounds",
 
   // Daily reminder notification
-  dailyReminderTitle: "Good morning from Enzora 💙",
-  dailyReminderBody:
-    "Your device is monitoring your wound. Stay hydrated and rest well today.",
+  dailyReminderTitle: "Care tip ready",
+  dailyReminderBody: "Open Enzora for today's tip.",
+  whatsappShareYellow:
+    "Enzora update: Wound reading is normal. No action needed.",
+  whatsappShareGreen:
+    "Enzora update: Small wound change detected. Monitoring closely.",
+  whatsappShareBlue:
+    "Enzora alert: Infection sign detected. Calling doctor today.",
+  shareStatusWhatsApp: "Share via WhatsApp",
 
   // Doctor report
   doctorReport: "Generate Doctor Report 📋",
@@ -653,7 +659,7 @@ const ar: typeof en = {
   noAlerts: "لا توجد تنبيهات بعد — جرحك تحت المراقبة",
 
   alertTitle: "جرحك يحتاج إلى عناية",
-  alertBody: "اكتشف مستشعرنا عدوى محتملة. لا تقلق — إليك ما يجب فعله:",
+  alertBody: "اكتشف المستشعر عدوى محتملة. إليك ما يجب فعله:",
   alertStep1: "لا تنزع الضمادة بنفسك",
   alertStep2: "تحقق إذا كانت المنطقة حمراء أو متورمة أو دافئة",
   alertStep3: "اتصل بطبيبك في أقرب وقت ممكن",
@@ -858,10 +864,10 @@ const ar: typeof en = {
   // Status lock (safety feature)
   pendingGreenTitle: "يرجى فحص جرحك",
   pendingGreenBody:
-    "في وقت سابق، اكتشف الجهاز علامات مبكرة للالتهاب. على الرغم من أن آخر قراءة تبدو طبيعية، يرجى تأكيد أنك فحصت جرحك قبل أن نعتبره آمناً.",
+    "اكتشف الجهاز علامات مبكرة للالتهاب. يرجى تأكيد أنك فحصت جرحك قبل أن نعتبره آمناً.",
   pendingBlueTitle: "يرجى تأكيد أنك زرت الطبيب",
   pendingBlueBody:
-    "اكتشف الجهاز سابقاً علامة التهاب. يرجى تأكيد أنك زرت الطبيب أو فحصت جرحك قبل أن نعتبره آمناً مجدداً.",
+    "اكتشف الجهاز علامة التهاب. يرجى تأكيد أنك زرت الطبيب أو فحصت جرحك قبل أن نعتبره آمناً.",
   confirmCheckedSelf: "فحصت جرحي، كل شيء بخير ✓",
   confirmCheckedDoctor: "زرت الطبيب، كل شيء على ما يرام ✓",
   stillConcerned: "لا أزال قلقاً — واصل المراقبة",
@@ -897,9 +903,15 @@ const ar: typeof en = {
     "جرحك شُفي تماماً. أحسنت على اهتمامك بصحتك!",
   viewHealedWounds: "عرض الجروح الشافية",
 
-  dailyReminderTitle: "صباح الخير من إنزورا 💙",
-  dailyReminderBody:
-    "جهازك يراقب جرحك. اشرب الماء واسترح جيداً اليوم.",
+  dailyReminderTitle: "نصيحة جاهزة",
+  dailyReminderBody: "افتح إنزورا لنصيحة اليوم.",
+  whatsappShareYellow:
+    "تحديث إنزورا: قراءة الجرح طبيعية. لا حاجة لإجراء.",
+  whatsappShareGreen:
+    "تحديث إنزورا: تم اكتشاف تغيّر بسيط. المتابعة جارية.",
+  whatsappShareBlue:
+    "تنبيه إنزورا: ظهرت علامة عدوى. سأتصل بالطبيب اليوم.",
+  shareStatusWhatsApp: "مشاركة عبر واتساب",
 
   doctorReport: "إنشاء تقرير للطبيب 📋",
   doctorReportTitle: "تقرير حالة الجرح",

@@ -44,22 +44,22 @@ export function contentForTransition({
     return en
       ? {
           title: "Small change detected",
-          body: "Please keep an eye on your wound today.",
+          body: "Check your wound today.",
         }
       : {
           title: "تم اكتشاف تغير بسيط",
-          body: "يرجى مراقبة الجرح اليوم.",
+          body: "افحص جرحك اليوم.",
         };
   }
   if (newStatus === "blue") {
     return en
       ? {
           title: "Infection alert",
-          body: "Please call your doctor today. If you feel unwell, go to the hospital.",
+          body: "Call your doctor today. Go to emergency if you feel unwell.",
         }
       : {
           title: "تنبيه عدوى",
-          body: "يرجى الاتصال بطبيبك اليوم. إذا كنت تشعر بتوعك، اذهب إلى المستشفى.",
+          body: "اتصل بطبيبك اليوم. اذهب إلى الطوارئ إذا شعرت بتوعك.",
         };
   }
   // Fallback — yellow as the very first reading or after null. We do not
